@@ -1,1 +1,42 @@
-node_modules
+# Laravel & PHP
+/vendor/
+/node_modules/
+.env
+.phpunit.result.cache
+Homestead.yaml
+Homestead.json
+/.vagrant
+/.idea
+/.phpstorm.meta.php
+/.DS_Store
+
+# Laravel specific
+/public/storage
+/storage/*.key
+/storage/app/public
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
+/bootstrap/cache/*.php
+
+# NPM / Yarn / PNPM
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# Composer
+composer.lock
+composer.phar
+
+# IDE / Editors
+/.vscode
+/.history
+
+# OS Files
+Thumbs.db
+.DS_Store
+Desktop.ini
+
+# Cache
+/.cache
