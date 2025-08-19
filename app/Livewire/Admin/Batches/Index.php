@@ -4,6 +4,8 @@ namespace App\Livewire\Admin\Batches;
 
 use Livewire\Component;
 
+use Livewire\Attributes\Layout;
+#[Layout('components.layouts.admin')]
 class Index extends Component
 {
     public function render()

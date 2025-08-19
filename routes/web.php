@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Livewire\Admin\Dashboard as AdminDashboard;
+use App\Livewire\Admin\Dashboard ;
 
 // Students
 use App\Livewire\Admin\Students\Index as StudentsIndex;
@@ -25,11 +25,12 @@ use App\Livewire\Admin\Batches\Index as BatchesIndex;
 // Route::prefix('admin')->name('admin.')->group(function () {
 //     Route::get('/dashboard', AdminDashboard::class)->name('dashboard');
 // });
+    Route::get('/', Dashboard::class)->name('admin.dashboard');
 
 // Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    Route::prefix('admin')->name('admin.')->group(function () {
 
     // Dashboard
-    Route::get('/', AdminDashboard::class)->name('dashboard');
 
     // Students
     Route::get('/students', StudentsIndex::class)->name('students.index');
@@ -49,4 +50,5 @@ use App\Livewire\Admin\Batches\Index as BatchesIndex;
 
     // Batches
     Route::get('/batches', BatchesIndex::class)->name('batches.index');
+    });
 // });

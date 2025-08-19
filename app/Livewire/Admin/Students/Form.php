@@ -6,6 +6,8 @@ use Livewire\Component;
 use App\Models\Student;
 use App\Models\Guardian;
 
+use Livewire\Attributes\Layout;
+#[Layout('components.layouts.admin')]
 class Form extends Component
 {
      public ?Student $student = null;

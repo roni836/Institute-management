@@ -7,6 +7,8 @@ use App\Models\Admission;
 use App\Models\Student;
 use App\Models\Batch;
 
+use Livewire\Attributes\Layout;
+#[Layout('components.layouts.admin')]
 class Form extends Component
 {
    public ?Admission $admission = null;

@@ -1,4 +1,4 @@
-<x-layouts.admin :title="'Dashboard'">
+
     <div class="grid md:grid-cols-4 gap-3">
         @foreach([
           ['label'=>'Students','value'=>$kpis['students']],
@@ -12,4 +12,4 @@
         </div>
         @endforeach
     </div>
-</x-layouts.admin>
+
