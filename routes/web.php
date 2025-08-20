@@ -16,8 +16,6 @@ Route::get('/', Dashboard::class)->name('admin.dashboard');
 
 // Students
 Route::get('/students', StudentsIndex::class)->name('admin.students.index');
-Route::get('/students/create', StudentsForm::class)->name('students.create');
-Route::get('/students/{studentId}/edit', StudentsForm::class)->name('admin.students.edit');
 
 // Admissions
 Route::get('/admissions', AdmissionsIndex::class)->name('admin.admissions.index');

@@ -16,10 +16,6 @@
                 <option value="{{ $b->id }}">{{ $b->name }}</option>
             @endforeach
         </select>
-
-        <a href="{{ route('admin.students.create') }}" class="justify-self-end inline-flex items-center px-3 py-2 rounded-lg bg-black text-white">
-            + New Student
-        </a>
     </div>
 
     @if (session('ok'))
@@ -42,12 +38,7 @@
                         <td class="p-3">{{ $s->full_name }}</td>
                         <td class="p-3">{{ $s->email ?? '—' }}<br>{{ $s->phone ?? '—' }}</td>
                         <td class="p-3">{{ ucfirst($s->status) }}</td>
-                        <td class="p-3 text-right space-x-2">
-                            <a class="px-2 py-1 rounded bg-gray-100" href="{{ route('admin.students.edit', $s->id) }}">Edit</a>
-                            <button class="px-2 py-1 rounded bg-red-50 text-red-700"
-                                wire:click="delete({{ $s->id }})"
-                                wire:confirm="Delete this student?">Delete</button>
-                        </td>
+                        <td>View</td>
                     </tr>
                 @empty
                     <tr><td class="p-3" colspan="4">No students found.</td></tr>
