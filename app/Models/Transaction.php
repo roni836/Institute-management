@@ -7,11 +7,6 @@ class Transaction extends Model
 {
     protected $guarded = [];
 
-    public function installment()
-    {
-        return $this->belongsTo(Installment::class);
-    }
-
     public function student()
     {
         return $this->belongsTo(Student::class);
