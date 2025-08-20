@@ -14,12 +14,17 @@ return new class extends Migration
         Schema::create('students', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('email')->nullable();
+            $table->string('phone')->nullable();
+            $table->date('dob')->nullable(); // Date of Birth
             $table->string('father_name')->nullable();
             $table->string('mother_name')->nullable();
             $table->string('roll_no')->unique();
             $table->string('student_uid')->unique(); // e.g., 2501458
             $table->date('admission_date');
             $table->string('address')->nullable();
+            $table->string('status')->default('active'); // e.g., active, inactive, graduated
+            $table->string('photo')->nullable();
             $table->timestamps();
         });
     }

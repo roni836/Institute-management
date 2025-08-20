@@ -1,0 +1,37 @@
+<div>
+    <form wire:submit.prevent="save" class="bg-white border rounded-xl p-4 space-y-3 max-w-2xl">
+        <div>
+            <label class="text-xs">Course</label>
+            <select class="w-full border rounded p-2" wire:model="batch.course_id">
+                @foreach($courses as $c)
+                    <option value="{{ $c->id }}">{{ $c->name }}</option>
+                @endforeach
+            </select>
+            @error('batch.course_id')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
+        </div>
+
+        <div>
+            <label class="text-xs">Batch Name</label>
+            <input type="text" class="w-full border rounded p-2" wire:model="batch.batch_name">
+            @error('batch.batch_name')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-3">
+            <div>
+                <label class="text-xs">Start Date</label>
+                <input type="date" class="w-full border rounded p-2" wire:model="batch.start_date">
+                @error('batch.start_date')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label class="text-xs">End Date</label>
+                <input type="date" class="w-full border rounded p-2" wire:model="batch.end_date">
+                @error('batch.end_date')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
+            </div>
+        </div>
+
+        <div class="pt-2">
+            <button class="px-4 py-2 rounded-lg bg-black text-white">Update</button>
+            <a href="{{ route('admin.batches.index') }}" class="ml-2 px-4 py-2 rounded-lg border">Cancel</a>
+        </div>
+    </form>
+</div>

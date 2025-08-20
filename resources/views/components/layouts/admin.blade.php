@@ -24,7 +24,9 @@
                 <a href="{{ route('admin.students.index') }}"
                     class="block px-3 py-2 rounded-lg hover:bg-gray-100">Students</a>
                 <a href="{{ route('admin.courses.index') }}"
-                    class="block px-3 py-2 rounded-lg hover:bg-gray-100">Courses & Batches</a>
+                    class="block px-3 py-2 rounded-lg hover:bg-gray-100">Courses</a>
+                <a href="{{ route('admin.batches.index') }}"
+                    class="block px-3 py-2 rounded-lg hover:bg-gray-100">Batches</a>
             </nav>
         </aside>
 

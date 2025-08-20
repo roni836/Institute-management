@@ -1,0 +1,44 @@
+<div title="Edit Course">
+    <form wire:submit.prevent="save" class="bg-white border rounded-xl p-4 space-y-3 max-w-2xl">
+        <div>
+            <label class="text-xs">Name</label>
+            <input type="text" class="w-full border rounded p-2" wire:model="course.name">
+            @error('course.name')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-3">
+            <div>
+                <label class="text-xs">Code</label>
+                <input type="text" class="w-full border rounded p-2" wire:model="course.batch_code">
+            </div>
+            <div>
+                <label class="text-xs">Duration (months)</label>
+                <input type="number" min="1" class="w-full border rounded p-2" wire:model="course.duration_months">
+                @error('course.duration_months')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label class="text-xs">Gross Fee (₹)</label>
+                <input type="number" step="0.01" min="0" class="w-full border rounded p-2" wire:model="course.gross_fee">
+                @error('course.gross_fee')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-3 items-end">
+            <div>
+                <label class="text-xs">Discount (₹)</label>
+                <input type="number" step="0.01" min="0" class="w-full border rounded p-2" wire:model="course.discount">
+                @error('course.discount')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label class="text-xs">Net Fee</label>
+                <input type="text" readonly class="w-full border rounded p-2 bg-gray-50"
+                       value="₹{{ number_format((float)($course->gross_fee ?? 0) - (float)($course->discount ?? 0), 2) }}">
+            </div>
+        </div>
+
+        <div class="pt-2">
+            <button class="px-4 py-2 rounded-lg bg-black text-white">Update</button>
+            <a href="{{ route('admin.courses.index') }}" class="ml-2 px-4 py-2 rounded-lg border">Cancel</a>
+        </div>
+    </form>
+</div>

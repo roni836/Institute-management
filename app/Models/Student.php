@@ -27,7 +27,8 @@ class Student extends Model
         return $this->hasMany(Performance::class);
     }
 
-    public function admissions() {
-         return $this->hasMany(Admission::class);
-         }
+    public function admissions()
+    {
+        return $this->hasMany(Admission::class);
+    }
 }

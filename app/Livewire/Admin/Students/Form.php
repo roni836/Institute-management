@@ -51,18 +51,13 @@ class Form extends Component
             : $this->student = Student::create($data);
 
         // upsert guardian
-        if($this->g_name || $this->g_phone || $this->g_email){
-            Guardian::updateOrCreate(
-                ['student_id' => $student->id],
-                ['name'=>$this->g_name,'relation'=>$this->g_relation,'phone'=>$this->g_phone,'email'=>$this->g_email]
-            );
-        }
+       
 
         session()->flash('ok', 'Student saved');
         return redirect()->route('admin.students.index');
     }
 
     public function render(){
-        return view('livewire.admin.students.form')->title($this->student ? 'Edit Student' : 'New Student');
+        return view('livewire.admin.students.form');
     }
 }
