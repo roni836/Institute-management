@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Performance extends Model
 {
-    protected $fillable = [];
+    protected $guarded = [];
 
     public function student()
     {

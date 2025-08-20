@@ -11,15 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('payments', function (Blueprint $table) {
+        Schema::create('payment_schedules', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('student_batch_id')->constrained()->onDelete('cascade');
-            $table->enum('payment_mode', ['full', 'installment']);
-            $table->decimal('total_fee', 10, 2);
+            $table->foreignId('admission_id')->constrained('admissions')->cascadeOnDelete();
+            $table->unsignedInteger('installment_no');
+            $table->date('due_date');
+            $table->decimal('amount', 10, 2);
             $table->decimal('paid_amount', 10, 2)->default(0);
-            $table->decimal('balance_amount', 10, 2)->default(0);
-            $table->decimal('late_fine', 10, 2)->default(0);
+            $table->date('paid_date')->nullable();
+            $table->enum('status', ['pending', 'partial', 'paid'])->default('pending');
             $table->timestamps();
+            $table->unique(['admission_id', 'installment_no']);
         });
     }
 

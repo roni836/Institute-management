@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Course extends Model
 {
-    protected $fillable = [];
+    protected $guarded = [];
 
     public function batches()
     {
@@ -14,6 +14,11 @@ class Course extends Model
 
     public function payments()
     {
-        return $this->hasMany(Payment::class);
+        return $this->hasMany(PaymentSchedule::class);
     }
+
+     protected $casts = [
+        'gross_fee' => 'decimal:2',
+        'discount'  => 'decimal:2',
+    ];
 }

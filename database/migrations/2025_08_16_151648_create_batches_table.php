@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('batches', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('course_id')->constrained()->onDelete('cascade');
+            $table->foreignId('course_id')->constrained()->cascadeOnDelete();
             $table->string('batch_name');
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();

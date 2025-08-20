@@ -1,4 +1,4 @@
-<x-layouts.admin :title="$this->student ? 'Edit Student' : 'New Student'">
+<div :title="$this->student ? 'Edit Student' : 'New Student'">
     @if (session('ok'))
       <div class="mb-3 p-2 rounded bg-green-50 border text-green-800">{{ session('ok') }}</div>
     @endif
@@ -81,4 +81,4 @@
             </div>
         </div>
     </form>
-</x-layouts.admin>
+</div>

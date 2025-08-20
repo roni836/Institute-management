@@ -1,4 +1,4 @@
-<x-layouts.admin>
+<div>
     <div class="mb-3 grid md:grid-cols-4 gap-2">
         <input type="text" placeholder="Search name/email/phone" class="input input-bordered w-full border rounded-lg p-2"
                wire:model.debounce.400ms="q">
@@ -59,4 +59,4 @@
     <div class="mt-3">
         {{ $students->links() }}
     </div>
-</x-layouts.admin>
+</div>

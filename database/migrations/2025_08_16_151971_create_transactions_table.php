@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('installment_id')->nullable()->constrained()->onDelete('cascade');
-            $table->foreignId('student_id')->constrained()->onDelete('cascade');
+            $table->foreignId('admission_id')->constrained('admissions')->cascadeOnDelete();
+            $table->foreignId('payment_schedule_id')->nullable()->constrained('payment_schedules')->cascadeOnDelete();
             $table->decimal('amount', 10, 2);
             $table->date('date');
-            $table->string('mode');                     // e.g., cheque, online
+            $table->string('mode');                     // e.g., cash, cheque, online
             $table->string('reference_no')->nullable(); // CHQ/UTR
             $table->enum('status', ['success', 'failed', 'pending'])->default('success');
             $table->timestamps();

@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Batch extends Model
 {
-    protected $fillable = [];
+    protected $guarded = [];
 
     public function course()
     {
@@ -20,5 +20,10 @@ class Batch extends Model
     public function performances()
     {
         return $this->hasMany(Performance::class);
+    }
+
+    public function admissions()
+    {
+        return $this->hasMany(Admission::class);
     }
 }

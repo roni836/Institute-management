@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id();
             $table->string('name');                   // e.g., PURNEA 1 MGZ
             $table->string('batch_code')->nullable(); // e.g., MGZPU-7201
-            $table->integer('duration_months')->nullable();
+            $table->unsignedInteger('duration_months')->nullable();
             $table->decimal('gross_fee', 10, 2);
             $table->decimal('discount', 10, 2)->default(0);
-            $table->decimal('net_fee', 10, 2);
+            $table->decimal('net_fee', 10, 2)->storedAs('gross_fee - discount');
             $table->timestamps();
         });
     }

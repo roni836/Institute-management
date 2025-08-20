@@ -5,11 +5,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Installment extends Model
 {
-    protected $fillable = [];
+    protected $guarded = [];
 
     public function payment()
     {
-        return $this->belongsTo(Payment::class);
+        return $this->belongsTo(PaymentSchedule::class);
     }
 
     public function transactions()
