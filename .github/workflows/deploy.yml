@@ -12,12 +12,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Deploy to InfinityFree via FTP
+      - name: 🚀 Deploy to FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          port: ${{ secrets.FTP_PORT }}
-          local-dir: ./public   # adjust if needed (for Laravel use `public`)
-          server-dir: /htdocs/  # InfinityFree public root
+          port: 21
+          local-dir: ./public/
+          server-dir: /htdocs/
+
