@@ -48,7 +48,7 @@
                         <td class="p-3">{{ ucfirst($s->status ?? 'active') }}</td>
                         <td class="p-3 text-right space-x-2">
                             <a class="px-2 py-1 rounded bg-gray-100"
-                                href="{{ route('admin.students.edit', ['studentId' => $s->id]) }}">
+                                href="{{ route('admin.admissions.edit', ['admission' => $s->id]) }}">
                                 Edit
                             </a>
 
