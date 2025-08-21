@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Livewire\Admin\Dashboard;
+use App\Livewire\Admin\Teachers\Create as TeachersCreate;
+use App\Livewire\Admin\Teachers\Index as TeachersIndex;
 use App\Livewire\Admin\Admissions\Create as AdmissionsCreate;
 use App\Livewire\Admin\Admissions\Index as AdmissionsIndex;
 use App\Livewire\Admin\Admissions\Edit as AdmissionEdit;
@@ -43,6 +45,10 @@ Route::get('/courses/{course}/edit', \App\Livewire\Admin\Courses\Edit::class)->n
 Route::get('/batches/create', \App\Livewire\Admin\Batches\Create::class)->name('admin.batches.create');
 Route::get('/batches/{batch}/edit', \App\Livewire\Admin\Batches\Edit::class)->name('admin.batches.edit');
 Route::get('/batches', BatchesIndex::class)->name('admin.batches.index');
+
+// teachers
+Route::get('/teachers', TeachersIndex::class)->name('admin.teachers.index');
+Route::get('/teachers/create', TeachersCreate::class)->name('admin.teachers.create');
 
 // Auth
 Route::get('/login', Login::class)->name('login');

@@ -29,6 +29,8 @@
                     class="block px-3 py-2 rounded-lg hover:bg-gray-100">Courses</a>
                 <a href="{{ route('admin.batches.index') }}"
                     class="block px-3 py-2 rounded-lg hover:bg-gray-100">Batches</a>
+                <a href="{{ route('admin.teachers.index') }}"
+                    class="block px-3 py-2 rounded-lg hover:bg-gray-100">Teachers</a>
             </nav>
         </aside>
 
@@ -43,16 +45,18 @@
                 <nav class="space-y-1 text-sm">
                     <a href="{{ route('admin.dashboard') }}"
                         class="block px-3 py-2 rounded-lg hover:bg-gray-100">Dashboard</a>
-                    <a href="{{ route('admin.students.index') }}"
-                        class="block px-3 py-2 rounded-lg hover:bg-gray-100">Students</a>
                     <a href="{{ route('admin.admissions.index') }}"
                         class="block px-3 py-2 rounded-lg hover:bg-gray-100">Admissions</a>
                     <a href="{{ route('admin.payments.index') }}"
                         class="block px-3 py-2 rounded-lg hover:bg-gray-100">Payments</a>
+                    <a href="{{ route('admin.students.index') }}"
+                        class="block px-3 py-2 rounded-lg hover:bg-gray-100">Students</a>
                     <a href="{{ route('admin.courses.index') }}"
                         class="block px-3 py-2 rounded-lg hover:bg-gray-100">Courses</a>
                     <a href="{{ route('admin.batches.index') }}"
                         class="block px-3 py-2 rounded-lg hover:bg-gray-100">Batches</a>
+                    <a href="{{ route('admin.teachers.index') }}"
+                        class="block px-3 py-2 rounded-lg hover:bg-gray-100">Teachers</a>
                 </nav>
             </aside>
         </div>
