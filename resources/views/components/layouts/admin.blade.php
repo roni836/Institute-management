@@ -21,6 +21,8 @@
                     class="block px-3 py-2 rounded-lg hover:bg-gray-100">Dashboard</a>
                 <a href="{{ route('admin.admissions.index') }}"
                     class="block px-3 py-2 rounded-lg hover:bg-gray-100">Admissions</a>
+                <a href="{{ route('admin.payments.index') }}"
+                    class="block px-3 py-2 rounded-lg hover:bg-gray-100">Payments</a>
                 <a href="{{ route('admin.students.index') }}"
                     class="block px-3 py-2 rounded-lg hover:bg-gray-100">Students</a>
                 <a href="{{ route('admin.courses.index') }}"

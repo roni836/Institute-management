@@ -22,4 +22,9 @@ class PaymentSchedule extends Model
     {
         return $this->hasMany(Transaction::class);
     }
+
+     public function getRemainingAttribute(): string
+    {
+        return number_format(max(0, (float)$this->amount - (float)$this->paid_amount), 2, '.', '');
+    }
 }

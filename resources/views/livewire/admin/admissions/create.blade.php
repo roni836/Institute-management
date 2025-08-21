@@ -3,70 +3,70 @@
         <div class="md:col-span-2 bg-white border rounded-xl p-4 space-y-4">
             <h3 class="font-semibold">Student Details</h3>
 
-                <div class="grid md:grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-xs">Name</label>
-                        <input type="text" class="w-full border rounded p-2" wire:model="name">
-                        @error('name')
-                            <p class="text-xs text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div>
-                        <label class="text-xs">Roll No</label>
-                        <input type="text" class="w-full border rounded p-2" wire:model="roll_no">
-                        @error('roll_no')
-                            <p class="text-xs text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
-
-                <div class="grid md:grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-xs">Student UID</label>
-                        <input type="text" class="w-full border rounded p-2" wire:model="student_uid">
-                        @error('student_uid')
-                            <p class="text-xs text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div>
-                        <label class="text-xs">Status</label>
-                        <select class="w-full border rounded p-2" wire:model="student_status">
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                            <option value="alumni">Alumni</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="grid md:grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-xs">Father's Name</label>
-                        <input type="text" class="w-full border rounded p-2" wire:model="father_name">
-                    </div>
-                    <div>
-                        <label class="text-xs">Mother's Name</label>
-                        <input type="text" class="w-full border rounded p-2" wire:model="mother_name">
-                    </div>
-                </div>
-
-                <div class="grid md:grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-xs">Email</label>
-                        <input type="email" class="w-full border rounded p-2" wire:model="email">
-                        @error('email')
-                            <p class="text-xs text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div>
-                        <label class="text-xs">Phone</label>
-                        <input type="text" class="w-full border rounded p-2" wire:model="phone">
-                    </div>
-                </div>
-
+            <div class="grid md:grid-cols-2 gap-3">
                 <div>
-                    <label class="text-xs">Address</label>
-                    <textarea class="w-full border rounded p-2" wire:model="address"></textarea>
+                    <label class="text-xs">Name</label>
+                    <input type="text" class="w-full border rounded p-2" wire:model="name">
+                    @error('name')
+                        <p class="text-xs text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
+                <div>
+                    <label class="text-xs">Roll No</label>
+                    <input type="text" class="w-full border rounded p-2" wire:model="roll_no">
+                    @error('roll_no')
+                        <p class="text-xs text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-3">
+                <div>
+                    <label class="text-xs">Student UID</label>
+                    <input type="text" class="w-full border rounded p-2" wire:model="student_uid">
+                    @error('student_uid')
+                        <p class="text-xs text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div>
+                    <label class="text-xs">Status</label>
+                    <select class="w-full border rounded p-2" wire:model="student_status">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="alumni">Alumni</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-3">
+                <div>
+                    <label class="text-xs">Father's Name</label>
+                    <input type="text" class="w-full border rounded p-2" wire:model="father_name">
+                </div>
+                <div>
+                    <label class="text-xs">Mother's Name</label>
+                    <input type="text" class="w-full border rounded p-2" wire:model="mother_name">
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-3">
+                <div>
+                    <label class="text-xs">Email</label>
+                    <input type="email" class="w-full border rounded p-2" wire:model="email">
+                    @error('email')
+                        <p class="text-xs text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div>
+                    <label class="text-xs">Phone</label>
+                    <input type="text" class="w-full border rounded p-2" wire:model="phone">
+                </div>
+            </div>
+
+            <div>
+                <label class="text-xs">Address</label>
+                <textarea class="w-full border rounded p-2" wire:model="address"></textarea>
+            </div>
 
             <h3 class="font-semibold pt-2">Admission Details</h3>
 

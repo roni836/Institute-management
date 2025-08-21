@@ -15,7 +15,7 @@ class Admission extends Model
     {
         return $this->belongsTo(Batch::class);
     }
-    public function paymentSchedules()
+    public function schedules()
     {
         return $this->hasMany(PaymentSchedule::class);
     }

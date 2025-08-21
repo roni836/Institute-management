@@ -7,6 +7,7 @@ use App\Livewire\Admin\Admissions\Create as AdmissionsCreate;
 use App\Livewire\Admin\Admissions\Index as AdmissionsIndex;
 use App\Livewire\Admin\Admissions\Edit as AdmissionEdit;
 use App\Livewire\Admin\Payments\Index as PaymentsIndex;
+use App\Livewire\Admin\Payments\Create as PaymentsCreate;
 use App\Livewire\Admin\Students\Form as StudentsForm;
 use App\Livewire\Admin\Students\Index as StudentsIndex;
 use App\Livewire\Admin\Batches\Index as BatchesIndex;
@@ -27,6 +28,10 @@ Route::get('/admissions/{admission}/edit', AdmissionEdit::class)->name('admin.ad
 
 // Payments
 Route::get('/payments', PaymentsIndex::class)->name('admin.payments.index');
+Route::get('/payments/create', PaymentsCreate::class)->name('admin.payments.create');
+
+// Route::get('/payments', PaymentsIndex::class)->name('payments.index');
+// Route::get('/payments/create', PaymentsCreate::class)->name('payments.create');
 
 // Courses & Batches
 Route::get('/courses', CoursesIndex::class)->name('admin.courses.index');
