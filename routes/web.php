@@ -17,6 +17,7 @@ use App\Livewire\Admin\Students\Form as StudentsForm;
 use App\Livewire\Admin\Students\Index as StudentsIndex;
 use App\Livewire\Admin\Batches\Index as BatchesIndex;
 use App\Livewire\Admin\Courses\Index as CoursesIndex;
+use App\Livewire\Admin\Students\StudentProfile;
 use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
 use App\Livewire\Public\LandingPage;
@@ -49,6 +50,10 @@ Route::get('/batches', BatchesIndex::class)->name('admin.batches.index');
 // teachers
 Route::get('/teachers', TeachersIndex::class)->name('admin.teachers.index');
 Route::get('/teachers/create', TeachersCreate::class)->name('admin.teachers.create');
+
+//students
+Route::get('/students/{id}', StudentProfile::class)->name('student.profile');
+
 
 // Auth
 Route::get('/login', Login::class)->name('login');

@@ -38,7 +38,12 @@
                         <td class="p-3">{{ $s->full_name }}</td>
                         <td class="p-3">{{ $s->email ?? '—' }}<br>{{ $s->phone ?? '—' }}</td>
                         <td class="p-3">{{ ucfirst($s->status) }}</td>
-                        <td>View</td>
+                        <td class="p-3">
+                            <a href="{{ route('student.profile', $s->id) }}" 
+                            class="text-blue-600 hover:underline">
+                            View
+                            </a>
+                        </td>
                     </tr>
                 @empty
                     <tr><td class="p-3" colspan="4">No students found.</td></tr>

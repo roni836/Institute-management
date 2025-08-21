@@ -15,9 +15,24 @@ class Login extends Component
 
     public function login(){
         $this->validate();
-        if(auth()->attempt(['email'=>$this->email,'password'=>$this->password])){
-            return redirect()->route('admin.dashboard');
+
+        if (auth()->attempt(['email' => $this->email, 'password' => $this->password])) {
+            $user = auth()->user();
+    
+            // Check role and redirect accordingly
+            if ($user->role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            } elseif ($user->role === 'teacher') {
+                return redirect()->route('admin.dashboard');
+            } else {
+                return redirect()->route('public.home');
+            }
         }
+    
+        // If login fails
+        return back()->withErrors([
+            'email' => 'Invalid credentials.',
+        ]);
     }
     public function render()
     {
