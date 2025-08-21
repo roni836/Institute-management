@@ -6,7 +6,9 @@ use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\Admissions\Create as AdmissionsCreate;
 use App\Livewire\Admin\Admissions\Index as AdmissionsIndex;
 use App\Livewire\Admin\Admissions\Edit as AdmissionEdit;
+use App\Livewire\Admin\Admissions\Show as AdmissionShow;
 use App\Livewire\Admin\Payments\Index as PaymentsIndex;
+use App\Livewire\Admin\Payments\DuePayments;
 use App\Livewire\Admin\Payments\Create as PaymentsCreate;
 use App\Livewire\Admin\Students\Form as StudentsForm;
 use App\Livewire\Admin\Students\Index as StudentsIndex;
@@ -25,13 +27,13 @@ Route::get('/students', StudentsIndex::class)->name('admin.students.index');
 Route::get('/admissions', AdmissionsIndex::class)->name('admin.admissions.index');
 Route::get('/admissions/create', AdmissionsCreate::class)->name('admin.admissions.create');
 Route::get('/admissions/{admission}/edit', AdmissionEdit::class)->name('admin.admissions.edit');
+Route::get('/admin/show-admissions/{admission}', AdmissionShow::class)->name('admin.admissions.show');
 
 // Payments
 Route::get('/payments', PaymentsIndex::class)->name('admin.payments.index');
 Route::get('/payments/create', PaymentsCreate::class)->name('admin.payments.create');
+Route::get('/due-payments', DuePayments::class)->name('admin.due-payments.index');
 
-// Route::get('/payments', PaymentsIndex::class)->name('payments.index');
-// Route::get('/payments/create', PaymentsCreate::class)->name('payments.create');
 
 // Courses & Batches
 Route::get('/courses', CoursesIndex::class)->name('admin.courses.index');

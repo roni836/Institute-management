@@ -19,6 +19,11 @@ class Admission extends Model
     {
         return $this->hasMany(PaymentSchedule::class);
     }
+
+    public function paymentSchedules()
+    {
+        return $this->hasMany(PaymentSchedule::class);
+    }
     public function transactions()
     {
         return $this->hasMany(Transaction::class);
@@ -32,9 +37,9 @@ class Admission extends Model
     }
 
     protected $casts = [
-        'discount'  => 'decimal:2',
-        'fee_total' => 'decimal:2',
-        'fee_due'   => 'decimal:2',
+        'discount'       => 'decimal:2',
+        'fee_total'      => 'decimal:2',
+        'fee_due'        => 'decimal:2',
         'admission_date' => 'date',
     ];
 }

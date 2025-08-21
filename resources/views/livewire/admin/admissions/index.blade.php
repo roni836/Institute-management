@@ -53,8 +53,8 @@
                             </a>
 
                             <a class="px-2 py-1 rounded bg-blue-50 text-blue-700"
-                                href="{{ route('admin.admissions.create', ['student' => $s->id]) }}">
-                                Add Course
+                                href="{{ route('admin.admissions.show', ['admission' => $s->id]) }}">
+                                View
                             </a>
 
                             <button x-data

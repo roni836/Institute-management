@@ -1,14 +1,17 @@
 <div class="p-6 space-y-6">
     <div class="flex items-center justify-between">
         <h1 class="text-xl font-semibold">Payments</h1>
-        <a href="{{ route('admin.payments.create') }}"
-           class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">New Payment</a>
+        <div class="flex space-x-2">
+            <a href="{{ route('admin.due-payments.index') }}"
+                class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Due Payments</a>
+            <a href="{{ route('admin.payments.create') }}"
+                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">New Payment</a>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <input type="text" wire:model.debounce.400ms="search"
-               placeholder="Search by student, batch or reference"
-               class="border rounded px-3 py-2">
+        <input type="text" wire:model.debounce.400ms="search" placeholder="Search by student, batch or reference"
+            class="border rounded px-3 py-2">
 
         <select wire:model="status" class="border rounded px-3 py-2">
             <option value="">All Status</option>
@@ -25,7 +28,10 @@
         </select>
 
         <select wire:model="perPage" class="border rounded px-3 py-2">
-            <option>10</option><option>15</option><option>25</option><option>50</option>
+            <option>10</option>
+            <option>15</option>
+            <option>25</option>
+            <option>50</option>
         </select>
     </div>
 
@@ -48,7 +54,7 @@
                         <td class="p-3">{{ $t->date?->format('d-M-Y') }}</td>
                         <td class="p-3">{{ $t->admission?->student?->name }}</td>
                         <td class="p-3">{{ $t->admission?->batch?->batch_name }}</td>
-                        <td class="p-3 font-medium">₹ {{ number_format($t->amount,2) }}</td>
+                        <td class="p-3 font-medium">₹ {{ number_format($t->amount, 2) }}</td>
                         <td class="p-3 capitalize">{{ $t->mode }}</td>
                         <td class="p-3">{{ $t->reference_no ?? '—' }}</td>
                         <td class="p-3">
@@ -61,7 +67,9 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td class="p-6 text-center text-gray-500" colspan="7">No payments found.</td></tr>
+                    <tr>
+                        <td class="p-6 text-center text-gray-500" colspan="7">No payments found.</td>
+                    </tr>
                 @endforelse
             </tbody>
         </table>
