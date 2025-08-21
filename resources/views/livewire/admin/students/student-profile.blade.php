@@ -1,58 +1,150 @@
 <div>
-<div class="p-6 space-y-6">
-    <h2 class="text-2xl font-bold">{{ $student->full_name }}</h2>
-    <p>Email: {{ $student->email ?? '—' }}</p>
-    <p>Phone: {{ $student->phone ?? '—' }}</p>
-    <p>Status: {{ ucfirst($student->status) }}</p>
+<div class="max-w-6xl mx-auto p-6" x-data="{ tab: 'overview' }">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-md p-6 flex flex-col md:flex-row items-center gap-6">
+        <img class="w-32 h-32 rounded-full object-cover shadow"
+             src="https://via.placeholder.com/150"
+             alt="Student photo">
 
-    <!-- Batches -->
-   {{-- <div>
-        <h3 class="text-xl font-semibold mt-4">Batches</h3>
-        @forelse($student->batches as $batch)
-            <p>- {{ $batch->name }} ({{ $batch->start_date }} to {{ $batch->end_date }})</p>
-        @empty
-            <p class="text-gray-500">No batches assigned.</p>
-        @endforelse
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Shaique </h1>
+            <p class="text-gray-500">Student | Computer Science</p>
+            <p class="mt-2 text-sm text-gray-600">Email: Shaique@example.com</p>
+            <p class="text-sm text-gray-600">Phone: +91 9876543210</p>
+            <span class="inline-block mt-3 px-3 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Active</span>
+        </div>
     </div>
 
-    <!-- Payments -->
-    <div>
-        <h3 class="text-xl font-semibold mt-4">Payment Schedules</h3>
-        @forelse($student->payments as $payment)
-            <p>- ₹{{ $payment->amount }} (Due: {{ $payment->due_date }}) - {{ ucfirst($payment->status) }}</p>
-        @empty
-            <p class="text-gray-500">No payment records.</p>
-        @endforelse
+    <!-- Tabs -->
+    <div class="mt-8 border-b border-gray-200">
+        <nav class="flex gap-4">
+            <button @click="tab = 'overview'" 
+                    :class="tab === 'overview' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                    class="pb-2 border-b-2 text-sm font-medium">
+                Overview
+            </button>
+            <button @click="tab = 'batches'" 
+                    :class="tab === 'batches' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                    class="pb-2 border-b-2 text-sm font-medium">
+                Batches
+            </button>
+            <button @click="tab = 'payments'" 
+                    :class="tab === 'payments' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                    class="pb-2 border-b-2 text-sm font-medium">
+                Payments
+            </button>
+            <button @click="tab = 'performance'" 
+                    :class="tab === 'performance' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                    class="pb-2 border-b-2 text-sm font-medium">
+                Performance
+            </button>
+        </nav>
     </div>
 
-    <!-- Transactions -->
-    <div>
-        <h3 class="text-xl font-semibold mt-4">Transactions</h3>
-        @forelse($student->transactions as $transaction)
-            <p>- ₹{{ $transaction->amount }} | Method: {{ $transaction->method }} | Date: {{ $transaction->created_at->format('d M Y') }}</p>
-        @empty
-            <p class="text-gray-500">No transactions found.</p>
-        @endforelse
-    </div>
+    <!-- Tab Content -->
+    <div class="mt-4">
+        <!-- Overview -->
+        <div x-show="tab === 'overview'" class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Overview</h2>
+            <p class="text-gray-600">Shaique  is a Computer Science student enrolled in multiple batches.  
+                He has completed all fee payments on time and has an excellent academic record.</p>
+        </div>
 
-    <!-- Performances -->
-    <div>
-        <h3 class="text-xl font-semibold mt-4">Performance Records</h3>
-        @forelse($student->performances as $performance)
-            <p>- {{ $performance->subject }}: {{ $performance->score }} ({{ $performance->grade }})</p>
-        @empty
-            <p class="text-gray-500">No performance records.</p>
-        @endforelse
-    </div>
---}}
-    <!-- Admissions -->
-    <div>
-        <h3 class="text-xl font-semibold mt-4">Admissions</h3>
-        @forelse($student->admissions as $admission)
-            <p>- {{ $admission->course_name }} (Admitted on {{ $admission->created_at->format('d M Y') }})</p>
-        @empty
-            <p class="text-gray-500">No admissions found.</p>
-        @endforelse
+        <!-- Batches -->
+        <div x-show="tab === 'batches'" class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Batches</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs uppercase bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="px-6 py-3">Batch Name</th>
+                            <th class="px-6 py-3">Start Date</th>
+                            <th class="px-6 py-3">End Date</th>
+                            <th class="px-6 py-3">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b">
+                            <td class="px-6 py-4">CS Batch A</td>
+                            <td class="px-6 py-4">15 Jan 2024</td>
+                            <td class="px-6 py-4">30 Dec 2024</td>
+                            <td class="px-6 py-4"><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Ongoing</span></td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4">CS Batch B</td>
+                            <td class="px-6 py-4">10 Feb 2023</td>
+                            <td class="px-6 py-4">20 Dec 2023</td>
+                            <td class="px-6 py-4"><span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs">Completed</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Payments -->
+        <div x-show="tab === 'payments'" class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Payments</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs uppercase bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="px-6 py-3">Amount</th>
+                            <th class="px-6 py-3">Due Date</th>
+                            <th class="px-6 py-3">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b">
+                            <td class="px-6 py-4">₹5000</td>
+                            <td class="px-6 py-4">10 Mar 2024</td>
+                            <td class="px-6 py-4"><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Paid</span></td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4">₹5000</td>
+                            <td class="px-6 py-4">10 Apr 2024</td>
+                            <td class="px-6 py-4"><span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">Pending</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Performance -->
+        <div x-show="tab === 'performance'" class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Performance</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs uppercase bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="px-6 py-3">Subject</th>
+                            <th class="px-6 py-3">Score</th>
+                            <th class="px-6 py-3">Grade</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b">
+                            <td class="px-6 py-4">Mathematics</td>
+                            <td class="px-6 py-4">88</td>
+                            <td class="px-6 py-4">A</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4">Computer Science</td>
+                            <td class="px-6 py-4">92</td>
+                            <td class="px-6 py-4">A+</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4">English</td>
+                            <td class="px-6 py-4">76</td>
+                            <td class="px-6 py-4">B+</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
+
+<!-- Alpine.js (for tabs) -->
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
 </div>
