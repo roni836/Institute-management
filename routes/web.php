@@ -13,9 +13,10 @@ use App\Livewire\Admin\Batches\Index as BatchesIndex;
 use App\Livewire\Admin\Courses\Index as CoursesIndex;
 use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
+use App\Livewire\Public\LandingPage;
 
 Route::get('/', Dashboard::class)->name('admin.dashboard');
-
+Route::get('/home', LandingPage::class)->name('public.home');
 // Students
 Route::get('/students', StudentsIndex::class)->name('admin.students.index');
 
