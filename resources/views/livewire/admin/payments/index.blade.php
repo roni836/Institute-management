@@ -46,6 +46,7 @@
                     <th class="text-left p-3">Mode</th>
                     <th class="text-left p-3">Ref</th>
                     <th class="text-left p-3">Status</th>
+                    <th class="text-left p-3">Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -64,6 +65,12 @@
                                 'bg-yellow-100 text-yellow-800' => $t->status === 'pending',
                                 'bg-red-100 text-red-700' => $t->status === 'failed',
                             ])>{{ $t->status }}</span>
+                        </td>
+                        <td class="p-3 no-print">
+                            <a href="{{ route('admin.payments.receipt', $t->id) }}"
+                                class="px-3 py-1 text-sm rounded bg-indigo-600 text-white hover:bg-indigo-700">
+                                Receipt
+                            </a>
                         </td>
                     </tr>
                 @empty
