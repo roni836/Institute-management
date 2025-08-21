@@ -123,7 +123,7 @@ class Create extends Component
             // 3) Create schedule if installments
             if ($this->mode === 'installment') {
                 foreach ($this->plan as $p) {
-                    $admission->paymentSchedules()->create([
+                    $admission->schedules()->create([
                         'installment_no' => $p['no'],
                         'due_date'       => $p['due_on'],
                         'amount'         => $p['amount'],

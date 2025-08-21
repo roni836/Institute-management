@@ -59,7 +59,10 @@
                 </div>
                 <div>
                     <label class="text-xs">Phone</label>
-                    <input type="text" class="w-full border rounded p-2" wire:model="phone">
+                    <input type="tel" class="w-full border rounded p-2" wire:model="phone">
+                    @error('phone')
+                        <p class="text-xs text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
             </div>
 
