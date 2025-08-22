@@ -15,7 +15,7 @@
     <div class="min-h-screen flex">
         <!-- Sidebar -->
         <aside class="bg-white w-72 border-r hidden md:block">
-            <div class="p-4 font-semibold text-xl">Antra IMS Admin</div>
+            <div class="p-4 font-semibold text-xl">Antra IM Admin</div>
             <nav class="px-2 space-y-1 text-sm">
                 <a href="{{ route('admin.dashboard') }}"
                     class="block px-3 py-2 rounded-lg hover:bg-gray-100">Dashboard</a>
