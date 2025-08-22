@@ -19,6 +19,7 @@ Homestead.json
 /storage/framework/views/*
 /storage/logs/*
 /bootstrap/cache/*.php
+/bootstrap/cache/
 
 # NPM / Yarn / PNPM
 npm-debug.log
