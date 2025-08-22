@@ -7,10 +7,10 @@
              alt="Student photo">
 
         <div>
-            <h1 class="text-2xl font-bold text-gray-800">Shaique </h1>
-            <p class="text-gray-500">Student | Computer Science</p>
-            <p class="mt-2 text-sm text-gray-600">Email: Shaique@example.com</p>
-            <p class="text-sm text-gray-600">Phone: +91 9876543210</p>
+            <h1 class="text-2xl font-bold text-gray-800">{{$student->name}}</h1>
+            <p class="text-gray-500">Batch name :{{$batch->batch_name}}</p>
+            <p class="mt-2 text-sm text-gray-600">{{$student->email}}</p>
+            <p class="text-sm text-gray-600">{{$student->phone}}</p>
             <span class="inline-block mt-3 px-3 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Active</span>
         </div>
     </div>
@@ -65,16 +65,16 @@
                     </thead>
                     <tbody>
                         <tr class="border-b">
-                            <td class="px-6 py-4">CS Batch A</td>
-                            <td class="px-6 py-4">15 Jan 2024</td>
-                            <td class="px-6 py-4">30 Dec 2024</td>
-                            <td class="px-6 py-4"><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Ongoing</span></td>
-                        </tr>
-                        <tr>
-                            <td class="px-6 py-4">CS Batch B</td>
-                            <td class="px-6 py-4">10 Feb 2023</td>
-                            <td class="px-6 py-4">20 Dec 2023</td>
-                            <td class="px-6 py-4"><span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs">Completed</span></td>
+                            <td class="px-6 py-4">{{$batch->batch_name}}</td>
+                            <td class="px-6 py-4">{{$batch->start_date}}</td>
+                            <td class="px-6 py-4">{{$batch->end_date}}</td>
+                            <td class="px-6 py-4">
+                                @if($batch->end_date && \Carbon\Carbon::parse($batch->end_date)->isPast())
+                                    <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs">Completed</span>
+                                @else
+                                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Ongoing</span>
+                                @endif
+                            </td>                    
                         </tr>
                     </tbody>
                 </table>
@@ -88,22 +88,25 @@
                 <table class="w-full text-sm text-left text-gray-500">
                     <thead class="text-xs uppercase bg-gray-50 text-gray-700">
                         <tr>
+                            <th class="px-6 py-3">Ref no.</th>
                             <th class="px-6 py-3">Amount</th>
-                            <th class="px-6 py-3">Due Date</th>
+                            <th class="px-6 py-3">Payment Date</th>
+                            <th class="px-6 py-3">Mode</th>
                             <th class="px-6 py-3">Status</th>
                         </tr>
                     </thead>
                     <tbody>
+                        @foreach($payments as $payment)
                         <tr class="border-b">
-                            <td class="px-6 py-4">₹5000</td>
-                            <td class="px-6 py-4">10 Mar 2024</td>
-                            <td class="px-6 py-4"><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Paid</span></td>
+                            <td class="px-6 py-4">{{$payment->reference_no}}</td>
+                            <td class="px-6 py-4">{{$payment->amount}}</td>
+                            <td class="px-6 py-4">{{$payment->date}}</td>
+                            <td class="px-6 py-4">{{$payment->mode}}</td>
+
+                            <td class="px-6 py-4"><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">{{$payment->status}}</span></td>
                         </tr>
-                        <tr>
-                            <td class="px-6 py-4">₹5000</td>
-                            <td class="px-6 py-4">10 Apr 2024</td>
-                            <td class="px-6 py-4"><span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">Pending</span></td>
-                        </tr>
+                        @endforeach
+                        
                     </tbody>
                 </table>
             </div>
