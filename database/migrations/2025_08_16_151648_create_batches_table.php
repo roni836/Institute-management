@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('batch_name');
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
+            $table->enum('status', ['Upcoming', 'Running', 'Completed'])->default('Upcoming');
             $table->timestamps();
         });
     }

@@ -1,38 +1,86 @@
-<div class="p-6 space-y-6">
-    <div class="flex items-center justify-between">
-        <h1 class="text-xl font-semibold">Payments</h1>
-        <div class="flex space-x-2">
-            <a href="{{ route('admin.due-payments.index') }}"
-                class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Due Payments</a>
-            <a href="{{ route('admin.payments.create') }}"
-                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">New Payment</a>
+<div class="p-4 md:p-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+            <h1 class="text-2xl font-bold">Payments</h1>
+            <p class="text-gray-600">Track and manage student fee payments</p>
+        </div>
+        <a href="{{ route('admin.payments.create') }}"
+            class="px-4 py-2 bg-orange-500 text-white rounded-lg flex items-center gap-2">
+            <span>+</span> Record Payment
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <!-- Monthly Revenue Card -->
+        <div class="bg-white p-4 rounded-xl border">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-gray-600 text-sm">Monthly Revenue</p>
+                    <p class="text-2xl font-semibold">₹4,58,970</p>
+                    <p class="text-xs text-green-600">↑ 12% from last month</p>
+                </div>
+                <div class="p-2 bg-orange-100 text-orange-500 rounded-lg">₹</div>
+            </div>
+        </div>
+
+        <!-- Pending Payments -->
+        <div class="bg-white p-4 rounded-xl border">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-gray-600 text-sm">Pending Payments</p>
+                    <p class="text-2xl font-semibold text-yellow-600">₹1,23,450</p>
+                </div>
+                <div class="p-2 bg-yellow-100 text-yellow-600 rounded-lg">₹</div>
+            </div>
+        </div>
+
+        <!-- Completed Payments -->
+        <div class="bg-white p-4 rounded-xl border">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-gray-600 text-sm">Completed</p>
+                    <p class="text-2xl font-semibold text-green-600">₹3,35,520</p>
+                </div>
+                <div class="p-2 bg-green-100 text-green-500 rounded-lg">₹</div>
+            </div>
+        </div>
+
+        <!-- Overdue Payments -->
+        <div class="bg-white p-4 rounded-xl border">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-gray-600 text-sm">Overdue</p>
+                    <p class="text-2xl font-semibold text-red-600">₹45,230</p>
+                </div>
+                <div class="p-2 bg-red-100 text-red-500 rounded-lg">₹</div>
+            </div>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <input type="text" wire:model.debounce.400ms="search" placeholder="Search by student, batch or reference"
-            class="border rounded px-3 py-2">
-
-        <select wire:model="status" class="border rounded px-3 py-2">
-            <option value="">All Status</option>
-            <option value="success">Success</option>
-            <option value="pending">Pending</option>
-            <option value="failed">Failed</option>
-        </select>
-
-        <select wire:model="mode" class="border rounded px-3 py-2">
-            <option value="">All Modes</option>
-            <option value="cash">Cash</option>
-            <option value="cheque">Cheque</option>
-            <option value="online">Online</option>
-        </select>
-
-        <select wire:model="perPage" class="border rounded px-3 py-2">
-            <option>10</option>
-            <option>15</option>
-            <option>25</option>
-            <option>50</option>
-        </select>
+    <div class="bg-white p-6 rounded-xl border mb-6">
+        <h2 class="text-xl font-semibold mb-4">Payment Management</h2>
+        <p class="text-gray-600 mb-6">Comprehensive payment tracking and fee management system</p>
+        
+        <div class="flex flex-col sm:flex-row gap-4">
+            <div class="relative flex-1">
+                <input type="text" wire:model.debounce.400ms="search" 
+                       class="w-full pl-10 pr-4 py-2 border rounded-lg" 
+                       placeholder="Search Payments">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </span>
+            </div>
+            <div class="flex-shrink-0">
+                <select wire:model="status" class="border rounded-lg px-4 py-2">
+                    <option value="">All Status</option>
+                    <option value="success">Success</option>
+                    <option value="pending">Pending</option>
+                    <option value="failed">Failed</option>
+                </select>
+            </div>
+        </div>
     </div>
 
     <div class="overflow-x-auto">

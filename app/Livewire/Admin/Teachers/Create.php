@@ -16,6 +16,9 @@ class Create extends Component
     public bool $autoPassword             = true;
     public ?string $password              = null;
     public ?string $password_confirmation = null;
+    public string $phone                  = '';
+    public string $address                = '';
+    public string $expertise              = '';
 
     // For displaying the generated password once
     public ?string $generatedPassword = null;
@@ -26,6 +29,9 @@ class Create extends Component
             'name'         => ['required', 'string', 'max:120'],
             'email'        => ['required', 'email', Rule::unique('users', 'email')],
             'autoPassword' => ['boolean'],
+            'phone'        => ['nullable', 'string', 'max:20'],
+            'address'      => ['nullable', 'string', 'max:500'],
+            'expertise'    => ['nullable', 'string', 'max:255'],
         ];
 
         if (! $this->autoPassword) {
@@ -44,6 +50,9 @@ class Create extends Component
         $user->password = Hash::make($plain);
         // simple role column:
         $user->role = 'teacher';
+        $user->phone    = $this->phone;
+        $user->address  = $this->address;
+        $user->expertise = $this->expertise;
         $user->save();
 
         // If you're using Spatie roles instead of a 'role' column, use:

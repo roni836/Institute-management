@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('gross_fee', 10, 2);
             $table->decimal('discount', 10, 2)->default(0);
             $table->decimal('net_fee', 10, 2)->storedAs('gross_fee - discount');
+            $table->integer('students_count')->default(0);  // Add this line
             $table->timestamps();
         });
     }
