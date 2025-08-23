@@ -11,6 +11,10 @@ class Course extends Model
     {
         return $this->hasMany(Batch::class);
     }
+    public function subjects()
+    {
+        return $this->hasMany(Subject::class);
+    }
 
     public function payments()
     {

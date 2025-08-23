@@ -31,4 +31,8 @@ class Student extends Model
     {
         return $this->hasMany(Admission::class);
     }
+    public function marks()
+    {
+        return $this->hasMany(Mark::class);
+    }
 }

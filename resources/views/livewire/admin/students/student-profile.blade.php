@@ -114,36 +114,40 @@
 
         <!-- Performance -->
         <div x-show="tab === 'performance'" class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-lg font-semibold text-gray-800 mb-4">Performance</h2>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left text-gray-500">
-                    <thead class="text-xs uppercase bg-gray-50 text-gray-700">
-                        <tr>
-                            <th class="px-6 py-3">Subject</th>
-                            <th class="px-6 py-3">Score</th>
-                            <th class="px-6 py-3">Grade</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class="border-b">
-                            <td class="px-6 py-4">Mathematics</td>
-                            <td class="px-6 py-4">88</td>
-                            <td class="px-6 py-4">A</td>
-                        </tr>
-                        <tr>
-                            <td class="px-6 py-4">Computer Science</td>
-                            <td class="px-6 py-4">92</td>
-                            <td class="px-6 py-4">A+</td>
-                        </tr>
-                        <tr>
-                            <td class="px-6 py-4">English</td>
-                            <td class="px-6 py-4">76</td>
-                            <td class="px-6 py-4">B+</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">Performance</h2>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-500">
+            <thead class="text-xs uppercase bg-gray-50 text-gray-700">
+                <tr>
+                    <th class="px-6 py-3">Exam</th>
+                    <th class="px-6 py-3">Date of Exam</th>
+                    <th class="px-6 py-3">Subject</th>
+                    <th class="px-6 py-3">Score</th>
+                    <th class="px-6 py-3">Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($performance as $item)
+                    <tr class="border-b">
+                        <td class="px-6 py-4">{{ $item['exam'] }}</td>
+                        <td class="px-6 py-4">{{ $item['date'] }}</td>
+                        <td class="px-6 py-4">{{ $item['subject'] }}</td>
+                        <td class="px-6 py-4">{{ $item['score'] }}</td>
+                        <td class="px-6 py-4 font-semibold text-gray-800">{{ $item['grade'] }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                            No performance records found.
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
     </div>
 </div>
 
