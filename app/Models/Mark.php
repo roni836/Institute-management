@@ -6,5 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Mark extends Model
 {
-    //
+    protected $guarded = [];
+
+    public function student()
+    {
+        return $this->belongsTo(Student::class);
+    }
+
+    public function examSubject()
+    {
+        return $this->belongsTo(ExamSubject::class);
+    }
 }

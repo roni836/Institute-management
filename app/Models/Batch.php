@@ -26,4 +26,9 @@ class Batch extends Model
     {
         return $this->hasMany(Admission::class);
     }
+    public function exams()
+    {
+        return $this->hasMany(Exam::class);
+    }
+
 }
