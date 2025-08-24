@@ -127,8 +127,7 @@
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-3 mt-4">
-                    {{-- {{ route('admin.courses.show', $c->id) }} --}}
-                    <a href="" 
+                    <a href="{{ route('admin.courses.view', $c->id) }}" 
                        class="flex-1 text-center py-2 border rounded-lg hover:bg-gray-50">
                         View Details
                     </a>
