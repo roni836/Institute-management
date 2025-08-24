@@ -31,6 +31,9 @@
             }
         }
     </script>
+        @vite(['resources/js/app.js'])
+    @livewireStyles
+
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -48,7 +51,7 @@
         }
     </style>
 </head>
-<body class="h-full bg-gray-50 font-poppins" x-data="{ open: false, currentPage: @json(Route::currentRouteName()) }">
+<body class="h-full bg-gray-50 font-poppins" x-data={open:false}>
     <div class="min-h-screen flex">
         <!-- Sidebar -->
         <aside class="hidden lg:flex flex-col w-72 bg-primary-700 text-white h-screen sticky top-0">
@@ -69,8 +72,7 @@
                 <div class="text-primary-200 text-xs uppercase tracking-wider font-semibold mb-4 px-3">
                     Main Menu
                 </div>
-                <a href="{{ route('admin.dashboard') }}" @click="currentPage = 'admin.dashboard'" 
-                   :class="currentPage === 'admin.dashboard' ? 'active' : ''"
+                <a href="{{ route('admin.dashboard') }}"
                    class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
                     <div class="w-5 h-5 mr-3">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -80,8 +82,7 @@
                     </div>
                     Dashboard
                 </a>
-                <a href="{{ route('admin.admissions.index') }}" @click="currentPage = 'admin.admissions.index'"
-                   :class="currentPage === 'admin.admissions.index' || currentPage === 'admin.admissions.create' || currentPage === 'admin.admissions.edit' || currentPage === 'admin.admissions.show' ? 'active' : ''"
+                <a href="{{ route('admin.admissions.index') }}"
                    class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
                     <div class="w-5 h-5 mr-3">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -90,8 +91,7 @@
                     </div>
                     Admissions
                 </a>
-                <a href="{{ route('admin.payments.index') }}" @click="currentPage = 'admin.payments.index'"
-                   :class="currentPage === 'admin.payments.index' || currentPage === 'admin.payments.create' || currentPage === 'admin.due-payments.index' || currentPage === 'admin.payments.receipt' ? 'active' : ''"
+                <a href="{{ route('admin.payments.index') }}"
                    class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
                     <div class="w-5 h-5 mr-3">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,8 +100,7 @@
                     </div>
                     Payments
                 </a>
-                <a href="{{ route('admin.students.index') }}" @click="currentPage = 'admin.students.index'"
-                   :class="currentPage === 'admin.students.index' || currentPage === 'student.profile' ? 'active' : ''"
+                <a href="{{ route('admin.students.index') }}"
                    class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
                     <div class="w-5 h-5 mr-3">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,8 +112,7 @@
                 <div class="text-primary-200 text-xs uppercase tracking-wider font-semibold mb-4 px-3 pt-6">
                     Academic
                 </div>
-                <a href="{{ route('admin.courses.index') }}" @click="currentPage = 'admin.courses.index'"
-                   :class="currentPage === 'admin.courses.index' || currentPage === 'admin.courses.create' || currentPage === 'admin.courses.edit' ? 'active' : ''"
+                <a href="{{ route('admin.courses.index') }}"
                    class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
                     <div class="w-5 h-5 mr-3">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -123,8 +121,7 @@
                     </div>
                     Courses
                 </a>
-                <a href="{{ route('admin.batches.index') }}" @click="currentPage = 'admin.batches.index'"
-                   :class="currentPage === 'admin.batches.index' || currentPage === 'admin.batches.create' || currentPage === 'admin.batches.edit' ? 'active' : ''"
+                <a href="{{ route('admin.batches.index') }}"
                    class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
                     <div class="w-5 h-5 mr-3">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -133,8 +130,7 @@
                     </div>
                     Batches
                 </a>
-                <a href="{{ route('admin.teachers.index') }}" @click="currentPage = 'admin.teachers.index'"
-                   :class="currentPage === 'admin.teachers.index' || currentPage === 'admin.teachers.create' ? 'active' : ''"
+                <a href="{{ route('admin.teachers.index') }}"
                    class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
                     <div class="w-5 h-5 mr-3">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -188,8 +184,7 @@
                     <div class="text-primary-200 text-xs uppercase tracking-wider font-semibold mb-4 px-3">
                         Main Menu
                     </div>
-                    <a href="{{ route('admin.dashboard') }}" @click="currentPage = 'admin.dashboard'; open = false" 
-                       :class="currentPage === 'admin.dashboard' ? 'active' : ''"
+                    <a href="{{ route('admin.dashboard') }}"
                        class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
                         <div class="w-5 h-5 mr-3">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -199,8 +194,7 @@
                         </div>
                         Dashboard
                     </a>
-                    <a href="{{ route('admin.admissions.index') }}" @click="currentPage = 'admin.admissions.index'; open = false"
-                       :class="currentPage === 'admin.admissions.index' || currentPage === 'admin.admissions.create' || currentPage === 'admin.admissions.edit' || currentPage === 'admin.admissions.show' ? 'active' : ''"
+                    <a href="{{ route('admin.admissions.index') }}"
                        class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
                         <div class="w-5 h-5 mr-3">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -209,8 +203,7 @@
                         </div>
                         Admissions
                     </a>
-                    <a href="{{ route('admin.payments.index') }}" @click="currentPage = 'admin.payments.index'; open = false"
-                       :class="currentPage === 'admin.payments.index' || currentPage === 'admin.payments.create' || currentPage === 'admin.due-payments.index' || currentPage === 'admin.payments.receipt' ? 'active' : ''"
+                    <a href="{{ route('admin.payments.index') }}"
                        class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
                         <div class="w-5 h-5 mr-3">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -219,8 +212,7 @@
                         </div>
                         Payments
                     </a>
-                    <a href="{{ route('admin.students.index') }}" @click="currentPage = 'admin.students.index'; open = false"
-                       :class="currentPage === 'admin.students.index' || currentPage === 'student.profile' ? 'active' : ''"
+                    <a href="{{ route('admin.students.index') }}"
                        class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
                         <div class="w-5 h-5 mr-3">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -232,8 +224,7 @@
                     <div class="text-primary-200 text-xs uppercase tracking-wider font-semibold mb-4 px-3 pt-6">
                         Academic
                     </div>
-                    <a href="{{ route('admin.courses.index') }}" @click="currentPage = 'admin.courses.index'; open = false"
-                       :class="currentPage === 'admin.courses.index' || currentPage === 'admin.courses.create' || currentPage === 'admin.courses.edit' ? 'active' : ''"
+                    <a href="{{ route('admin.courses.index') }}"
                        class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
                         <div class="w-5 h-5 mr-3">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -242,8 +233,7 @@
                         </div>
                         Courses
                     </a>
-                    <a href="{{ route('admin.batches.index') }}" @click="currentPage = 'admin.batches.index'; open = false"
-                       :class="currentPage === 'admin.batches.index' || currentPage === 'admin.batches.create' || currentPage === 'admin.batches.edit' ? 'active' : ''"
+                    <a href="{{ route('admin.batches.index') }}"
                        class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
                         <div class="w-5 h-5 mr-3">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24  circumstantial:round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
@@ -251,8 +241,7 @@
                     </div>
                     Batches
                 </a>
-                <a href="{{ route('admin.teachers.index') }}" @click="currentPage = 'admin.teachers.index'; open = false"
-                   :class="currentPage === 'admin.teachers.index' || currentPage === 'admin.teachers.create' ? 'active' : ''"
+                <a href="{{ route('admin.teachers.index') }}"
                    class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
                     <div class="w-5 h-5 mr-3">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -279,13 +268,7 @@
                                 </svg>
                             </button>
                             <div>
-                                <h1 class="text-2xl font-bold text-gray-900" x-text="currentPage === 'admin.dashboard' ? 'Dashboard' : 
-                                    currentPage === 'admin.admissions.index' || currentPage === 'admin.admissions.create' || currentPage === 'admin.admissions.edit' || currentPage === 'admin.admissions.show' ? 'Admissions' :
-                                    currentPage === 'admin.payments.index' || currentPage === 'admin.payments.create' || currentPage === 'admin.due-payments.index' || currentPage === 'admin.payments.receipt' ? 'Payments' :
-                                    currentPage === 'admin.students.index' || currentPage === 'student.profile' ? 'Students' :
-                                    currentPage === 'admin.courses.index' || currentPage === 'admin.courses.create' || currentPage === 'admin.courses.edit' ? 'Courses' :
-                                    currentPage === 'admin.batches.index' || currentPage === 'admin.batches.create' || currentPage === 'admin.batches.edit' ? 'Batches' :
-                                    currentPage === 'admin.teachers.index' || currentPage === 'admin.teachers.create' ? 'Teachers' : 'Dashboard'">Dashboard</h1>
+                                <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
                                 <p class="text-gray-600 text-sm font-medium">Welcome back to your admin panel</p>
                             </div>
                         </div>
@@ -316,9 +299,6 @@
         </main>
     </div>
 
-    @vite(['resources/js/app.js'])
-    @livewireStyles
     @livewireScripts
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </body>
 </html>
