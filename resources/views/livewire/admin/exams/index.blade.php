@@ -47,7 +47,7 @@
                         <td class="p-3 font-medium">{{ $exam->name }}</td>
                         <td class="p-3">{{ $exam->batch?->batch_name }}</td>
                         <td class="p-3 no-print">
-                            <a href=""
+                            <a href="{{ route('admin.exams.show', $exam->id) }}"
                                class="px-3 py-1 text-sm rounded bg-indigo-600 text-white hover:bg-indigo-700">
                                View Students
                             </a>
