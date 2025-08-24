@@ -79,10 +79,10 @@
                                 <p class="text-xs text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
-                        <div>
+                        <div hidden>
                             <label class="text-xs">Status</label>
                             <select class="w-full border rounded p-2" wire:model="student_status">
-                                <option value="active">Active</option>
+                                <option value="active" selected>Active</option>
                                 <option value="inactive">Inactive</option>
                                 <option value="alumni">Alumni</option>
                             </select>
@@ -139,7 +139,7 @@
                     <div class="grid md:grid-cols-3 gap-3">
                         <div>
                             <label class="text-xs">Batch (Course)</label>
-                            <select class="w-full border rounded p-2" wire:model="batch_id">
+                            <select class="w-full border rounded p-2" wire:model.live="batch_id">
                                 <option value="">Select batch</option>
                                 @foreach ($batches as $b)
                                     <option value="{{ $b->id }}">
@@ -173,9 +173,9 @@
 
                     <div class="grid md:grid-cols-3 gap-3 items-end">
                         <div>
-                            <label class="text-xs">Discount</label>
+                            <label class="text-xs">Discount (in Rs.)</label>
                             <input type="number" step="0.01" min="0" class="w-full border rounded p-2"
-                                wire:model.debounce.300ms="discount">
+                                wire:model.live="discount">
                             @error('discount')
                                 <p class="text-xs text-red-600">{{ $message }}</p>
                             @enderror
@@ -192,7 +192,7 @@
                             <div>
                                 <label class="text-xs">No. of Installments</label>
                                 <input type="number" min="2" class="w-full border rounded p-2"
-                                    wire:model="installments">
+                                    wire:model.live="installments">
                                 @error('installments')
                                     <p class="text-xs text-red-600">{{ $message }}</p>
                                 @enderror
@@ -254,11 +254,11 @@
 
                     <div class="flex items-center gap-3 pt-2">
                         <button type="button" wire:click="prev" class="px-4 py-2 rounded-lg border">Back</button>
+                        <a href="{{ route('admin.admissions.index') }}"
+                            class="px-4 py-2 rounded-lg border">Cancel</a>
                         <button class="px-4 py-2 rounded-lg bg-black text-white">
                             {{ $this->admission ? 'Update Admission' : 'Save Admission' }}
                         </button>
-                        <a href="{{ route('admin.admissions.index') }}"
-                            class="px-4 py-2 rounded-lg border">Cancel</a>
                     </div>
                 </div>
 
