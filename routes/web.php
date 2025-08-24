@@ -1,31 +1,29 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-
-use App\Livewire\Admin\Dashboard;
-use App\Livewire\Admin\Teachers\Create as TeachersCreate;
-use App\Livewire\Admin\Teachers\Index as TeachersIndex;
 use App\Livewire\Admin\Admissions\Create as AdmissionsCreate;
-use App\Livewire\Admin\Admissions\Index as AdmissionsIndex;
 use App\Livewire\Admin\Admissions\Edit as AdmissionEdit;
+use App\Livewire\Admin\Admissions\Index as AdmissionsIndex;
 use App\Livewire\Admin\Admissions\Show as AdmissionShow;
-use App\Livewire\Admin\Payments\Index as PaymentsIndex;
-use App\Livewire\Admin\Payments\DuePayments;
-use App\Livewire\Admin\Payments\Receipts as PaymentReceipt;
-use App\Livewire\Admin\Payments\Create as PaymentsCreate;
-use App\Livewire\Admin\Students\Form as StudentsForm;
-use App\Livewire\Admin\Students\Index as StudentsIndex;
 use App\Livewire\Admin\Batches\Index as BatchesIndex;
 use App\Livewire\Admin\Courses\Index as CoursesIndex;
+use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\Exams\Create as ExamsCreate;
 use App\Livewire\Admin\Exams\Edit;
 use App\Livewire\Admin\Exams\Index;
 use App\Livewire\Admin\Exams\Show;
 use App\Livewire\Admin\Exams\Student\Create;
+use App\Livewire\Admin\Payments\Create as PaymentsCreate;
+use App\Livewire\Admin\Payments\DuePayments;
+use App\Livewire\Admin\Payments\Index as PaymentsIndex;
+use App\Livewire\Admin\Payments\Receipts as PaymentReceipt;
+use App\Livewire\Admin\Students\Index as StudentsIndex;
 use App\Livewire\Admin\Students\StudentProfile;
+use App\Livewire\Admin\Teachers\Create as TeachersCreate;
+use App\Livewire\Admin\Teachers\Index as TeachersIndex;
 use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
 use App\Livewire\Public\LandingPage;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', Dashboard::class)->name('admin.dashboard');
 Route::get('/home', LandingPage::class)->name('public.home');
@@ -49,6 +47,12 @@ Route::get('/courses', CoursesIndex::class)->name('admin.courses.index');
 Route::get('/courses/create', \App\Livewire\Admin\Courses\Create::class)->name('admin.courses.create');
 Route::get('/courses/{id}/edit', \App\Livewire\Admin\Courses\Edit::class)->name('admin.courses.edit');
 Route::get('/courses/{id}/view', \App\Livewire\Admin\Courses\View::class)->name('admin.courses.view');
+
+Route::get('/subjects', \App\Livewire\Admin\Subjects\Index::class)->name('admin.subjects.index');
+Route::get('/subjects/create', \App\Livewire\Admin\Subjects\Create::class)->name('admin.subjects.create');
+Route::get('/subjects/{id}/edit', \App\Livewire\Admin\Subjects\Edit::class)->name('admin.subjects.edit');
+Route::get('/subjects/{id}/view', \App\Livewire\Admin\Subjects\View::class)->name('admin.subjects.view');
+
 Route::get('/batches/create', \App\Livewire\Admin\Batches\Create::class)->name('admin.batches.create');
 Route::get('/batches/{batch}/edit', \App\Livewire\Admin\Batches\Edit::class)->name('admin.batches.edit');
 Route::get('/batches', BatchesIndex::class)->name('admin.batches.index');
