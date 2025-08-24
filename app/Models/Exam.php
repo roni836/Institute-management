@@ -17,4 +17,8 @@ class Exam extends Model
     {
         return $this->hasMany(ExamSubject::class);
     }
+    public function students()
+    {
+        return $this->belongsToMany(Student::class, 'exam_student')->withTimestamps();
+    }
 }
