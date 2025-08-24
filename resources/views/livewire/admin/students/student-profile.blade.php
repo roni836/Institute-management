@@ -1,144 +1,246 @@
 <div>
-<div class="max-w-6xl mx-auto p-6" x-data="{ tab: 'overview' }">
-    <!-- Header -->
-    <div class="bg-white rounded-lg shadow-md p-6 flex flex-col md:flex-row items-center gap-6">
-        <img class="w-32 h-32 rounded-full object-cover shadow"
-             src="https://via.placeholder.com/150"
-             alt="Student photo">
-
-        <div>
-            <h1 class="text-2xl font-bold text-gray-800">{{$student->name}}</h1>
-            <p class="text-gray-500">Batch name :{{$batch->batch_name}}</p>
-            <p class="mt-2 text-sm text-gray-600">{{$student->email}}</p>
-            <p class="text-sm text-gray-600">{{$student->phone}}</p>
-            <span class="inline-block mt-3 px-3 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Active</span>
-        </div>
-    </div>
-
-    <!-- Tabs -->
-    <div class="mt-8 border-b border-gray-200">
-        <nav class="flex gap-4">
-            <button @click="tab = 'overview'" 
-                    :class="tab === 'overview' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
-                    class="pb-2 border-b-2 text-sm font-medium">
-                Overview
-            </button>
-            <button @click="tab = 'batches'" 
-                    :class="tab === 'batches' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
-                    class="pb-2 border-b-2 text-sm font-medium">
-                Batches
-            </button>
-            <button @click="tab = 'payments'" 
-                    :class="tab === 'payments' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
-                    class="pb-2 border-b-2 text-sm font-medium">
-                Payments
-            </button>
-            <button @click="tab = 'performance'" 
-                    :class="tab === 'performance' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
-                    class="pb-2 border-b-2 text-sm font-medium">
-                Performance
-            </button>
-        </nav>
-    </div>
-
-    <!-- Tab Content -->
-    <div class="mt-4">
-        <!-- Overview -->
-        <div x-show="tab === 'overview'" class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-lg font-semibold text-gray-800 mb-4">Overview</h2>
-            <p class="text-gray-600">Shaique  is a Computer Science student enrolled in multiple batches.  
-                He has completed all fee payments on time and has an excellent academic record.</p>
-        </div>
-
-        <!-- Batches -->
-        <div x-show="tab === 'batches'" class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-lg font-semibold text-gray-800 mb-4">Batches</h2>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left text-gray-500">
-                    <thead class="text-xs uppercase bg-gray-50 text-gray-700">
-                        <tr>
-                            <th class="px-6 py-3">Batch Name</th>
-                            <th class="px-6 py-3">Start Date</th>
-                            <th class="px-6 py-3">End Date</th>
-                            <th class="px-6 py-3">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class="border-b">
-                            <td class="px-6 py-4">{{$batch->batch_name}}</td>
-                            <td class="px-6 py-4">{{$batch->start_date}}</td>
-                            <td class="px-6 py-4">{{$batch->end_date}}</td>
-                            <td class="px-6 py-4">
-                                @if($batch->end_date && \Carbon\Carbon::parse($batch->end_date)->isPast())
-                                    <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs">Completed</span>
-                                @else
-                                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Ongoing</span>
-                                @endif
-                            </td>                    
-                        </tr>
-                    </tbody>
-                </table>
+<div class="max-w-7xl mx-auto p-6 space-y-6" x-data="{ tab: 'overview' }">
+    {{-- Student Header --}}
+    <div class="bg-white rounded-xl border shadow-sm overflow-hidden">
+        <div class="md:flex">
+            <div class="p-6 flex gap-6 items-center flex-1">
+                <div class="h-24 w-24 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-3xl font-bold text-white">
+                    {{ Str::of($student->name)->substr(0,1)->upper() }}
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">{{ $student->name }}</h1>
+                    <div class="text-sm text-gray-600 mt-1">
+                        {{ $student->roll_no }} • {{ $student->student_uid }}
+                    </div>
+                    <div class="mt-3 flex items-center gap-3">
+                        <span class="px-3 py-1 rounded-full text-sm font-medium 
+                            {{ $student->status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700' }}">
+                            {{ ucfirst($student->status) }}
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
 
-        <!-- Payments -->
-        <div x-show="tab === 'payments'" class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-lg font-semibold text-gray-800 mb-4">Payments</h2>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left text-gray-500">
-                    <thead class="text-xs uppercase bg-gray-50 text-gray-700">
-                        <tr>
-                            <th class="px-6 py-3">Ref no.</th>
-                            <th class="px-6 py-3">Amount</th>
-                            <th class="px-6 py-3">Payment Date</th>
-                            <th class="px-6 py-3">Mode</th>
-                            <th class="px-6 py-3">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($payments as $payment)
-                        <tr class="border-b">
-                            <td class="px-6 py-4">{{$payment->reference_no}}</td>
-                            <td class="px-6 py-4">{{$payment->amount}}</td>
-                            <td class="px-6 py-4">{{$payment->date}}</td>
-                            <td class="px-6 py-4">{{$payment->mode}}</td>
+    {{-- Quick Stats --}}
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <!-- Stat cards for totalFees, paidFees, coursesEnrolled, attendance -->
+    </div>
 
-                            <td class="px-6 py-4"><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">{{$payment->status}}</span></td>
-                        </tr>
+    {{-- Tabs --}}
+    <div class="bg-white rounded-xl border">
+        <div class="border-b px-4">
+            <nav class="flex space-x-4">
+                @foreach(['overview', 'courses', 'payments', 'performance'] as $tab)
+                    <button wire:click="$set('selectedTab', '{{ $tab }}')"
+                        class="px-4 py-3 text-sm font-medium border-b-2 {{ $selectedTab === $tab 
+                            ? 'border-blue-500 text-blue-600' 
+                            : 'border-transparent text-gray-500 hover:text-gray-700' }}">
+                        {{ ucfirst($tab) }}
+                    </button>
+                @endforeach
+            </nav>
+        </div>
+
+        <div class="p-6">
+            @if($selectedTab === 'overview')
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Quick Stats -->
+                    <div class="lg:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="bg-white p-4 rounded-xl border">
+                            <p class="text-sm text-gray-600">Total Fees</p>
+                            <p class="text-2xl font-semibold">₹{{ number_format($stats['totalFees'], 2) }}</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border">
+                            <p class="text-sm text-gray-600">Paid Amount</p>
+                            <p class="text-2xl font-semibold text-green-600">₹{{ number_format($stats['paidFees'], 2) }}</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border">
+                            <p class="text-sm text-gray-600">Courses</p>
+                            <p class="text-2xl font-semibold">{{ $stats['coursesEnrolled'] }}</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border">
+                            <p class="text-sm text-gray-600">Attendance</p>
+                            <p class="text-2xl font-semibold">{{ $stats['attendance'] }}%</p>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activities -->
+                    <div class="bg-white rounded-xl border p-4">
+                        <h3 class="font-medium mb-4">Recent Activities</h3>
+                        <div class="space-y-4">
+                            @foreach($stats['recentActivities'] as $activity)
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <i class="text-blue-600">{{ $activity['icon'] }}</i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm">{{ $activity['description'] }}</p>
+                                        <p class="text-xs text-gray-500">{{ $activity['time'] }}</p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Batch Progress -->
+                <div class="bg-white rounded-xl border p-4">
+                    <h3 class="font-medium mb-4">Batch Progress</h3>
+                    <div class="grid gap-4">
+                        @foreach($stats['batchProgress'] as $batch)
+                            <div class="border rounded-lg p-3">
+                                <div class="flex justify-between mb-2">
+                                    <div>
+                                        <p class="font-medium">{{ $batch['batch'] }}</p>
+                                        <p class="text-sm text-gray-600">{{ $batch['course'] }}</p>
+                                    </div>
+                                    <span @class([
+                                        'px-2 py-1 rounded-full text-xs',
+                                        'bg-green-100 text-green-700' => $batch['status'] === 'active',
+                                        'bg-blue-100 text-blue-700' => $batch['status'] === 'completed'
+                                    ])>{{ ucfirst($batch['status']) }}</span>
+                                </div>
+                                <div class="relative pt-1">
+                                    <div class="flex mb-2 items-center justify-between">
+                                        <div>
+                                            <span class="text-xs font-semibold inline-block text-primary-600">
+                                                Progress
+                                            </span>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="text-xs font-semibold inline-block text-primary-600">
+                                                {{ $batch['progress'] }}%
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-primary-100">
+                                        <div style="width:{{ $batch['progress'] }}%"
+                                             class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary-500">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         @endforeach
-                        
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Performance -->
-        <div x-show="tab === 'performance'" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Progress Charts -->
-                <div class="bg-white p-6 rounded-xl shadow">
-                    <h3 class="text-lg font-semibold mb-4">Overall Progress</h3>
-                    <canvas id="progressChart"></canvas>
+                    </div>
                 </div>
-                
-                <!-- Monthly Performance -->
-                <div class="bg-white p-6 rounded-xl shadow">
-                    <h3 class="text-lg font-semibold mb-4">Monthly Performance</h3>
-                    <canvas id="monthlyChart"></canvas>
-                </div>
-            </div>
+            @endif
 
-            <!-- Subject-wise Performance -->
-            <div class="bg-white p-6 rounded-xl shadow">
-                <h3 class="text-lg font-semibold mb-4">Subject Performance</h3>
-                <canvas id="subjectsChart"></canvas>
-            </div>
+            @if($selectedTab === 'payments')
+                <!-- Payment History -->
+                <div class="bg-white rounded-xl border p-4">
+                    <h3 class="font-medium mb-4">Payment History</h3>
+                    <canvas id="paymentChart" class="w-full h-64"></canvas>
+                    
+                    <div class="mt-6">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mode</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                @foreach($stats['paymentHistory'] as $payment)
+                                    <tr>
+                                        <td class="px-6 py-4">{{ $payment['date'] }}</td>
+                                        <td class="px-6 py-4">₹{{ number_format($payment['amount'], 2) }}</td>
+                                        <td class="px-6 py-4 capitalize">{{ $payment['mode'] }}</td>
+                                        <td class="px-6 py-4">
+                                            <span @class([
+                                                'px-2 py-1 rounded-full text-xs',
+                                                'bg-green-100 text-green-700' => $payment['status'] === 'success',
+                                                'bg-yellow-100 text-yellow-700' => $payment['status'] === 'pending',
+                                                'bg-red-100 text-red-700' => $payment['status'] === 'failed'
+                                            ])>
+                                                {{ ucfirst($payment['status']) }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
+
+            @if($selectedTab === 'courses')
+                {{-- Course Progress Charts --}}
+            @elseif($selectedTab === 'performance')
+                {{-- Performance Metrics --}}
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Overall Performance Card -->
+                    <div class="bg-white rounded-xl border p-4">
+                        <h3 class="text-lg font-semibold mb-4">Overall Performance</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Attendance</span>
+                                <div class="w-48 bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-blue-600 h-2.5 rounded-full" 
+                                         style="width: {{ $performanceStats['overall']['attendance'] }}%"></div>
+                                </div>
+                                <span class="text-sm font-medium">{{ number_format($performanceStats['overall']['attendance'], 1) }}%</span>
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Course Completion</span>
+                                <div class="w-48 bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-green-600 h-2.5 rounded-full" 
+                                         style="width: {{ $performanceStats['overall']['completion'] }}%"></div>
+                                </div>
+                                <span class="text-sm font-medium">{{ number_format($performanceStats['overall']['completion'], 1) }}%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Course-wise Performance -->
+                    @foreach($performanceStats['courses'] as $course)
+                        <div class="bg-white rounded-xl border p-4">
+                            <h3 class="text-lg font-semibold mb-4">{{ $course['course'] }}</h3>
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Progress</span>
+                                    <div class="w-48 bg-gray-200 rounded-full h-2.5">
+                                        <div class="bg-primary-600 h-2.5 rounded-full" 
+                                             style="width: {{ $course['progress'] }}%"></div>
+                                    </div>
+                                    <span class="text-sm font-medium">{{ $course['progress'] }}%</span>
+                                </div>
+
+                                <div class="grid grid-cols-3 gap-4 mt-4">
+                                    <div class="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div class="text-2xl font-bold text-primary-600">
+                                            {{ $course['grades']['assignments'] }}%
+                                        </div>
+                                        <div class="text-xs text-gray-500">Assignments</div>
+                                    </div>
+                                    <div class="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div class="text-2xl font-bold text-primary-600">
+                                            {{ $course['grades']['midterm'] }}%
+                                        </div>
+                                        <div class="text-xs text-gray-500">Midterm</div>
+                                    </div>
+                                    <div class="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div class="text-2xl font-bold text-primary-600">
+                                            {{ $course['grades']['final'] }}%
+                                        </div>
+                                        <div class="text-xs text-gray-500">Final</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
         </div>
     </div>
 </div>
 
-<!-- Alpine.js (for tabs) -->
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+{{-- Include necessary Alpine.js and Chart.js scripts --}}
+@push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('alpine:init', () => {
@@ -256,4 +358,40 @@
     })
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('livewire:init', function() {
+        // Payment History Chart
+        const paymentCtx = document.getElementById('paymentChart');
+        if (paymentCtx) {
+            new Chart(paymentCtx, {
+                type: 'bar',
+                data: {
+                    labels: @json($stats['paymentHistory']['labels']),
+                    datasets: [{
+                        label: 'Payment Amount',
+                        data: @json($stats['paymentHistory']['data']),
+                        backgroundColor: '#4f46e5',
+                        borderColor: '#4338ca',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₹' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+@endpush
 </div>

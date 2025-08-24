@@ -15,7 +15,7 @@
                     <div class="w-12 h-12 {{ $card['bg_color'] }} rounded-xl flex items-center justify-center">
                         <svg class="w-6 h-6 {{ $card['icon_color'] }}" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
-                            {{ $card['icon'] }}
+                            {!! $card['icon'] !!}
                         </svg>
                     </div>
                 </div>

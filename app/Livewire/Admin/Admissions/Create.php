@@ -25,6 +25,9 @@ class Create extends Component
     public $batch_id, $admission_date, $discount = 0.00, $mode = 'full';
     public $fee_total                            = 0.00, $installments                            = 2, $plan                            = [];
 
+    public ?string $searchPhone = '';
+    public bool $isExistingStudent = false;
+
     public function mount()
     {
         $this->admission_date = now()->toDateString();
@@ -38,16 +41,38 @@ class Create extends Component
         }
     }
 
+    public function updatedSearchPhone()
+    {
+        $student = Student::where('phone', $this->searchPhone)->first();
+        if ($student) {
+            $this->isExistingStudent = true;
+            
+            // Pre-fill form with existing student data
+            $this->name = $student->name;
+            $this->email = $student->email;
+            $this->phone = $student->phone;
+            $this->roll_no = $student->roll_no;
+            $this->student_uid = $student->student_uid;
+            $this->father_name = $student->father_name;
+            $this->mother_name = $student->mother_name;
+            $this->address = $student->address;
+            $this->student_status = $student->status;
+        } else {
+            $this->isExistingStudent = false;
+            $this->reset(['name', 'email', 'roll_no', 'student_uid', 'father_name', 'mother_name', 'address']);
+        }
+    }
+
     /** Full rules (used on final save) */
     public function rules(): array
     {
-        return [
+        $rules = [
             // step 1
             'name'           => ['required', 'string', 'max:255'],
             'father_name'    => ['nullable', 'string', 'max:255'],
             'mother_name'    => ['nullable', 'string', 'max:255'],
-            'roll_no'        => ['required', 'string', 'unique:students,roll_no'],
-            'student_uid'    => ['required', 'string', 'unique:students,student_uid'],
+            'roll_no'        => ['required', 'string'],
+            'student_uid'    => ['required', 'string'],
             'email'          => ['nullable', 'email', 'max:255'],
             'phone'          => ['nullable', 'string', 'max:20'],
             'address'        => ['nullable', 'string'],
@@ -64,6 +89,9 @@ class Create extends Component
                 'integer', 'min:2',
             ],
         ];
+
+
+        return $rules;
     }
 
     /** Rules per step (for Next buttons) */
@@ -72,8 +100,6 @@ class Create extends Component
         return match ($step) {
             1 => [
                 'name'        => ['required', 'string', 'max:255'],
-                'roll_no'     => ['required', 'string', 'unique:students,roll_no'],
-                'student_uid' => ['required', 'string', 'unique:students,student_uid'],
                 'email'       => ['nullable', 'email', 'max:255'],
                 'phone'       => ['nullable', 'string', 'max:20'],
             ],
@@ -148,34 +174,37 @@ class Create extends Component
 
     public function save()
     {
-        // Final full validation
-        $this->validate();
+        $data = $this->validate();
 
-        DB::transaction(function () {
-            // 1) Create student
-            $student = Student::create([
-                'name'           => $this->name,
-                'father_name'    => $this->father_name,
-                'mother_name'    => $this->mother_name,
-                'roll_no'        => $this->roll_no,
-                'student_uid'    => $this->student_uid,
-                'email'          => $this->email,
-                'phone'          => $this->phone,
-                'address'        => $this->address,
-                'status'         => $this->student_status,
-                'admission_date' => $this->admission_date,
-            ]);
+        DB::transaction(function () use ($data) {
+            // Find or create student
+            $student = Student::where('phone', $this->phone)->first();
 
-            // 2) Create admission
+            if (!$student) {
+                $student = Student::create([
+                    'name' => $this->name,
+                    'email' => $this->email,
+                    'phone' => $this->phone,
+                    'roll_no' => $this->roll_no,
+                    'student_uid' => $this->student_uid,
+                    'father_name' => $this->father_name,
+                    'mother_name' => $this->mother_name,
+                    'address' => $this->address,
+                    'status' => $this->student_status,
+                    'admission_date' => $this->admission_date,
+                ]);
+            }
+
+            // Create admission
             $admission = Admission::create([
-                'student_id'     => $student->id,
-                'batch_id'       => $this->batch_id,
+                'student_id' => $student->id,
+                'batch_id' => $this->batch_id,
                 'admission_date' => $this->admission_date,
-                'discount'       => (float) $this->discount,
-                'mode'           => $this->mode,
-                'fee_total'      => (float) $this->fee_total,
-                'fee_due'        => (float) $this->fee_total,
-                'status'         => 'active',
+                'mode' => $this->mode,
+                'discount' => $this->discount,
+                'fee_total' => $this->fee_total,
+                'fee_due' => $this->fee_total,
+                'status' => 'active',
             ]);
 
             // 3) Create schedule if installments

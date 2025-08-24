@@ -54,6 +54,26 @@
                 <div class="md:col-span-3 bg-white border rounded-xl p-4 space-y-4">
                     <h3 class="font-semibold">Student Details</h3>
 
+                    {{-- Phone Search First --}}
+                    <div class="mb-6 border-b pb-6">
+                        <label class="text-xs">Search by Phone Number</label>
+                        <div class="flex gap-4">
+                            <input type="tel" 
+                                class="w-full border rounded p-2" 
+                                wire:model.blur.debounce.500ms="searchPhone"
+                                placeholder="Enter phone number to check existing student">
+                            <div wire:loading wire:target="searchPhone">
+                                <span class="text-sm text-gray-500">Checking...</span>
+                            </div>
+                        </div>
+                        @if($searchPhone && !$isExistingStudent)
+                            <p class="mt-2 text-sm text-gray-600">
+                                No student found with this phone number. Please fill in the details below.
+                            </p>
+                        @endif
+                    </div>
+
+                    {{-- Rest of Student Form --}}
                     <div class="grid md:grid-cols-2 gap-3">
                         <div>
                             <label class="text-xs">Name</label>

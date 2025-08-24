@@ -1,24 +1,24 @@
 <?php
 namespace App\Livewire\Admin\Payments;
 
-use Livewire\Attributes\Layout;
-use Livewire\Component;
 use App\Models\Transaction;
-use Livewire\Attributes\Url;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\Attributes\Layout;
+
 
 #[Layout('components.layouts.admin')]
+
 class Index extends Component
 {
     use WithPagination;
 
-    #[Url( as : 'q')]
     public string $search = '';
 
-    #[Url]
     public string $status = ''; // success|pending|failed or blank
 
-    #[Url]
     public string $mode = ''; // cash|cheque|online or blank
 
     public int $perPage = 15;
@@ -30,39 +30,58 @@ class Index extends Component
     public function updatingMode()
     {$this->resetPage();}
 
+    private function getPaymentStats()
+    {
+        $currentMonth = Carbon::now()->startOfMonth();
+        
+        return [
+            'monthlyRevenue' => [
+                'amount' => Transaction::where('status', 'success')
+                    ->whereMonth('date', $currentMonth->month)
+                    ->whereYear('date', $currentMonth->year)
+                    ->sum('amount'),
+                'percentChange' => $this->calculateMonthlyGrowth(),
+            ],
+            'pendingPayments' => Transaction::where('status', 'pending')
+                ->sum('amount'),
+            'completedPayments' => Transaction::where('status', 'success')
+                ->sum('amount'),
+            'overduePayments' => DB::table('payment_schedules')
+                ->where('due_date', '<', now())
+                ->where('status', '!=', 'paid')
+                ->sum(DB::raw('amount - paid_amount')),
+        ];
+    }
+
+    private function calculateMonthlyGrowth()
+    {
+        $currentMonth = Carbon::now()->startOfMonth();
+        $lastMonth = Carbon::now()->subMonth()->startOfMonth();
+
+        $currentMonthRevenue = Transaction::where('status', 'success')
+            ->whereMonth('date', $currentMonth->month)
+            ->whereYear('date', $currentMonth->year)
+            ->sum('amount');
+
+        $lastMonthRevenue = Transaction::where('status', 'success')
+            ->whereMonth('date', $lastMonth->month)
+            ->whereYear('date', $lastMonth->year)
+            ->sum('amount');
+
+        if ($lastMonthRevenue == 0) return 0;
+        
+        return round((($currentMonthRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100, 1);
+    }
+
     public function render()
     {
-        $transactions = Transaction::query()
-            ->with(['admission.student', 'admission.batch', 'schedule'])
-            ->when($this->search, function ($q) {
-                $q->whereHas('admission.student', function ($qq) {
-                    $qq->where('name', 'like', "%{$this->search}%")
-                        ->orWhere('phone', 'like', "%{$this->search}%");
-                })->orWhereHas('admission.batch', function ($qq) {
-                    $qq->where('batch_name', 'like', "%{$this->search}%");
-                })->orWhere('reference_no', 'like', "%{$this->search}%");
-            })
-            ->when($this->status !== '', fn($q) => $q->where('status', $this->status))
-            ->when($this->mode !== '', fn($q) => $q->where('mode', $this->mode))
+        $transactions = Transaction::with(['admission.student', 'admission.batch'])
             ->latest('date')
-            ->paginate($this->perPage);
-
-        // Add payment statistics
-        $stats = [
-            'monthlyRevenue' => [
-                'amount' => Transaction::whereMonth('date', now()->month)->sum('amount'),
-                'growth' => 12 // Calculate actual percentage
-            ],
-            'pending' => Transaction::where('status', 'pending')->sum('amount'),
-            'completed' => Transaction::where('status', 'success')->sum('amount'),
-            'overdue' => Transaction::whereHas('schedule', function($q) {
-                $q->where('due_date', '<', now())->where('status', 'pending');
-            })->sum('amount')
-        ];
+            ->paginate(10);
 
         return view('livewire.admin.payments.index', [
             'transactions' => $transactions,
-            'stats' => $stats
+            'stats' => $this->getPaymentStats()
         ]);
     }
 }

@@ -52,7 +52,7 @@
             <tbody>
                 @forelse($students as $s)
                     <tr class="border-t">
-                        <td class="p-3">{{ $s->full_name }}</td>
+                        <td class="p-3">{{ $s->name }}</td>
                         <td class="p-3">{{ $s->email ?? '—' }}<br>{{ $s->phone ?? '—' }}</td>
                         <td class="p-3">{{ ucfirst($s->status) }}</td>
                         <td class="p-3">
