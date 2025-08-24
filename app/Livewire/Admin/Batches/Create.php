@@ -11,6 +11,7 @@ use Livewire\Component;
 class Create extends Component
 {
     public $course_id, $batch_name, $start_date, $end_date;
+    public $selected_course;
 
     public function rules()
     {
@@ -20,6 +21,28 @@ class Create extends Component
             'start_date' => 'nullable|date',
             'end_date'   => 'nullable|date|after_or_equal:start_date',
         ];
+    }
+
+    public function updatedStartDate($value)
+    {
+        if ($this->course_id && $value) {
+            $course = Course::find($this->course_id);
+            if ($course && $course->duration_months) {
+                $this->end_date = \Carbon\Carbon::parse($value)
+                    ->addMonths($course->duration_months)
+                    ->format('Y-m-d');
+            }
+        }
+    }
+
+    public function updatedCourseId($value)
+    {
+        $this->selected_course = Course::find($value);
+        if ($this->start_date && $this->selected_course) {
+            $this->end_date = \Carbon\Carbon::parse($this->start_date)
+                ->addMonths($this->selected_course->duration_months)
+                ->format('Y-m-d');
+        }
     }
 
     public function save()
