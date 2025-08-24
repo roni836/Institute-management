@@ -23,6 +23,24 @@ class Create extends Component
         ];
     }
 
+    public function mount()
+    {
+        $this->start_date = now()->format('Y-m-d');
+        if ($this->course_id) {
+            $this->selected_course = Course::find($this->course_id);
+            $this->updateEndDate();
+        }
+    }
+
+    protected function updateEndDate()
+    {
+        if ($this->start_date && $this->selected_course?->duration_months) {
+            $this->end_date = \Carbon\Carbon::parse($this->start_date)
+                ->addMonths($this->selected_course->duration_months)
+                ->format('Y-m-d');
+        }
+    }
+
     public function updatedStartDate($value)
     {
         if ($this->course_id && $value) {
@@ -58,6 +76,7 @@ class Create extends Component
     {
         return view('livewire.admin.batches.create', [
             'courses' => Course::orderBy('name')->get(),
+            'statuses' => ['Upcoming', 'Running', 'Completed']
         ]);
     }
 }

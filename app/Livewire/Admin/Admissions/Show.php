@@ -75,8 +75,32 @@ class Show extends Component
         ];
     }
 
+    #[Computed]
+    public function stats(): array 
+    {
+        return [
+            'totalPaid' => $this->totalPaid,
+            'paidPercent' => $this->paidPercent,
+            'totalFee' => (float) $this->admission->fee_total,
+            'dueFee' => (float) $this->admission->fee_due,
+            'overdueCount' => $this->overdueCount,
+            'nextDue' => $this->nextDue,
+        ];
+    }
+
+    #[Computed]
+    public function recentTransactions()
+    {
+        return $this->admission->transactions
+            ->where('status', 'success')
+            ->take(5);
+    }
+
     public function render()
     {
-        return view('livewire.admin.admissions.show');
+        return view('livewire.admin.admissions.show', [
+            'stats' => $this->stats,
+            'recentTransactions' => $this->recentTransactions,
+        ]);
     }
 }

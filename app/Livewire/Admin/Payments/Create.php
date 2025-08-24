@@ -32,6 +32,7 @@ class Create extends Component
 
     public array $selectedScheduleIds = [];
 
+
     public function updated($name, $value): void
     {
         if ($name === 'search') {
@@ -105,9 +106,13 @@ class Create extends Component
         return round($sum, 2);
     }
 
-    public function mount(): void
+    public function mount($id = null)
     {
+        if ($id) {
+            $this->selectStudent($id);
+        }
         $this->date = now()->format('Y-m-d');
+        $this->status = 'success'; // default value
     }
 
     public function updatedSearch(): void
@@ -230,6 +235,25 @@ class Create extends Component
 
     public function render()
     {
-        return view('livewire.admin.payments.create');
+        // Skip loading search results if student is already selected
+        $searchResults = [];
+        if (!$this->selectedStudentId && $this->search) {
+            $searchResults = Student::where(function ($q) {
+                $term = "%{$this->search}%";
+                $q->where('name', 'like', $term)
+                    ->orWhere('roll_no', 'like', $term)
+                    ->orWhere('phone', 'like', $term);
+            })
+            ->limit(5)
+            ->get()
+            ->map(fn($s) => [
+                'id' => $s->id,
+                'label' => "{$s->name} ({$s->roll_no})"
+            ]);
+        }
+
+        return view('livewire.admin.payments.create', [
+            'students' => $searchResults
+        ]);
     }
 }

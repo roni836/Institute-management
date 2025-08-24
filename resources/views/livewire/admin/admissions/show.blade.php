@@ -1,85 +1,109 @@
-<div class="p-6 space-y-6">
-    {{-- Header --}}
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div class="flex items-center gap-4">
-            <div class="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 grid place-items-center text-white text-lg font-semibold">
-                {{ Str::of($admission->student->name)->substr(0,1)->upper() }}
+<div class="max-w-7xl mx-auto p-6 space-y-6">
+    {{-- Header with Student Info --}}
+    <div class="bg-white rounded-xl border shadow-sm overflow-hidden">
+        <div class="md:flex">
+            {{-- Student Avatar & Basic Info --}}
+            <div class="p-6 flex gap-6 items-center flex-1">
+                <div class="h-20 w-20 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-2xl font-bold text-white">
+                    {{ Str::of($admission->student->name)->substr(0,1)->upper() }}
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">{{ $admission->student->name }}</h1>
+                    <div class="text-sm text-gray-600 mt-1">
+                        {{ $admission->student->roll_no }} • {{ $admission->student->student_uid }}
+                    </div>
+                    <div class="mt-3 flex items-center gap-3">
+                        <span @class([
+                            'px-3 py-1 rounded-full text-sm font-medium',
+                            'bg-green-100 text-green-700' => $admission->status === 'active',
+                            'bg-gray-100 text-gray-700' => $admission->status === 'completed',
+                            'bg-red-100 text-red-700' => $admission->status === 'cancelled',
+                        ])>
+                            {{ ucfirst($admission->status) }}
+                        </span>
+                    </div>
+                </div>
             </div>
-            <div>
-                <h1 class="text-xl md:text-2xl font-semibold">{{ $admission->student->name }}</h1>
-                <div class="text-sm text-gray-600">
-                    Roll: {{ $admission->student->roll_no }} • UID: {{ $admission->student->student_uid }}
+
+            {{-- Quick Actions --}}
+            <div class="p-6 bg-gray-50 border-t md:border-t-0 md:border-l flex items-center gap-4">
+                <a href="{{ route('admin.payments.create', ['admission_id' => $admission->id]) }}"
+                   class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 inline-flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    Record Payment
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {{-- Stats Cards --}}
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {{-- Total Fee --}}
+        <div class="bg-white rounded-xl border p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Total Fee</p>
+                    <p class="text-2xl font-bold mt-1">₹{{ number_format($stats['totalFee'], 2) }}</p>
+                </div>
+                <div class="h-12 w-12 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
                 </div>
             </div>
         </div>
 
-        <div class="flex items-center gap-2">
-            <span @class([
-                'px-3 py-1 rounded-full text-xs font-medium capitalize',
-                'bg-green-100 text-green-700' => $admission->status === 'completed',
-                'bg-blue-100 text-blue-700' => $admission->status === 'active',
-                'bg-red-100 text-red-700' => $admission->status === 'cancelled',
-            ])>
-                {{ $admission->status }}
-            </span>
-
-            <a href="{{ route('admin.payments.create', ['admission_id' => $admission->id]) }}"
-               class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-black text-white hover:bg-gray-900">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                     stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                     d="M12 4v16m8-8H4"/></svg>
-                Record Payment
-            </a>
-        </div>
-    </div>
-
-    {{-- Overview Cards --}}
-    <div class="grid md:grid-cols-4 gap-4">
-        <div class="border rounded-xl bg-white p-4">
-            <div class="text-xs text-gray-500">Total Fee</div>
-            <div class="text-lg font-semibold">₹ {{ number_format($admission->fee_total, 2) }}</div>
-        </div>
-        <div class="border rounded-xl bg-white p-4">
-            <div class="text-xs text-gray-500">Total Paid</div>
-            <div class="text-lg font-semibold">₹ {{ number_format($this->totalPaid, 2) }}</div>
-        </div>
-        <div class="border rounded-xl bg-white p-4">
-            <div class="text-xs text-gray-500">Due</div>
-            <div class="text-lg font-semibold">₹ {{ number_format($admission->fee_due, 2) }}</div>
-        </div>
-        <div class="border rounded-xl bg-white p-4">
-            <div class="text-xs text-gray-500">Overdue Installments</div>
-            <div class="text-lg font-semibold">{{ $this->overdueCount }}</div>
-        </div>
-    </div>
-
-    {{-- Progress --}}
-    <div class="bg-white border rounded-xl p-4">
-        <div class="flex items-center justify-between text-sm mb-2">
-            <div class="text-gray-700 font-medium">Payment Progress</div>
-            <div class="text-gray-600">{{ $this->paidPercent }}%</div>
-        </div>
-        <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-            <div class="h-2 bg-gradient-to-r from-emerald-500 to-teal-500"
-                 style="width: {{ $this->paidPercent }}%"></div>
-        </div>
-        @if($this->nextDue)
-            <div class="text-sm text-gray-600 mt-3">
-                Next due: <span class="font-medium">Inst #{{ $this->nextDue['installment_no'] }}</span>
-                • ₹ {{ $this->nextDue['remaining'] }} • {{ $this->nextDue['due_date'] }}
-                <span @class([
-                    'ml-2 px-2 py-0.5 rounded text-xs',
-                    'bg-yellow-100 text-yellow-800' => $this->nextDue['status']==='pending' || $this->nextDue['status']==='partial',
-                    'bg-green-100 text-green-700' => $this->nextDue['status']==='paid',
-                ])>
-                    {{ $this->nextDue['status'] }}
-                </span>
+        {{-- Total Paid --}}
+        <div class="bg-white rounded-xl border p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Total Paid</p>
+                    <p class="text-2xl font-bold mt-1">₹{{ number_format($stats['totalPaid'], 2) }}</p>
+                </div>
+                <div class="h-12 w-12 rounded-lg bg-green-50 text-green-600 flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
             </div>
-        @endif
+        </div>
+
+        {{-- Due Fee --}}
+        <div class="bg-white rounded-xl border p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Due Amount</p>
+                    <p class="text-2xl font-bold mt-1">₹{{ number_format($stats['dueFee'], 2) }}</p>
+                </div>
+                <div class="h-12 w-12 rounded-lg bg-yellow-50 text-yellow-600 flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        {{-- Overdue Installments --}}
+        <div class="bg-white rounded-xl border p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Overdue Installments</p>
+                    <p class="text-2xl font-bold mt-1">{{ $stats['overdueCount'] }}</p>
+                </div>
+                <div class="h-12 w-12 rounded-lg bg-red-50 text-red-600 flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="grid lg:grid-cols-3 gap-6">
-        {{-- Left Column --}}
+    {{-- Main Content Grid --}}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {{-- Left Column (Course & Schedule) --}}
         <div class="lg:col-span-2 space-y-6">
             {{-- Course & Batch --}}
             <div class="bg-white border rounded-xl p-4">
@@ -171,7 +195,7 @@
             </div>
         </div>
 
-        {{-- Right Column --}}
+        {{-- Right Column (Contact & Transactions) --}}
         <div class="space-y-6">
             {{-- Contact Card --}}
             <div class="bg-white border rounded-xl p-4">
