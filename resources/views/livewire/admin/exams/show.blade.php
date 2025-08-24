@@ -4,8 +4,16 @@
         <h1 class="text-xl font-semibold">
             {{ $exam->name }} – {{ $exam->exam_date }}
         </h1>
+        <div class="flex space-x-2"> <!-- Wrap buttons in a flex container -->
         <a href="{{ route('admin.exams.index') }}"
-           class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">Back</a>
+           class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
+           Back
+        </a>
+        <a href="{{route('admin.students.create', ['exam_id' => $exam->id])}}"
+           class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+           Add Student
+        </a>
+    </div>
     </div>
 
     <div class="overflow-visible">
