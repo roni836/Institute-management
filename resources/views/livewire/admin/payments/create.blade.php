@@ -1,7 +1,8 @@
 <div class="max-w-3xl mx-auto p-6 space-y-6">
     <h1 class="text-2xl font-semibold text-gray-800">Create Payment</h1>
 
-    <!-- Search Student -->
+    <!-- Search Student (Only show if no student is pre-selected) -->
+    @unless($selectedStudentId)
     <div>
         <label class="block text-sm font-medium mb-1">Search Student (Name / Roll No)</label>
         <input type="text" wire:model.live.debounce.300ms="search"
@@ -16,13 +17,14 @@
             <div class="border rounded bg-white shadow mt-1 max-h-48 overflow-y-auto divide-y">
                 @foreach ($students as $s)
                     <div wire:click="selectStudent({{ $s['id'] }})"
-                        class="px-3 py-2 hover:bg-gray-100 cursor-pointer" wire:loading.attr="disabled">
+                        class="px-3 py-2 hover:bg-gray-100 cursor-pointer">
                         {{ $s['label'] }}
                     </div>
                 @endforeach
             </div>
         @endif
     </div>
+    @endunless
 
     <!-- NEW: Admission selector appears after a student is chosen -->
     @if ($selectedStudentId && $admissions)

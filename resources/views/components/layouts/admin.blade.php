@@ -306,7 +306,7 @@
             </header>
 
             <!-- Page Content -->
-            <div class="p-6">
+            <div class="px-3 py-2">
                 {{ $slot }}
             </div>
         </main>

@@ -40,7 +40,7 @@ Route::get('/admin/show-admissions/{admission}', AdmissionShow::class)->name('ad
 
 // Payments
 Route::get('/payments', PaymentsIndex::class)->name('admin.payments.index');
-Route::get('/payments/create', PaymentsCreate::class)->name('admin.payments.create');
+Route::get('/payments/create/{id?}', PaymentsCreate::class)->name('admin.payments.create');
 Route::get('/due-payments', DuePayments::class)->name('admin.due-payments.index');
 Route::get('/payments/{transaction}/receipt', PaymentReceipt::class)->name('admin.payments.receipt');
 
