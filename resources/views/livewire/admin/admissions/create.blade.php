@@ -17,7 +17,7 @@
                             <span
                                 class="flex items-center justify-center h-8 w-8 rounded-full text-sm font-semibold
                                 @if ($step > $i) bg-green-600 text-white
-                                @elseif($step === $i) bg-blue-600 text-white
+                                @elseif($step === $i) bg-primary-600 text-white
                                 @else bg-gray-200 text-gray-700 @endif">
                                 @if ($step > $i)
                                     ✓
@@ -26,7 +26,7 @@
                                 @endif
                             </span>
                             <span
-                                class="@if ($step === $i) text-blue-700 font-semibold @else text-gray-600 @endif">
+                                class="@if ($step === $i) text-primary-700 font-semibold @else text-gray-600 @endif">
                                 {{ $label }}
                             </span>
                         </button>
@@ -42,7 +42,7 @@
         </div>
 
         <div class="mt-4 h-2 w-full bg-gray-100 rounded">
-            <div class="h-2 bg-blue-600 rounded" style="width: {{ $progress }}%"></div>
+            <div class="h-2 bg-primary-600 rounded" style="width: {{ $progress }}%"></div>
         </div>
     </div>
 
@@ -124,7 +124,7 @@
 
                     <div class="flex items-center gap-3 pt-2">
                         <button type="button" wire:click="next"
-                            class="px-4 py-2 rounded-lg bg-blue-600 text-white">Next</button>
+                            class="px-4 py-2 rounded-lg bg-primary-600 text-white">Next</button>
                     </div>
                 </div>
             </div>
@@ -203,7 +203,7 @@
                     <div class="flex items-center gap-3 pt-2">
                         <button type="button" wire:click="prev" class="px-4 py-2 rounded-lg border">Back</button>
                         <button type="button" wire:click="next"
-                            class="px-4 py-2 rounded-lg bg-blue-600 text-white">Next</button>
+                            class="px-4 py-2 rounded-lg bg-primary-600 text-white">Next</button>
                     </div>
                 </div>
 
