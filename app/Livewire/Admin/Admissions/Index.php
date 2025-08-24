@@ -1,8 +1,8 @@
 <?php
 namespace App\Livewire\Admin\Admissions;
 
+use App\Models\Admission;
 use App\Models\Batch;
-use App\Models\Student;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -12,60 +12,52 @@ class Index extends Component
 {
     use WithPagination;
 
-    public string $q       = '';
+    public string $q = '';
     public ?string $status = null;
-    public ?int $batchId   = null;
+    public ?int $batchId = null;
 
     protected $queryString = ['q', 'status', 'batchId', 'page'];
 
-    public function updating($name, $value)
+    public function updating($name)
     {
-        if (in_array($name, ['q', 'status', 'batchId'], true)) {
+        if (in_array($name, ['q', 'status', 'batchId'])) {
             $this->resetPage();
         }
     }
 
     public function delete(int $id)
     {
-        Student::findOrFail($id)->delete();
-        session()->flash('ok', 'Student deleted.');
+        Admission::findOrFail($id)->delete();
+        session()->flash('ok', 'Admission deleted.');
     }
 
     public function render()
     {
-        $students = Student::query()
-            ->when($this->q, function ($q) {
-                $q->where(function ($qq) {
-                    $term = "%{$this->q}%";
-                    // Use 'name' (you don't have first_name/last_name in your schema)
-                    $qq->where('name', 'like', $term)
-                        ->orWhere('email', 'like', $term)
-                        ->orWhere('phone', 'like', $term)
-                        ->orWhere('roll_no', 'like', $term)
-                        ->orWhere('student_uid', 'like', $term);
-                });
-            })
+        $admissions = Admission::with(['student', 'batch.course'])
+            ->when($this->q, fn($q) => $q->where(function($qq) {
+                $term = "%{$this->q}%";
+                $qq->whereHas('student', fn($s) => 
+                    $s->where('name', 'like', $term)
+                    ->orWhere('phone', 'like', $term)
+                    ->orWhere('email', 'like', $term)
+                );
+            }))
             ->when($this->status, fn($q) => $q->where('status', $this->status))
-            ->when($this->batchId, function ($q) {
-                $q->whereHas('admissions', fn($a) => $a->where('batch_id', $this->batchId));
-            })
+            ->when($this->batchId, fn($q) => $q->where('batch_id', $this->batchId))
             ->latest()
             ->paginate(10);
 
-        // Add admission statistics
         $stats = [
-            'total' => Student::count(),
-            'pendingReview' => Student::whereHas('admissions', fn($q) => 
-                $q->where('status', 'pending'))->count(),
-            'approved' => Student::whereHas('admissions', fn($q) => 
-                $q->where('status', 'approved'))->count(),
-            'rejected' => Student::whereHas('admissions', fn($q) => 
-                $q->where('status', 'rejected'))->count()
+            'total' => Admission::count(),
+            'active' => Admission::where('status', 'active')->count(),
+            'completed' => Admission::where('status', 'completed')->count(),
+            'cancelled' => Admission::where('status', 'cancelled')->count(),
+            'pendingPayments' => Admission::where('fee_due', '>', 0)->count(),
         ];
 
         return view('livewire.admin.admissions.index', [
-            'students' => $students,
-            'batches'  => Batch::with('course')->latest()->take(100)->get(),
+            'admissions' => $admissions,
+            'batches' => Batch::orderBy('batch_name')->get(),
             'stats' => $stats
         ]);
     }
