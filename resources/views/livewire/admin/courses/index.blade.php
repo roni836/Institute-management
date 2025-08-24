@@ -75,7 +75,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
             </span>
-            <input type="text" wire:model.debounce.400ms="q" 
+            <input type="text" wire:model.live.debounce.300="q" 
                    class="w-full pl-10 pr-4 py-2 border rounded-lg" 
                    placeholder="Search Courses">
         </div>
@@ -87,7 +87,7 @@
         </button>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+    <div wire:loading.remove class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         @forelse($courses as $c)
             <div class="bg-white p-4 md:p-6 rounded-xl border">
                 <div class="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
@@ -143,6 +143,8 @@
             </div>
         @endforelse
     </div>
+
+    <h2 wire:loading.target="q" wire:loading>Searching....</h2>
 
     <div class="mt-6">
         {{ $courses->links() }}
