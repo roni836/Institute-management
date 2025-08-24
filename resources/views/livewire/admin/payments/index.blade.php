@@ -16,8 +16,11 @@
             <div class="flex justify-between items-center">
                 <div>
                     <p class="text-gray-600 text-sm">Monthly Revenue</p>
-                    <p class="text-2xl font-semibold">₹4,58,970</p>
-                    <p class="text-xs text-green-600">↑ 12% from last month</p>
+                    <p class="text-2xl font-semibold">₹{{ number_format($stats['monthlyRevenue']['amount'], 2) }}</p>
+                    <p class="text-xs {{ $stats['monthlyRevenue']['percentChange'] >= 0 ? 'text-green-600' : 'text-red-600' }}">
+                        {{ $stats['monthlyRevenue']['percentChange'] >= 0 ? '↑' : '↓' }} 
+                        {{ abs($stats['monthlyRevenue']['percentChange']) }}% from last month
+                    </p>
                 </div>
                 <div class="p-2 bg-orange-100 text-orange-500 rounded-lg">₹</div>
             </div>
@@ -28,7 +31,7 @@
             <div class="flex justify-between items-center">
                 <div>
                     <p class="text-gray-600 text-sm">Pending Payments</p>
-                    <p class="text-2xl font-semibold text-yellow-600">₹1,23,450</p>
+                    <p class="text-2xl font-semibold text-yellow-600">₹{{ number_format($stats['pendingPayments'], 2) }}</p>
                 </div>
                 <div class="p-2 bg-yellow-100 text-yellow-600 rounded-lg">₹</div>
             </div>
@@ -39,7 +42,7 @@
             <div class="flex justify-between items-center">
                 <div>
                     <p class="text-gray-600 text-sm">Completed</p>
-                    <p class="text-2xl font-semibold text-green-600">₹3,35,520</p>
+                    <p class="text-2xl font-semibold text-green-600">₹{{ number_format($stats['completedPayments'], 2) }}</p>
                 </div>
                 <div class="p-2 bg-green-100 text-green-500 rounded-lg">₹</div>
             </div>
@@ -50,7 +53,7 @@
             <div class="flex justify-between items-center">
                 <div>
                     <p class="text-gray-600 text-sm">Overdue</p>
-                    <p class="text-2xl font-semibold text-red-600">₹45,230</p>
+                    <p class="text-2xl font-semibold text-red-600">₹{{ number_format($stats['overduePayments'], 2) }}</p>
                 </div>
                 <div class="p-2 bg-red-100 text-red-500 rounded-lg">₹</div>
             </div>
