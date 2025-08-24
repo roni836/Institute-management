@@ -44,7 +44,7 @@ Route::get('/payments/{transaction}/receipt', PaymentReceipt::class)->name('admi
 // Courses & Batches
 Route::get('/courses', CoursesIndex::class)->name('admin.courses.index');
 Route::get('/courses/create', \App\Livewire\Admin\Courses\Create::class)->name('admin.courses.create');
-Route::get('/courses/{course}/edit', \App\Livewire\Admin\Courses\Edit::class)->name('admin.courses.edit');
+Route::get('/courses/{id}/edit', \App\Livewire\Admin\Courses\Edit::class)->name('admin.courses.edit');
 Route::get('/batches/create', \App\Livewire\Admin\Batches\Create::class)->name('admin.batches.create');
 Route::get('/batches/{batch}/edit', \App\Livewire\Admin\Batches\Edit::class)->name('admin.batches.edit');
 Route::get('/batches', BatchesIndex::class)->name('admin.batches.index');
