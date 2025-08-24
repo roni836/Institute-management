@@ -75,18 +75,31 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
             </span>
-            <input type="text" wire:model.live.debounce.300="q" 
+            <input type="text" wire:model.live.debounce.300ms="q" 
                    class="w-full pl-10 pr-4 py-2 border rounded-lg" 
-                   placeholder="Search Courses">
+                   placeholder="Search courses by name or code">
         </div>
-        <button class="px-4 py-2 border rounded-lg flex items-center gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
-            </svg>
-            Filter by Status
-        </button>
+
+        <select wire:model.live="statusFilter" class="border rounded-lg px-4 py-2">
+            <option value="">All Status</option>
+            <option value="Active">Active</option>
+            <option value="Upcoming">Upcoming</option>
+        </select>
+
+        <select wire:model.live="sortField" class="border rounded-lg px-4 py-2">
+            <option value="">Sort By</option>
+            <option value="name">Name</option>
+            <option value="students_count">Students</option>
+            <option value="created_at">Date Created</option>
+        </select>
     </div>
 
+    <!-- Loading indicator -->
+    <div wire:loading.delay class="w-full text-center py-4">
+        <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-500 border-r-transparent"></div>
+    </div>
+
+    <!-- Course cards with wire:loading.remove -->
     <div wire:loading.remove class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         @forelse($courses as $c)
             <div class="bg-white p-4 md:p-6 rounded-xl border">
