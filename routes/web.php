@@ -62,5 +62,5 @@ Route::get('exams/show/{examid}', Show::class)->name('admin.exams.show');
 
 // Auth
 Route::get('/login', Login::class)->name('login');
-Route::get('/logout', Login::class)->name('logout');
+Route::get('/login', Login::class)->name('logout');
 Route::get('/register', Register::class)->name('register');

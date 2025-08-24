@@ -113,45 +113,147 @@
         </div>
 
         <!-- Performance -->
-        <div x-show="tab === 'performance'" class="bg-white rounded-lg shadow-md p-6">
-    <h2 class="text-lg font-semibold text-gray-800 mb-4">Performance</h2>
+        <div x-show="tab === 'performance'" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Progress Charts -->
+                <div class="bg-white p-6 rounded-xl shadow">
+                    <h3 class="text-lg font-semibold mb-4">Overall Progress</h3>
+                    <canvas id="progressChart"></canvas>
+                </div>
+                
+                <!-- Monthly Performance -->
+                <div class="bg-white p-6 rounded-xl shadow">
+                    <h3 class="text-lg font-semibold mb-4">Monthly Performance</h3>
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
 
-    <div class="overflow-x-auto">
-        <table class="w-full text-sm text-left text-gray-500">
-            <thead class="text-xs uppercase bg-gray-50 text-gray-700">
-                <tr>
-                    <th class="px-6 py-3">Exam</th>
-                    <th class="px-6 py-3">Date of Exam</th>
-                    <th class="px-6 py-3">Subject</th>
-                    <th class="px-6 py-3">Score</th>
-                    <th class="px-6 py-3">Grade</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($performance as $item)
-                    <tr class="border-b">
-                        <td class="px-6 py-4">{{ $item['exam'] }}</td>
-                        <td class="px-6 py-4">{{ $item['date'] }}</td>
-                        <td class="px-6 py-4">{{ $item['subject'] }}</td>
-                        <td class="px-6 py-4">{{ $item['score'] }}</td>
-                        <td class="px-6 py-4 font-semibold text-gray-800">{{ $item['grade'] }}</td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="4" class="px-6 py-4 text-center text-gray-500">
-                            No performance records found.
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-</div>
-
+            <!-- Subject-wise Performance -->
+            <div class="bg-white p-6 rounded-xl shadow">
+                <h3 class="text-lg font-semibold mb-4">Subject Performance</h3>
+                <canvas id="subjectsChart"></canvas>
+            </div>
+        </div>
     </div>
 </div>
 
 <!-- Alpine.js (for tabs) -->
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('studentProfile', () => ({
+            tab: 'overview',
+            init() {
+                this.$nextTick(() => {
+                    this.initCharts();
+                });
+            },
+            initCharts() {
+                const performanceStats = @json($performanceStats);
+
+                // Overall Progress Chart
+                const ctx1 = document.getElementById('progressChart').getContext('2d');
+                new Chart(ctx1, {
+                    type: 'bar',
+                    data: {
+                        labels: performanceStats.overallProgress.labels,
+                        datasets: [{
+                            label: 'Progress',
+                            data: performanceStats.overallProgress.data,
+                            backgroundColor: '#4caf50',
+                            borderColor: '#388e3c',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                // Monthly Performance Chart
+                const ctx2 = document.getElementById('monthlyChart').getContext('2d');
+                new Chart(ctx2, {
+                    type: 'line',
+                    data: {
+                        labels: performanceStats.monthlyPerformance.labels,
+                        datasets: [{
+                            label: 'Monthly Performance',
+                            data: performanceStats.monthlyPerformance.data,
+                            backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                            borderColor: '#4caf50',
+                            borderWidth: 2,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    unit: 'month',
+                                    tooltipFormat: 'MMM DD',
+                                    displayFormats: {
+                                        month: 'MMM YYYY'
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Month'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Performance Score'
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Subject-wise Performance Chart
+                const ctx3 = document.getElementById('subjectsChart').getContext('2d');
+                new Chart(ctx3, {
+                    type: 'radar',
+                    data: {
+                        labels: performanceStats.subjectWisePerformance.labels,
+                        datasets: [{
+                            label: 'Subject Performance',
+                            data: performanceStats.subjectWisePerformance.data,
+                            backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                            borderColor: '#4caf50',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            r: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        }))
+    })
+</script>
 
 </div>

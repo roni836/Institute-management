@@ -1,5 +1,5 @@
 <div title="New Course">
-    <form wire:submit.prevent="save" class="bg-white border rounded-xl p-4 space-y-3 max-w-2xl">
+    <form wire:submit="save" class="bg-white border rounded-xl p-4 space-y-3 max-w-2xl">
         <div>
             <label class="text-xs">Name</label>
             <input type="text" class="w-full border rounded p-2" wire:model="name">
@@ -37,7 +37,7 @@
         </div>
 
         <div class="pt-2">
-            <button class="px-4 py-2 rounded-lg bg-black text-white">Save</button>
+            <button type="submit" class="px-4 py-2 rounded-lg bg-black text-white">Save</button>
             <a href="{{ route('admin.courses.index') }}" class="ml-2 px-4 py-2 rounded-lg border">Cancel</a>
         </div>
     </form>

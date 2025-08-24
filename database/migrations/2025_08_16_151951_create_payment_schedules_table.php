@@ -20,6 +20,10 @@ return new class extends Migration
             $table->decimal('paid_amount', 10, 2)->default(0);
             $table->date('paid_date')->nullable();
             $table->enum('status', ['pending', 'partial', 'paid'])->default('pending');
+            $table->string('payment_mode')->nullable();
+            $table->string('transaction_reference')->nullable();
+            $table->text('remarks')->nullable();
+            $table->string('receipt_no')->nullable();
             $table->timestamps();
             $table->unique(['admission_id', 'installment_no']);
         });

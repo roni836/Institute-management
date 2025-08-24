@@ -161,7 +161,7 @@
                         </div>
                         <div>
                             <label class="text-xs">Mode</label>
-                            <select class="w-full border rounded p-2" wire:model="mode">
+                            <select class="w-full border rounded p-2" wire:model.change="mode">
                                 <option value="full">Full</option>
                                 <option value="installment">Installment</option>
                             </select>
