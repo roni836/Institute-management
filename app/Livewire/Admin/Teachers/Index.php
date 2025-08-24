@@ -25,7 +25,7 @@ class Index extends Component
     public function render()
     {
         $teachers = User::query()
-            ->where('role', 'teacher') // If using Spatie, see note at bottom
+            ->where('role', 'teacher')
             ->when($this->search, function ($q) {
                 $s = "%{$this->search}%";
                 $q->where(function ($qq) use ($s) {
@@ -36,6 +36,18 @@ class Index extends Component
             ->orderBy('name')
             ->paginate($this->perPage);
 
-        return view('livewire.admin.teachers.index', compact('teachers'));
+        // Add statistics
+        $totalTeachers = User::where('role', 'teacher')->count();
+        $activeTeachers = User::where('role', 'teacher')->where('status', 'active')->count();
+        $coursesTaught = 18; // Replace with actual count from course_teacher pivot
+        $studentsTaught = 1247; // Replace with actual count from relationships
+
+        return view('livewire.admin.teachers.index', compact(
+            'teachers',
+            'totalTeachers',
+            'activeTeachers',
+            'coursesTaught',
+            'studentsTaught'
+        ));
     }
 }

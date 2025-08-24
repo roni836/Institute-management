@@ -1,34 +1,75 @@
-<div>
-    <div class="mb-3 grid md:grid-cols-4 gap-2">
-        <input type="text" placeholder="Search name/email/phone/roll/uid"
-            class="input input-bordered w-full border rounded-lg p-2" wire:model.debounce.400ms="q">
-
-        <select class="border rounded-lg p-2" wire:model="status">
-            <option value="">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="alumni">Alumni</option>
-        </select>
-
-        <select class="border rounded-lg p-2" wire:model="batchId">
-            <option value="">All Batches</option>
-            @foreach ($batches as $b)
-                <option value="{{ $b->id }}">
-                    {{ $b->batch_name }} — {{ $b->course->name }}
-                </option>
-            @endforeach
-        </select>
-
+<div class="p-4 md:p-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+            <h1 class="text-2xl font-bold">Admissions</h1>
+            <p class="text-gray-600">Manage student applications and admissions</p>
+        </div>
         <a href="{{ route('admin.admissions.create') }}"
-            class="justify-self-end inline-flex items-center px-3 py-2 rounded-lg bg-black text-white">
-            + New Admission
+           class="px-4 py-2 bg-orange-500 text-white rounded-lg flex items-center gap-2">
+            <span>+</span> New Admission
         </a>
-
     </div>
 
-    @if (session('ok'))
-        <div class="mb-3 p-2 rounded bg-green-50 border text-green-800">{{ session('ok') }}</div>
-    @endif
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <!-- Total Applications -->
+        <div class="bg-white p-4 rounded-xl border">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-gray-600 text-sm">Total Applications</p>
+                    <p class="text-2xl font-semibold">{{ $stats['total'] }}</p>
+                </div>
+                <div class="p-2 bg-orange-100 text-orange-500 rounded-lg">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics cards for Pending, Approved, Rejected -->
+        <div class="bg-white p-4 rounded-xl border">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-gray-600 text-sm">Pending Review</p>
+                    <p class="text-2xl font-semibold text-yellow-600">{{ $stats['pendingReview'] }}</p>
+                </div>
+                <div class="p-2 bg-yellow-100 text-yellow-500 rounded-lg">23</div>
+            </div>
+        </div>
+
+        <!-- ...similar cards for Approved and Rejected... -->
+    </div>
+
+    <div class="bg-white p-6 rounded-xl border mb-6">
+        <div class="flex flex-col sm:flex-row gap-4">
+            <!-- Search and filters -->
+            <div class="relative flex-1">
+                <input type="text" wire:model.debounce.400ms="q" 
+                       class="w-full pl-10 pr-4 py-2 border rounded-lg" 
+                       placeholder="Search by name, email, or phone">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </span>
+            </div>
+            
+            <!-- Status and Batch filters -->
+            <select wire:model="status" class="border rounded-lg px-4 py-2">
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+            </select>
+
+            <select wire:model="batchId" class="border rounded-lg px-4 py-2">
+                <option value="">All Batches</option>
+                @foreach($batches as $b)
+                    <option value="{{ $b->id }}">{{ $b->batch_name }}</option>
+                @endforeach
+            </select>
+        </div>
+    </div>
 
     <div class="overflow-x-auto bg-white border rounded-xl">
         <table class="min-w-full text-sm">

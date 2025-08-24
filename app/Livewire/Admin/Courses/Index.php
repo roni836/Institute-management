@@ -38,6 +38,18 @@ class Index extends Component
             ->latest()
             ->paginate(10);
 
-        return view('livewire.admin.courses.index', compact('courses'));
+        // Add statistics data
+        $totalCourses = Course::count();
+        $activeCourses = Course::where('status', 'Active')->count();
+        $upcomingCourses = Course::where('status', 'Upcoming')->count();
+        $totalEnrolled = Course::sum('students_count') ?? 0;
+
+        return view('livewire.admin.courses.index', compact(
+            'courses',
+            'totalCourses',
+            'activeCourses',
+            'upcomingCourses',
+            'totalEnrolled'
+        ));
     }
 }

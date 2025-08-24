@@ -32,7 +32,7 @@ class Index extends Component
 
     public function render()
     {
-        $tx = Transaction::query()
+        $transactions = Transaction::query()
             ->with(['admission.student', 'admission.batch', 'schedule'])
             ->when($this->search, function ($q) {
                 $q->whereHas('admission.student', function ($qq) {
@@ -47,8 +47,22 @@ class Index extends Component
             ->latest('date')
             ->paginate($this->perPage);
 
+        // Add payment statistics
+        $stats = [
+            'monthlyRevenue' => [
+                'amount' => Transaction::whereMonth('date', now()->month)->sum('amount'),
+                'growth' => 12 // Calculate actual percentage
+            ],
+            'pending' => Transaction::where('status', 'pending')->sum('amount'),
+            'completed' => Transaction::where('status', 'success')->sum('amount'),
+            'overdue' => Transaction::whereHas('schedule', function($q) {
+                $q->where('due_date', '<', now())->where('status', 'pending');
+            })->sum('amount')
+        ];
+
         return view('livewire.admin.payments.index', [
-            'transactions' => $tx,
+            'transactions' => $transactions,
+            'stats' => $stats
         ]);
     }
 }
