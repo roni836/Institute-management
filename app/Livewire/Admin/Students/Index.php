@@ -43,9 +43,18 @@ class Index extends Component
             ->latest()
             ->paginate(10);
 
+        // Add statistics
+        $stats = [
+            'total' => Student::count(),
+            'active' => Student::where('status', 'active')->count(),
+            'completed' => Student::where('status', 'completed')->count(),
+            'thisMonth' => Student::whereMonth('created_at', now()->month)->count()
+        ];
+
         return view('livewire.admin.students.index', [
             'students' => $students,
             'batches'  => Batch::latest()->take(100)->get(),
+            'stats' => $stats
         ]);
     }
 

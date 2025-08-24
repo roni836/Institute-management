@@ -21,6 +21,10 @@ return new class extends Migration
             $table->decimal('fee_total', 10, 2); // final payable after discount
             $table->decimal('fee_due', 10, 2)->default(0);
             $table->enum('status', ['active', 'completed', 'cancelled'])->default('active');
+            $table->enum('review_status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->text('review_notes')->nullable();
+            $table->timestamp('reviewed_at')->nullable();
+            $table->foreignId('reviewed_by')->nullable()->constrained('users');
             $table->timestamps();
 
             $table->unique(['student_id', 'batch_id']); // same student can’t be admitted twice to same batch

@@ -52,9 +52,21 @@ class Index extends Component
             ->latest()
             ->paginate(10);
 
+        // Add admission statistics
+        $stats = [
+            'total' => Student::count(),
+            'pendingReview' => Student::whereHas('admissions', fn($q) => 
+                $q->where('status', 'pending'))->count(),
+            'approved' => Student::whereHas('admissions', fn($q) => 
+                $q->where('status', 'approved'))->count(),
+            'rejected' => Student::whereHas('admissions', fn($q) => 
+                $q->where('status', 'rejected'))->count()
+        ];
+
         return view('livewire.admin.admissions.index', [
             'students' => $students,
             'batches'  => Batch::with('course')->latest()->take(100)->get(),
+            'stats' => $stats
         ]);
     }
 }

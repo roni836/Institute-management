@@ -28,6 +28,31 @@
             @error('email') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
         </div>
 
+        <div>
+            <label class="block text-sm font-medium mb-1">Phone</label>
+            <input type="tel" wire:model.defer="phone" 
+                   class="border rounded px-3 py-2 w-full"
+                   placeholder="Enter phone number">
+            @error('phone') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium mb-1">Address</label>
+            <textarea wire:model.defer="address" 
+                      class="border rounded px-3 py-2 w-full"
+                      rows="3"
+                      placeholder="Enter full address"></textarea>
+            @error('address') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium mb-1">Expertise</label>
+            <input type="text" wire:model.defer="expertise" 
+                   class="border rounded px-3 py-2 w-full"
+                   placeholder="e.g. Mathematics, Physics, Computer Science">
+            @error('expertise') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+        </div>
+
         <div class="flex items-center gap-2">
             <input id="apw" type="checkbox" wire:model="autoPassword" class="rounded">
             <label for="apw" class="text-sm">Auto-generate password</label>

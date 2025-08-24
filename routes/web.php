@@ -17,6 +17,8 @@ use App\Livewire\Admin\Students\Form as StudentsForm;
 use App\Livewire\Admin\Students\Index as StudentsIndex;
 use App\Livewire\Admin\Batches\Index as BatchesIndex;
 use App\Livewire\Admin\Courses\Index as CoursesIndex;
+use App\Livewire\Admin\Exams\Index;
+use App\Livewire\Admin\Exams\Show;
 use App\Livewire\Admin\Students\StudentProfile;
 use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
@@ -42,7 +44,7 @@ Route::get('/payments/{transaction}/receipt', PaymentReceipt::class)->name('admi
 // Courses & Batches
 Route::get('/courses', CoursesIndex::class)->name('admin.courses.index');
 Route::get('/courses/create', \App\Livewire\Admin\Courses\Create::class)->name('admin.courses.create');
-Route::get('/courses/{course}/edit', \App\Livewire\Admin\Courses\Edit::class)->name('admin.courses.edit');
+Route::get('/courses/{id}/edit', \App\Livewire\Admin\Courses\Edit::class)->name('admin.courses.edit');
 Route::get('/batches/create', \App\Livewire\Admin\Batches\Create::class)->name('admin.batches.create');
 Route::get('/batches/{batch}/edit', \App\Livewire\Admin\Batches\Edit::class)->name('admin.batches.edit');
 Route::get('/batches', BatchesIndex::class)->name('admin.batches.index');
@@ -54,8 +56,11 @@ Route::get('/teachers/create', TeachersCreate::class)->name('admin.teachers.crea
 //students
 Route::get('/students/{id}', StudentProfile::class)->name('student.profile');
 
+//Exams
+Route::get('/exams', Index::class)->name('admin.exams.index');
+Route::get('exams/show/{examid}', Show::class)->name('admin.exams.show');
 
 // Auth
 Route::get('/login', Login::class)->name('login');
-Route::get('/logout', Login::class)->name('logout');
+Route::get('/login', Login::class)->name('logout');
 Route::get('/register', Register::class)->name('register');

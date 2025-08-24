@@ -53,8 +53,25 @@ class StudentProfile extends Component
             default           => 'F',
         };
     }
+
+    public function getPerformanceStats()
+    {
+        return [
+            'attendance' => $this->student->attendance_percentage,
+            'coursesProgress' => ($this->student->courses_completed / max(1, $this->student->total_courses_enrolled)) * 100,
+            'examScores' => $this->performance->groupBy('subject')
+                ->map(fn($scores) => round($scores->avg('score'), 2))
+                ->toArray(),
+            'monthlyProgress' => $this->performance
+                ->groupBy(fn($mark) => \Carbon\Carbon::parse($mark['date'])->format('M'))
+                ->map(fn($scores) => round($scores->avg('score'), 2))
+                ->toArray()
+        ];
+    }
+
     public function render()
     {
-        return view('livewire.admin.students.student-profile');
+        $performanceStats = $this->getPerformanceStats();
+        return view('livewire.admin.students.student-profile', compact('performanceStats'));
     }
 }

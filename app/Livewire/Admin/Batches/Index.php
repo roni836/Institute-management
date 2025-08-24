@@ -38,6 +38,20 @@ class Index extends Component
             ->latest()
             ->paginate(10);
 
-        return view('livewire.admin.batches.index', compact('batches'));
+        // Add batch statistics
+        $totalBatches = Batch::count();
+        $runningBatches = Batch::whereNotNull('start_date')
+            ->where('end_date', '>', now())
+            ->count();
+        $upcomingBatches = Batch::where('start_date', '>', now())->count();
+        $completedBatches = Batch::where('end_date', '<', now())->count();
+
+        return view('livewire.admin.batches.index', compact(
+            'batches',
+            'totalBatches',
+            'runningBatches',
+            'upcomingBatches',
+            'completedBatches'
+        ));
     }
 }
