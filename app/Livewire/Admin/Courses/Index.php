@@ -13,12 +13,17 @@ class Index extends Component
     use WithPagination;
 
     public string $q = '';
+    public ?string $statusFilter = null;
+    public ?string $sortField = null;
+    public string $sortDirection = 'asc';
 
-    protected $queryString = ['q','page'];
+    protected $queryString = ['q', 'statusFilter', 'sortField', 'page'];
 
-    public function updating($name, $value)
+    public function updating($name)
     {
-        if ($name === 'q') $this->resetPage();
+        if (in_array($name, ['q', 'statusFilter'])) {
+            $this->resetPage();
+        }
     }
 
     public function delete(int $id)
@@ -35,6 +40,8 @@ class Index extends Component
                 $qq->where('name','like',$term)
                    ->orWhere('batch_code','like',$term);
             }))
+            ->when($this->statusFilter, fn($q) => $q->where('status', $this->statusFilter))
+            ->when($this->sortField, fn($q) => $q->orderBy($this->sortField, $this->sortDirection))
             ->latest()
             ->paginate(10);
 
@@ -44,12 +51,12 @@ class Index extends Component
         $upcomingCourses = Course::where('status', 'Upcoming')->count();
         $totalEnrolled = Course::sum('students_count') ?? 0;
 
-        return view('livewire.admin.courses.index', compact(
-            'courses',
-            'totalCourses',
-            'activeCourses',
-            'upcomingCourses',
-            'totalEnrolled'
-        ));
+        return view('livewire.admin.courses.index', [
+            'courses' => $courses,
+            'totalCourses' => $totalCourses,
+            'activeCourses' => $activeCourses,
+            'upcomingCourses' => $upcomingCourses,
+            'totalEnrolled' => $totalEnrolled
+        ]);
     }
 }

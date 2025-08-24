@@ -20,13 +20,18 @@
         <div class="grid md:grid-cols-2 gap-3">
             <div>
                 <label class="text-xs">Start Date</label>
-                <input type="date" class="w-full border rounded p-2" wire:model="start_date">
+                <input type="date" class="w-full border rounded p-2" wire:model.live="start_date">
                 @error('start_date')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
             </div>
             <div>
-                <label class="text-xs">End Date</label>
-                <input type="date" class="w-full border rounded p-2" wire:model="end_date">
-                @error('end_date')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
+                <label class="text-xs">End Date (Auto-calculated)</label>
+                <input type="date" class="w-full border rounded p-2 bg-gray-50" 
+                       wire:model="end_date" readonly>
+                @if($selected_course)
+                    <p class="text-xs text-gray-500 mt-1">
+                        Based on {{ $selected_course->duration_months }} months duration
+                    </p>
+                @endif
             </div>
         </div>
 

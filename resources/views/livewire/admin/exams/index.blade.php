@@ -51,6 +51,10 @@
                                class="px-3 py-1 text-sm rounded bg-indigo-600 text-white hover:bg-indigo-700">
                                View Students
                             </a>
+                            <a href="{{ route('admin.exams.edit', $exam->id) }}"
+                                class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">
+                                Edit
+                            </a>
                         </td>
                     </tr>
                 @empty

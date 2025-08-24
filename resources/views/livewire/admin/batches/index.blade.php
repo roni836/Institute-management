@@ -70,9 +70,6 @@
     </div>
 
     <div class="bg-white p-4 md:p-6 rounded-xl border mb-6">
-        <h2 class="text-xl font-semibold mb-2 md:mb-4">Batch Management</h2>
-        <p class="text-gray-600 mb-4 md:mb-6">Schedule and manage course batches effectively</p>
-        
         <div class="flex flex-col sm:flex-row gap-4">
             <div class="relative flex-1">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3">
@@ -80,20 +77,28 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
                 </span>
-                <input type="text" wire:model.debounce.400ms="q" 
+                <input type="text" wire:model.live.debounce.400ms="q" 
                        class="w-full pl-10 pr-4 py-2 border rounded-lg" 
                        placeholder="Search Batches">
             </div>
-            <button class="px-4 py-2 border rounded-lg flex items-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
-                </svg>
-                Filter by Course
-            </button>
+
+            <select wire:model.live="courseFilter" class="border rounded-lg px-4 py-2">
+                <option value="">All Courses</option>
+                @foreach($courses as $course)
+                    <option value="{{ $course->id }}">{{ $course->name }}</option>
+                @endforeach
+            </select>
+
+            <select wire:model.live="statusFilter" class="border rounded-lg px-4 py-2">
+                <option value="">All Status</option>
+                <option value="Upcoming">Upcoming</option>
+                <option value="Running">Running</option>
+                <option value="Completed">Completed</option>
+            </select>
         </div>
     </div>
 
-    <div class="overflow-x-auto bg-white border rounded-xl">
+    <div wire:loading.remove  class="overflow-x-auto bg-white border rounded-xl">
         <div class="min-w-full inline-block align-middle">
             <div class="overflow-hidden">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -111,8 +116,8 @@
                             <td class="p-3">{{ $b->batch_name }}</td>
                             <td class="p-3">{{ $b->course->name }}</td>
                             <td class="p-3">
-                                {{ $b->start_date }} →
-                                {{ $b->end_date }}
+                                {{ \Carbon\Carbon::parse($b->start_date)->format('d M Y') }} →
+                                {{ \Carbon\Carbon::parse($b->end_date)->format('d M Y') }}
                             </td>
                             <td class="p-3 text-right space-x-2">
                                 <a class="px-2 py-1 rounded bg-gray-100"
@@ -133,6 +138,8 @@
             </div>
         </div>
     </div>
+
+        <h2 wire:loading.target="q" wire:loading>Searching....</h2>
 
     <div class="mt-4 md:mt-6">
         {{ $batches->links() }}
