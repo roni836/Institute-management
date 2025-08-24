@@ -4,7 +4,7 @@
             <label class="text-xs">Name</label>
             
             <input type="text" class="w-full border rounded p-2" wire:model="name">
-            @error('course.name')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
+            @error('name')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
         </div>
 
         <div class="grid md:grid-cols-3 gap-3">
@@ -15,12 +15,12 @@
             <div>
                 <label class="text-xs">Duration (months)</label>
                 <input type="number" min="1" class="w-full border rounded p-2" wire:model="duration_months">
-                @error('course.duration_months')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
+                @error('duration_months')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
             </div>
             <div>
                 <label class="text-xs">Gross Fee (₹)</label>
                 <input type="number" step="0.01" min="0" class="w-full border rounded p-2" wire:model="gross_fee">
-                @error('course.gross_fee')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
+                @error('gross_fee')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
             </div>
         </div>
 
@@ -28,7 +28,7 @@
             <div>
                 <label class="text-xs">Discount (₹)</label>
                 <input type="number" step="0.01" min="0" class="w-full border rounded p-2" wire:model="discount">
-                @error('course.discount')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
+                @error('discount')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
             </div>
             <div>
                 <label class="text-xs">Net Fee</label>

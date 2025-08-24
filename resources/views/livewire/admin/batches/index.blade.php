@@ -80,7 +80,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
                 </span>
-                <input type="text" wire:model.debounce.400ms="q" 
+                <input type="text" wire:model.live.debounce.400ms="q" 
                        class="w-full pl-10 pr-4 py-2 border rounded-lg" 
                        placeholder="Search Batches">
             </div>
@@ -93,7 +93,7 @@
         </div>
     </div>
 
-    <div class="overflow-x-auto bg-white border rounded-xl">
+    <div wire:loading.remove  class="overflow-x-auto bg-white border rounded-xl">
         <div class="min-w-full inline-block align-middle">
             <div class="overflow-hidden">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -111,8 +111,8 @@
                             <td class="p-3">{{ $b->batch_name }}</td>
                             <td class="p-3">{{ $b->course->name }}</td>
                             <td class="p-3">
-                                {{ $b->start_date }} →
-                                {{ $b->end_date }}
+                                {{ \Carbon\Carbon::parse($b->start_date)->format('d M Y') }} →
+                                {{ \Carbon\Carbon::parse($b->end_date)->format('d M Y') }}
                             </td>
                             <td class="p-3 text-right space-x-2">
                                 <a class="px-2 py-1 rounded bg-gray-100"
@@ -133,6 +133,8 @@
             </div>
         </div>
     </div>
+
+        <h2 wire:loading.target="q" wire:loading>Searching....</h2>
 
     <div class="mt-4 md:mt-6">
         {{ $batches->links() }}
