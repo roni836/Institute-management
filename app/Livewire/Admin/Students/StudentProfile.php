@@ -72,6 +72,7 @@ class StudentProfile extends Component
     protected function getPaymentHistory()
     {
         $months = collect();
+        $transactions = collect();
         $now = Carbon::now();
         
         // Get last 6 months
@@ -80,21 +81,37 @@ class StudentProfile extends Component
             $months->put($date->format('M Y'), 0);
         }
 
-        // Sum payments by month
-        $this->student->admissions->each(function($admission) use (&$months) {
-            $admission->transactions
-                ->where('status', 'success')
-                ->each(function($transaction) use (&$months) {
-                    $key = Carbon::parse($transaction->date)->format('M Y');
-                    if ($months->has($key)) {
-                        $months[$key] += $transaction->amount;
+        // Get transactions and monthly totals
+        $this->student->admissions->each(function($admission) use (&$months, &$transactions) {
+            $admission->transactions->each(function($tx) use (&$months, &$transactions) {
+                // Add to transactions list
+                if ($tx->date) {
+                    $transactions->push([
+                        'date' => $tx->date->format('d M Y'),
+                        'amount' => $tx->amount ?? 0,
+                        'mode' => $tx->mode ?? '-',
+                        'status' => $tx->status ?? 'pending',
+                        'reference_no' => $tx->reference_no ?? '-',
+                        'batch' => optional($tx->admission->batch)->batch_name ?? '-'
+                    ]);
+
+                    // Add to monthly totals if successful payment
+                    if ($tx->status === 'success') {
+                        $key = $tx->date->format('M Y');
+                        if ($months->has($key)) {
+                            $months[$key] += $tx->amount;
+                        }
                     }
-                });
+                }
+            });
         });
 
         return [
-            'labels' => $months->keys()->reverse()->values(),
-            'data' => $months->values()->reverse()->values(),
+            'transactions' => $transactions->sortByDesc('date')->values()->toArray(),
+            'chartData' => [
+                'labels' => $months->keys()->reverse()->values()->toArray(),
+                'data' => $months->values()->reverse()->values()->toArray(),
+            ]
         ];
     }
 
@@ -211,11 +228,55 @@ class StudentProfile extends Component
         return random_int(70, 95);
     }
 
+    protected function getCoursesData()
+    {
+        return $this->student->admissions->map(function($admission) {
+            $course = $admission->batch->course;
+            $startDate = Carbon::parse($admission->batch->start_date);
+            $endDate = Carbon::parse($admission->batch->end_date);
+            $progress = $this->calculateProgress($admission);
+            
+            return [
+                'id' => $course->id,
+                'name' => $course->name,
+                'batch' => $admission->batch->batch_name,
+                'admission_date' => $admission->admission_date->format('d M Y'),
+                'start_date' => $startDate->format('d M Y'),
+                'end_date' => $endDate->format('d M Y'),
+                'progress' => $progress,
+                'status' => $admission->status,
+                'fee_total' => $admission->fee_total,
+                'fee_paid' => $admission->fee_total - $admission->fee_due,
+                'attendance' => random_int(75, 100), // Replace with actual attendance
+            ];
+        });
+    }
+
+    protected function calculateProgress($admission)
+    {
+        if (!$admission->batch || !$admission->batch->start_date || !$admission->batch->end_date) {
+            return 0;
+        }
+
+        $startDate = Carbon::parse($admission->batch->start_date);
+        $endDate = Carbon::parse($admission->batch->end_date);
+        $now = Carbon::now();
+
+        if ($now->lt($startDate)) return 0;
+        if ($now->gte($endDate)) return 100;
+
+        $totalDays = max(1, $startDate->diffInDays($endDate));
+        $elapsed = $startDate->diffInDays($now);
+
+        return min(100, round(($elapsed / $totalDays) * 100));
+    }
+
     public function render()
     {
         return view('livewire.admin.students.student-profile', [
             'stats' => $this->getStats(),
-            'performanceStats' => $this->getPerformanceData()
+            'performanceStats' => $this->getPerformanceData(),
+            'coursesData' => $this->getCoursesData()
         ]);
     }
 }

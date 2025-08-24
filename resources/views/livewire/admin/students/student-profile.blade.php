@@ -128,47 +128,132 @@
             @endif
 
             @if($selectedTab === 'payments')
-                <!-- Payment History -->
-                <div class="bg-white rounded-xl border p-4">
-                    <h3 class="font-medium mb-4">Payment History</h3>
-                    <canvas id="paymentChart" class="w-full h-64"></canvas>
-                    
-                    <div class="mt-6">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mode</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                @foreach($stats['paymentHistory'] as $payment)
+                <div class="space-y-6">
+                   
+ <!-- Payment Transactions Table -->
+                    <div class="bg-white rounded-xl border overflow-hidden">
+                        <div class="p-4 border-b">
+                            <h3 class="font-semibold">Payment Transactions</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
                                     <tr>
-                                        <td class="px-6 py-4">{{ $payment['date'] }}</td>
-                                        <td class="px-6 py-4">₹{{ number_format($payment['amount'], 2) }}</td>
-                                        <td class="px-6 py-4 capitalize">{{ $payment['mode'] }}</td>
-                                        <td class="px-6 py-4">
-                                            <span @class([
-                                                'px-2 py-1 rounded-full text-xs',
-                                                'bg-green-100 text-green-700' => $payment['status'] === 'success',
-                                                'bg-yellow-100 text-yellow-700' => $payment['status'] === 'pending',
-                                                'bg-red-100 text-red-700' => $payment['status'] === 'failed'
-                                            ])>
-                                                {{ ucfirst($payment['status']) }}
-                                            </span>
-                                        </td>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Batch</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mode</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reference</th>
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    @forelse($stats['paymentHistory']['transactions'] as $payment)
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap">{{ $payment['date'] }}</td>
+                                            <td class="px-6 py-4">{{ $payment['batch'] }}</td>
+                                            <td class="px-6 py-4">₹{{ number_format($payment['amount'], 2) }}</td>
+                                            <td class="px-6 py-4 capitalize">{{ $payment['mode'] }}</td>
+                                            <td class="px-6 py-4">
+                                                <span @class([
+                                                    'px-2 py-1 rounded-full text-xs font-medium',
+                                                    'bg-green-100 text-green-800' => $payment['status'] === 'success',
+                                                    'bg-yellow-100 text-yellow-800' => $payment['status'] === 'pending',
+                                                    'bg-red-100 text-red-800' => $payment['status'] === 'failed'
+                                                ])>
+                                                    {{ ucfirst($payment['status']) }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4">{{ $payment['reference_no'] ?? '-' }}</td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                                                No payment records found
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             @endif
 
             @if($selectedTab === 'courses')
-                {{-- Course Progress Charts --}}
+                <div class="space-y-6">
+                    <!-- Course Cards -->
+                    @forelse($coursesData as $course)
+                        <div class="bg-white rounded-xl border p-6">
+                            <div class="flex flex-col md:flex-row justify-between gap-4">
+                                <!-- Course Info -->
+                                <div class="space-y-2">
+                                    <h3 class="text-lg font-semibold text-gray-900">{{ $course['name'] }}</h3>
+                                    <p class="text-sm text-gray-600">Batch: {{ $course['batch'] }}</p>
+                                    <div class="flex items-center gap-4 text-sm text-gray-600">
+                                        <span>Admitted: {{ $course['admission_date'] }}</span>
+                                        <span>•</span>
+                                        <span>{{ $course['start_date'] }} - {{ $course['end_date'] }}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Status Badge -->
+                                <div>
+                                    <span @class([
+                                        'px-3 py-1 rounded-full text-sm font-medium',
+                                        'bg-green-100 text-green-700' => $course['status'] === 'active',
+                                        'bg-blue-100 text-blue-700' => $course['status'] === 'completed',
+                                        'bg-red-100 text-red-700' => $course['status'] === 'cancelled',
+                                    ])>
+                                        {{ ucfirst($course['status']) }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Progress & Stats -->
+                            <div class="mt-6 space-y-4">
+                                <div>
+                                    <div class="flex justify-between text-sm mb-1">
+                                        <span class="text-gray-600">Course Progress</span>
+                                        <span class="font-medium">{{ $course['progress'] }}%</span>
+                                    </div>
+                                    <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                        <div class="h-full bg-green-500 rounded-full" 
+                                             style="width: {{ $course['progress'] }}%"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Course Statistics -->
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
+                                    <!-- Attendance -->
+                                    <div class="text-center p-4 bg-gray-50 rounded-lg">
+                                        <p class="text-sm text-gray-600">Attendance</p>
+                                        <p class="text-xl font-semibold mt-1">{{ $course['attendance'] }}%</p>
+                                    </div>
+
+                                    <!-- Fee Status -->
+                                    <div class="text-center p-4 bg-gray-50 rounded-lg">
+                                        <p class="text-sm text-gray-600">Fee Paid</p>
+                                        <p class="text-xl font-semibold mt-1">
+                                            ₹{{ number_format($course['fee_paid']) }}
+                                            <span class="text-xs text-gray-500">/ ₹{{ number_format($course['fee_total']) }}</span>
+                                        </p>
+                                    </div>
+
+                                    <!-- Progress Status -->
+                                    <div class="text-center p-4 bg-gray-50 rounded-lg">
+                                        <p class="text-sm text-gray-600">Status</p>
+                                        <p class="text-xl font-semibold mt-1">{{ ucfirst($course['status']) }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="text-center py-12 bg-gray-50 rounded-xl border">
+                            <p class="text-gray-500">No courses enrolled yet.</p>
+                        </div>
+                    @endforelse
+                </div>
             @elseif($selectedTab === 'performance')
                 {{-- Performance Metrics --}}
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -358,40 +443,6 @@
     })
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    document.addEventListener('livewire:init', function() {
-        // Payment History Chart
-        const paymentCtx = document.getElementById('paymentChart');
-        if (paymentCtx) {
-            new Chart(paymentCtx, {
-                type: 'bar',
-                data: {
-                    labels: @json($stats['paymentHistory']['labels']),
-                    datasets: [{
-                        label: 'Payment Amount',
-                        data: @json($stats['paymentHistory']['data']),
-                        backgroundColor: '#4f46e5',
-                        borderColor: '#4338ca',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return '₹' + value;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-    });
-</script>
+
 @endpush
 </div>
