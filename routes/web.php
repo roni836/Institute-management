@@ -17,6 +17,8 @@ use App\Livewire\Admin\Students\Form as StudentsForm;
 use App\Livewire\Admin\Students\Index as StudentsIndex;
 use App\Livewire\Admin\Batches\Index as BatchesIndex;
 use App\Livewire\Admin\Courses\Index as CoursesIndex;
+use App\Livewire\Admin\Exams\Index;
+use App\Livewire\Admin\Exams\Show;
 use App\Livewire\Admin\Students\StudentProfile;
 use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
@@ -54,6 +56,9 @@ Route::get('/teachers/create', TeachersCreate::class)->name('admin.teachers.crea
 //students
 Route::get('/students/{id}', StudentProfile::class)->name('student.profile');
 
+//Exams
+Route::get('/exams', Index::class)->name('admin.exams.index');
+Route::get('exams/show/{examid}', Show::class)->name('admin.exams.show');
 
 // Auth
 Route::get('/login', Login::class)->name('login');
