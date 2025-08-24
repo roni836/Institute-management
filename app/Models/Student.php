@@ -7,9 +7,9 @@ class Student extends Model
 {
     protected $guarded = [];
 
-    public function batches()
+    public function batch()
     {
-        return $this->belongsToMany(Batch::class, 'student_batches');
+        return $this->hasOne(Batch::class, 'student_batches');
     }
 
     public function payments()
