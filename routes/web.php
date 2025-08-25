@@ -24,6 +24,7 @@ use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
 use App\Livewire\Public\LandingPage;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
 
 Route::get('/', Dashboard::class)->name('admin.dashboard');
 Route::get('/home', LandingPage::class)->name('public.home');
@@ -74,3 +75,16 @@ Route::get('/admin/exams/{exam}/edit', Edit::class)->name('admin.exams.edit');
 Route::get('/login', Login::class)->name('login');
 Route::get('/login', Login::class)->name('logout');
 Route::get('/register', Register::class)->name('register');
+
+
+Route::get('/clear-cache', function () {
+    Artisan::call('cache:clear');
+    Artisan::call('config:cache');
+    Artisan::call('config:clear');
+    Artisan::call('view:clear');
+    Artisan::call('route:clear');
+    Artisan::call('optimize:clear');
+
+    return "All Caches are cleared by @Roni";
+});
+
