@@ -32,7 +32,6 @@ class Create extends Component
 
     public array $selectedScheduleIds = [];
 
-
     public function updated($name, $value): void
     {
         if ($name === 'search') {
@@ -111,7 +110,7 @@ class Create extends Component
         if ($id) {
             $this->selectStudent($id);
         }
-        $this->date = now()->format('Y-m-d');
+        $this->date   = now()->format('Y-m-d');
         $this->status = 'success'; // default value
     }
 
@@ -162,61 +161,99 @@ class Create extends Component
     public function save()
     {
         $data = $this->validate([
-            'admission_id'        => ['required', Rule::exists('admissions', 'id')],
-            'payment_schedule_id' => ['nullable', Rule::exists('payment_schedules', 'id')],
-            'date'                => ['required', 'date'],
-            'mode'                => ['required', Rule::in(['cash', 'cheque', 'online'])],
-            'reference_no'        => ['nullable', 'string', 'max:100'],
-            'status'              => ['required', Rule::in(['success', 'pending', 'failed'])],
-            'amount'              => ['required', 'numeric', 'min:0.01'],
+            'admission_id'          => ['required', Rule::exists('admissions', 'id')],
+            'payment_schedule_id'   => ['nullable', Rule::exists('payment_schedules', 'id')], // legacy single
+            'selectedScheduleIds'   => ['array'],
+            'selectedScheduleIds.*' => ['integer', Rule::exists('payment_schedules', 'id')],
+            'date'                  => ['required', 'date'],
+            'mode'                  => ['required', Rule::in(['cash', 'cheque', 'online'])],
+            'reference_no'          => ['nullable', 'string', 'max:100'],
+            'status'                => ['required', Rule::in(['success', 'pending', 'failed'])],
+            'amount'                => ['required', 'numeric', 'min:0.01'],
         ]);
 
-        DB::transaction(function () use ($data) {
+        // 1) Build the schedule set (prefer multi-select; fallback to single)
+        $scheduleIds = collect($this->selectedScheduleIds)
+            ->map(fn($v) => (int) $v)
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($scheduleIds->isEmpty() && ! empty($data['payment_schedule_id'])) {
+            $scheduleIds = collect([(int) $data['payment_schedule_id']]);
+        }
+
+        // 2) Early UX checks (no exceptions, just inline errors)
+        if ($scheduleIds->isEmpty()) {
+            $this->addError('selectedScheduleIds', 'Please select at least one installment to pay.');
+            return;
+        }
+
+        // Load selected schedules (no lock yet; we’ll lock inside the transaction)
+        $schedules = PaymentSchedule::where('admission_id', $data['admission_id'])
+            ->whereIn('id', $scheduleIds)
+            ->orderBy('installment_no')
+            ->get();
+
+        if ($schedules->isEmpty()) {
+            $this->addError('selectedScheduleIds', 'Selected installments were not found for this admission.');
+            return;
+        }
+
+        $selectedLeft = (float) $schedules->sum(fn($s) => max(0.0, (float) $s->amount - (float) $s->paid_amount));
+
+        if ($selectedLeft <= 0.00001) {
+            $this->addError('amount', 'All selected installments are already fully paid.');
+            return;
+        }
+
+        $incoming = (float) $data['amount'];
+        if (in_array($data['status'], ['success', 'pending']) && $incoming - $selectedLeft > 0.00001) {
+            // Auto-cap amount and stop; user can press Save again.
+            $this->amount = number_format($selectedLeft, 2, '.', '');
+            $this->addError('amount', 'Amount reduced to the maximum payable for the selected installments (₹' . number_format($selectedLeft, 2) . ').');
+            return;
+        }
+
+        // 3) Do the real work atomically
+        DB::transaction(function () use ($data, $scheduleIds) {
             $admission = Admission::lockForUpdate()->findOrFail($data['admission_id']);
 
-            // Guard: do not exceed admission due
-            if (in_array($data['status'], ['success', 'pending'])) {
-                $maxPayable = (float) $admission->fee_due;
-                if ((float) $data['amount'] > $maxPayable) {
-                    abort(422, "Amount exceeds Admission Due (₹" . number_format($maxPayable, 2) . ").");
+            $schedules = PaymentSchedule::lockForUpdate()
+                ->where('admission_id', $admission->id)
+                ->whereIn('id', $scheduleIds)
+                ->orderBy('installment_no')
+                ->get();
+
+            $incoming       = (float) $this->amount; // possibly auto-capped above
+            $remaining      = $incoming;
+            $allocatedTotal = 0.0;
+
+            foreach ($schedules as $schedule) {
+                if ($remaining <= 0) {
+                    break;
                 }
-            }
 
-            $schedule = null;
-            if ($data['payment_schedule_id']) {
-                $schedule = PaymentSchedule::lockForUpdate()
-                    ->where('admission_id', $admission->id)
-                    ->findOrFail($data['payment_schedule_id']);
-
-                $remaining = max(0, (float) $schedule->amount - (float) $schedule->paid_amount);
-                if (in_array($data['status'], ['success', 'pending']) && (float) $data['amount'] > $remaining) {
-                    abort(422, "Amount exceeds Installment Remaining (₹" . number_format($remaining, 2) . ").");
+                $left = max(0.0, (float) $schedule->amount - (float) $schedule->paid_amount);
+                if ($left <= 0) {
+                    continue;
                 }
-            }
 
-            // Create transaction
-            $tx = Transaction::create([
-                'admission_id'        => $admission->id,
-                'payment_schedule_id' => $schedule?->id,
-                'amount'              => $data['amount'],
-                'date'                => $data['date'],
-                'mode'                => $data['mode'],
-                'reference_no'        => $data['reference_no'] ?? null,
-                'status'              => $data['status'],
-            ]);
+                $portion = min($left, $remaining);
 
-            if (in_array($tx->status, ['success', 'pending'])) {
-                // Update admission
-                $admission->fee_due = max(0, (float) $admission->fee_due - (float) $tx->amount);
-                if ($admission->fee_due <= 0.00001) {
-                    $admission->status = 'completed';
-                }
-                $admission->save();
+                $tx = Transaction::create([
+                    'admission_id'        => $admission->id,
+                    'payment_schedule_id' => $schedule->id,
+                    'amount'              => $portion,
+                    'date'                => $data['date'],
+                    'mode'                => $data['mode'],
+                    'reference_no'        => $data['reference_no'] ?? null,
+                    'status'              => $data['status'],
+                ]);
 
-                // Update schedule
-                if ($schedule) {
-                    $schedule->paid_amount = (float) $schedule->paid_amount + (float) $tx->amount;
-                    if ($schedule->paid_amount >= $schedule->amount) {
+                if (in_array($tx->status, ['success', 'pending'])) {
+                    $schedule->paid_amount = (float) $schedule->paid_amount + $portion;
+                    if ($schedule->paid_amount + 0.00001 >= (float) $schedule->amount) {
                         $schedule->status    = 'paid';
                         $schedule->paid_date = $schedule->paid_date ?? $tx->date;
                     } elseif ($schedule->paid_amount > 0) {
@@ -225,11 +262,27 @@ class Create extends Component
                         $schedule->status = 'pending';
                     }
                     $schedule->save();
+
+                    $allocatedTotal += $portion;
+                    $remaining -= $portion;
                 }
+            }
+
+            // Recompute admission due from ALL schedules (authoritative) and sync
+            if (in_array($data['status'], ['success', 'pending'])) {
+                $recomputedAllDue = (float) PaymentSchedule::where('admission_id', $admission->id)
+                    ->get()
+                    ->sum(fn($s) => max(0.0, (float) $s->amount - (float) $s->paid_amount));
+
+                $admission->fee_due = round($recomputedAllDue, 2);
+                if ($admission->fee_due <= 0.00001) {
+                    $admission->status = 'completed';
+                }
+                $admission->save();
             }
         });
 
-        session()->flash('success', 'Payment recorded successfully.');
+        session()->flash('success', 'Payment recorded successfully across selected installments.');
         return redirect()->route('admin.payments.index');
     }
 
@@ -237,23 +290,23 @@ class Create extends Component
     {
         // Skip loading search results if student is already selected
         $searchResults = [];
-        if (!$this->selectedStudentId && $this->search) {
+        if (! $this->selectedStudentId && $this->search) {
             $searchResults = Student::where(function ($q) {
                 $term = "%{$this->search}%";
                 $q->where('name', 'like', $term)
                     ->orWhere('roll_no', 'like', $term)
                     ->orWhere('phone', 'like', $term);
             })
-            ->limit(5)
-            ->get()
-            ->map(fn($s) => [
-                'id' => $s->id,
-                'label' => "{$s->name} ({$s->roll_no})"
-            ]);
+                ->limit(5)
+                ->get()
+                ->map(fn($s) => [
+                    'id'    => $s->id,
+                    'label' => "{$s->name} ({$s->roll_no})",
+                ]);
         }
 
         return view('livewire.admin.payments.create', [
-            'students' => $searchResults
+            'students' => $searchResults,
         ]);
     }
 }

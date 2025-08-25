@@ -4,9 +4,9 @@
             <h1 class="text-2xl font-bold">Students</h1>
             <p class="text-gray-600">Manage enrolled students and their progress</p>
         </div>
-        <a href="" class="px-4 py-2 bg-orange-500 text-white rounded-lg flex items-center gap-2">
+        {{-- <a href="" class="px-4 py-2 bg-orange-500 text-white rounded-lg flex items-center gap-2">
             <span>+</span> Add Student
-        </a>
+        </a> --}}
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
