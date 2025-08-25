@@ -35,6 +35,38 @@
             @error('exam_date') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
         </div>
 
+        <div>
+            <label class="block mb-1 font-medium">Subjects & Max Marks</label>
+            <div class="space-y-2">
+                @foreach($subjects as $subject)
+                    <div class="flex items-center space-x-3" 
+                        x-data="{ checked: @entangle('selectedSubjects.' . $subject->id . '.checked') }">
+                        
+                        <!-- Checkbox -->
+                        <input type="checkbox" 
+                            x-model="checked"
+                            wire:model="selectedSubjects.{{ $subject->id }}.checked"
+                            value="1"
+                            class="h-4 w-4">
+
+                        <span class="w-32">{{ $subject->name }}</span>
+
+                        <!-- Max Marks Input -->
+                        <input type="number" 
+                            wire:model="selectedSubjects.{{ $subject->id }}.max_marks"
+                            class="w-28 border rounded px-2 py-1"
+                            placeholder="Marks"
+                            x-bind:disabled="!checked">
+                    </div>
+                @endforeach
+            </div>
+            @error('selectedSubjects') 
+                <span class="text-red-500 text-sm">{{ $message }}</span> 
+            @enderror
+        </div>
+
+
+
         <div class="flex space-x-2 mt-4">
             <button type="submit"
                     class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
