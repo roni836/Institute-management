@@ -1,258 +1,140 @@
 <?php
-
 namespace App\Livewire\Admin\Students;
 
-use App\Models\Batch;
-use App\Models\Mark;
 use App\Models\Student;
-use App\Models\Transaction;
+use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\On;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 #[Layout('components.layouts.admin')]
-
 class StudentProfile extends Component
 {
+    #[Validate('required|exists:students,id')]
+    public $studentId;
+
+    #[Validate('string|in:overview,courses,payments,performance')]
+    public string $selectedTab = 'overview';
+
     public $student;
-    public $selectedTab = 'overview';
+
+    public bool $isLoading = false;
 
     public function mount($id)
     {
-        $this->student = Student::with([
-            'admissions.batch.course',
-            'admissions.schedules',
-            'admissions.transactions',
-        ])->findOrFail($id);
+        $this->studentId = $id;
+        $this->loadStudent();
     }
 
-    protected function getStats()
+    private function loadStudent()
     {
-        return [
-            'totalFees' => $this->student->admissions->sum('fee_total'),
-            'paidFees' => $this->student->admissions->sum(function($admission) {
-                return $admission->transactions->where('status', 'success')->sum('amount');
-            }),
-            'coursesEnrolled' => $this->student->admissions->count(),
-            'attendance' => $this->student->attendance_percentage ?? 0,
-            'recentActivities' => $this->getRecentActivities(),
-            'batchProgress' => $this->getBatchProgress(),
-            'paymentHistory' => $this->getPaymentHistory(),
-        ];
-    }
+        $relationships = ['admissions.batch.course'];
+        if ($this->selectedTab === 'overview' || $this->selectedTab === 'payments') {
+            $relationships[] = 'admissions.transactions';
+            $relationships[] = 'admissions.schedules';
+        }
 
-    protected function getRecentActivities()
-    {
-        $activities = collect();
-
-        // Add recent payments
-        $this->student->admissions->each(function($admission) use ($activities) {
-            $admission->transactions->take(3)->each(function($tx) use ($activities) {
-                $activities->push([
-                    'icon' => '₹',
-                    'description' => "Paid ₹{$tx->amount} via {$tx->mode}",
-                    'time' => $tx->created_at->diffForHumans()
-                ]);
-            });
+        $this->student = Cache::remember("student_profile_{$this->studentId}_{$this->selectedTab}", 300, function () use ($relationships) {
+            return Student::with($relationships)->findOrFail($this->studentId);
         });
+    }
 
-        // Add course enrollments
-        $this->student->admissions->take(3)->each(function($admission) use ($activities) {
-            $activities->push([
+    public function updateTab($tab)
+    {
+        $this->isLoading = true;
+        $this->selectedTab = $tab;
+        $this->loadStudent();
+        $this->isLoading = false;
+    }
+
+    private function getStats()
+    {
+        return Cache::remember("student_stats_{$this->studentId}_{$this->selectedTab}", 300, function () {
+            $admissions = $this->student->admissions;
+
+            return [
+                'totalFees' => $admissions->sum('fee_total'),
+                'paidFees' => $admissions->sum(fn($admission) => 
+                    $admission->transactions->where('status', 'success')->sum('amount')
+                ),
+                'coursesEnrolled' => $admissions->count(),
+                'attendance' => $this->student->attendance_percentage ?? 0,
+                'recentActivities' => $this->selectedTab === 'overview' ? $this->getRecentActivities() : [],
+                'batchProgress' => $this->selectedTab === 'overview' ? $this->getBatchProgress() : [],
+                'paymentHistory' => $this->selectedTab === 'payments' ? $this->getPaymentHistory() : [],
+            ];
+        });
+    }
+
+    private function getRecentActivities()
+    {
+        $transactions = $this->student->admissions->flatMap->transactions
+            ->take(3)
+            ->map(fn($tx) => [
+                'icon' => '₹',
+                'description' => "Paid ₹{$tx->amount} via {$tx->mode}",
+                'time' => $tx->created_at->diffForHumans()
+            ]);
+
+        $enrollments = $this->student->admissions
+            ->take(3)
+            ->map(fn($admission) => [
                 'icon' => '📚',
                 'description' => "Enrolled in {$admission->batch->course->name}",
                 'time' => $admission->created_at->diffForHumans()
             ]);
-        });
 
-        return $activities->sortByDesc('time')->take(5)->values();
+        return $transactions->merge($enrollments)
+            ->sortByDesc('time')
+            ->take(5)
+            ->values();
     }
 
-    protected function getPaymentHistory()
+    private function getPaymentHistory()
     {
-        $months = collect();
-        $transactions = collect();
-        $now = Carbon::now();
-        
-        // Get last 6 months
-        for ($i = 0; $i < 6; $i++) {
-            $date = $now->copy()->subMonths($i);
-            $months->put($date->format('M Y'), 0);
-        }
+        return Cache::remember("student_payment_history_{$this->studentId}", 300, function () {
+            $months = collect();
+            $transactions = collect();
+            $now = Carbon::now();
 
-        // Get transactions and monthly totals
-        $this->student->admissions->each(function($admission) use (&$months, &$transactions) {
-            $admission->transactions->each(function($tx) use (&$months, &$transactions) {
-                // Add to transactions list
-                if ($tx->date) {
-                    $transactions->push([
-                        'date' => $tx->date->format('d M Y'),
-                        'amount' => $tx->amount ?? 0,
-                        'mode' => $tx->mode ?? '-',
-                        'status' => $tx->status ?? 'pending',
-                        'reference_no' => $tx->reference_no ?? '-',
-                        'batch' => optional($tx->admission->batch)->batch_name ?? '-'
-                    ]);
+            for ($i = 0; $i < 6; $i++) {
+                $date = $now->copy()->subMonths($i);
+                $months->put($date->format('M Y'), 0);
+            }
 
-                    // Add to monthly totals if successful payment
-                    if ($tx->status === 'success') {
-                        $key = $tx->date->format('M Y');
-                        if ($months->has($key)) {
-                            $months[$key] += $tx->amount;
+            $this->student->admissions->flatMap->transactions
+                ->each(function($tx) use (&$months, &$transactions) {
+                    if ($tx->date) {
+                        $transactions->push([
+                            'date' => $tx->date->format('d M Y'),
+                            'amount' => $tx->amount ?? 0,
+                            'mode' => $tx->mode ?? '-',
+                            'status' => $tx->status ?? 'pending',
+                            'reference_no' => $tx->reference_no ?? '-',
+                            'batch' => optional($tx->admission->batch)->batch_name ?? '-'
+                        ]);
+
+                        if ($tx->status === 'success') {
+                            $key = $tx->date->format('M Y');
+                            if ($months->has($key)) {
+                                $months[$key] += $tx->amount;
+                            }
                         }
                     }
-                }
-            });
-        });
+                });
 
-        return [
-            'transactions' => $transactions->sortByDesc('date')->values()->toArray(),
-            'chartData' => [
-                'labels' => $months->keys()->reverse()->values()->toArray(),
-                'data' => $months->values()->reverse()->values()->toArray(),
-            ]
-        ];
-    }
-
-    protected function getBatchProgress()
-    {
-        return $this->student->admissions->map(function($admission) {
-            $startDate = Carbon::parse($admission->batch->start_date);
-            $endDate = Carbon::parse($admission->batch->end_date);
-            $total = $startDate->diffInDays($endDate);
-            $elapsed = $startDate->diffInDays(now());
-            
             return [
-                'batch' => $admission->batch->batch_name,
-                'course' => $admission->batch->course->name,
-                'progress' => min(100, round(($elapsed / $total) * 100)),
-                'status' => $admission->status,
+                'transactions' => $transactions->sortByDesc('date')->values()->toArray(),
+                'chartData' => [
+                    'labels' => $months->keys()->reverse()->values()->toArray(),
+                    'data' => $months->values()->reverse()->values()->toArray(),
+                ]
             ];
         });
     }
 
-    protected function getPerformanceData()
-    {
-        $performanceStats = [
-            'overall' => [
-                'attendance' => 0,
-                'completion' => 0,
-                'grades' => []
-            ],
-            'courses' => []
-        ];
-
-        $totalCourses = $this->student->admissions->count();
-        if ($totalCourses > 0) {
-            // Calculate overall performance metrics
-            $performanceStats['overall'] = [
-                'attendance' => number_format($this->student->attendance_percentage ?? 0, 1),
-                'completion' => number_format($this->calculateCompletion(), 1),
-                'grades' => $this->calculateGradeDistribution()
-            ];
-
-            // Calculate per-course performance
-            $performanceStats['courses'] = $this->student->admissions->map(function($admission) {
-                return [
-                    'course' => $admission->batch->course->name ?? 'Unknown Course',
-                    'progress' => $this->calculateCourseProgress($admission),
-                    'attendance' => $this->calculateCourseAttendance($admission),
-                    'grades' => [
-                        'assignments' => $this->calculateAssignmentGrade($admission),
-                        'midterm' => $this->calculateMidtermGrade($admission),
-                        'final' => $this->calculateFinalGrade($admission)
-                    ]
-                ];
-            })->toArray();
-        }
-
-        return $performanceStats;
-    }
-
-    protected function calculateCompletion()
-    {
-        $completed = $this->student->admissions->where('status', 'completed')->count();
-        $total = $this->student->admissions->count();
-        return $total > 0 ? ($completed / $total) * 100 : 0;
-    }
-
-    protected function calculateGradeDistribution()
-    {
-        // Placeholder - Replace with actual grade calculation logic
-        return [
-            'A' => 40,
-            'B' => 35,
-            'C' => 25
-        ];
-    }
-
-    protected function calculateCourseProgress($admission)
-    {
-        if (!$admission->batch) return 0;
-
-        $startDate = Carbon::parse($admission->batch->start_date);
-        $endDate = Carbon::parse($admission->batch->end_date);
-        $now = Carbon::now();
-
-        if ($now->lt($startDate)) return 0;
-        if ($now->gte($endDate)) return 100;
-
-        $totalDays = max(1, $startDate->diffInDays($endDate));
-        $elapsed = $startDate->diffInDays($now);
-
-        return min(100, round(($elapsed / $totalDays) * 100));
-    }
-
-    protected function calculateCourseAttendance($admission)
-    {
-        // Placeholder - Replace with actual attendance calculation
-        return random_int(75, 100);
-    }
-
-    protected function calculateAssignmentGrade($admission)
-    {
-        // Placeholder - Replace with actual assignment grade calculation
-        return random_int(70, 95);
-    }
-
-    protected function calculateMidtermGrade($admission)
-    {
-        // Placeholder - Replace with actual midterm grade calculation
-        return random_int(65, 90);
-    }
-
-    protected function calculateFinalGrade($admission)
-    {
-        // Placeholder - Replace with actual final grade calculation
-        return random_int(70, 95);
-    }
-
-    protected function getCoursesData()
-    {
-        return $this->student->admissions->map(function($admission) {
-            $course = $admission->batch->course;
-            $startDate = Carbon::parse($admission->batch->start_date);
-            $endDate = Carbon::parse($admission->batch->end_date);
-            $progress = $this->calculateProgress($admission);
-            
-            return [
-                'id' => $course->id,
-                'name' => $course->name,
-                'batch' => $admission->batch->batch_name,
-                'admission_date' => $admission->admission_date->format('d M Y'),
-                'start_date' => $startDate->format('d M Y'),
-                'end_date' => $endDate->format('d M Y'),
-                'progress' => $progress,
-                'status' => $admission->status,
-                'fee_total' => $admission->fee_total,
-                'fee_paid' => $admission->fee_total - $admission->fee_due,
-                'attendance' => random_int(75, 100), // Replace with actual attendance
-            ];
-        });
-    }
-
-    protected function calculateProgress($admission)
+    private function calculateProgress($admission)
     {
         if (!$admission->batch || !$admission->batch->start_date || !$admission->batch->end_date) {
             return 0;
@@ -271,12 +153,75 @@ class StudentProfile extends Component
         return min(100, round(($elapsed / $totalDays) * 100));
     }
 
+    private function getBatchProgress()
+    {
+        return $this->student->admissions->map(fn($admission) => [
+            'batch' => $admission->batch->batch_name,
+            'course' => $admission->batch->course->name,
+            'progress' => $this->calculateProgress($admission),
+            'status' => $admission->status,
+        ]);
+    }
+
+    private function getPerformanceData()
+    {
+        $admissions = $this->student->admissions;
+        $totalCourses = $admissions->count();
+
+        $performanceStats = [
+            'overall' => [
+                'attendance' => 0,
+                'completion' => 0
+            ],
+            'courses' => []
+        ];
+
+        if ($totalCourses > 0) {
+            $completed = $admissions->where('status', 'completed')->count();
+            $performanceStats['overall'] = [
+                'attendance' => number_format($this->student->attendance_percentage ?? 0, 1),
+                'completion' => number_format($completed / $totalCourses * 100, 1)
+            ];
+
+            $performanceStats['courses'] = $admissions->map(fn($admission) => [
+                'course' => $admission->batch->course->name ?? 'Unknown Course',
+                'progress' => $this->calculateProgress($admission),
+                'attendance' => $this->calculateCourseAttendance($admission)
+            ])->toArray();
+        }
+
+        return $performanceStats;
+    }
+
+    private function calculateCourseAttendance($admission)
+    {
+        return random_int(75, 100); // Replace with actual logic
+    }
+
+    private function getCoursesData()
+    {
+        return $this->student->admissions->map(fn($admission) => [
+            'id' => $admission->batch->course->id,
+            'name' => $admission->batch->course->name,
+            'batch' => $admission->batch->batch_name,
+            'admission_date' => $admission->admission_date->format('d M Y'),
+            'start_date' => Carbon::parse($admission->batch->start_date)->format('d M Y'),
+            'end_date' => Carbon::parse($admission->batch->end_date)->format('d M Y'),
+            'progress' => $this->calculateProgress($admission),
+            'status' => $admission->status,
+            'fee_total' => $admission->fee_total,
+            'fee_paid' => $admission->fee_total - $admission->fee_due,
+            'attendance' => $this->calculateCourseAttendance($admission),
+        ]);
+    }
+
     public function render()
     {
         return view('livewire.admin.students.student-profile', [
             'stats' => $this->getStats(),
-            'performanceStats' => $this->getPerformanceData(),
-            'coursesData' => $this->getCoursesData()
+            'performanceStats' => $this->selectedTab === 'performance' ? $this->getPerformanceData() : [],
+            'coursesData' => $this->selectedTab === 'courses' ? $this->getCoursesData() : [],
+            'isLoading' => $this->isLoading
         ]);
     }
 }
