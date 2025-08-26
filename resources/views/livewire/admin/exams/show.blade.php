@@ -12,7 +12,7 @@
         <a href="{{route('admin.students.create', ['exam_id' => $exam->id])}}"
            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
            Add Student
-        </a>
+        </a> 
     </div>
     </div>
     
@@ -27,14 +27,14 @@
         </thead>
         <tbody>
        
-            @foreach($students as $student)
+            @foreach($students as $s)
                 <tr>
-                    <td>{{ $student->name }}</td>
-                    <td>{{ $student->email }}</td>
+                    <td>{{ $s->student->name }}</td>
+                    <td>{{ $s->student->email }}</td>
                     <td class="p-3">
                         <a href=""
                            class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
-                            Add Marks
+                            Edit details
                         </a>
                     </td>
                 </tr>

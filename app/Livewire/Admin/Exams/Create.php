@@ -33,12 +33,7 @@ class Create extends Component
     {
         $this->validate();
 
-        Exam::create([
-            'batch_id' => $this->batch_id,
-            'name' => $this->name,
-            'exam_date' => $this->exam_date,
-
-        ]);
+       
 
         $validSubjects = collect($this->selectedSubjects)
         ->filter(fn($s) => !empty($s['checked']) && !empty($s['max_marks']));

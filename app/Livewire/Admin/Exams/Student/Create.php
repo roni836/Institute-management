@@ -15,6 +15,7 @@ use Livewire\Component;
 #[Layout('components.layouts.admin')]
 class Create extends Component
 {
+    public $exam;
     public $examId;
     public $students;
     public $batches;
@@ -27,7 +28,7 @@ class Create extends Component
   
 
     public function mount($exam_id){
-
+        $this->exam = Exam::find($exam_id);
         $this->examId = $exam_id;
         //Those students who are already assigned to this exam
         $assignedStudentIds = DB::table('exam_student')

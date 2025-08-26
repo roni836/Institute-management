@@ -15,10 +15,17 @@ class Show extends Component
     public $exam;
     public $students;
    
-    public function mount($examid){
-        $this->exam = Exam::with('batch')->findOrFail($examid);
-        $this->students = $this->exam->students;
-    
+    public function mount($examid)
+    {
+        $this->exam = \App\Models\Exam::with('students')->findOrFail($examid);
+
+        $this->students = Mark::with(['student', 'examSubject.subject'])
+            ->whereHas('examSubject', function($q) use ($examid) {
+                $q->where('exam_id', $examid);
+            })
+            ->get();
+
+        // dd($this->students);
     }
     public function render()
     {
