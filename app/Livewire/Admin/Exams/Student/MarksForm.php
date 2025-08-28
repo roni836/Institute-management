@@ -19,24 +19,47 @@ class MarksForm extends Component
         // dd($exam_id, $student_id);
         $this->exam_id = $exam_id;
         $this->student_id = $student_id;
-        $this->subjects = ExamSubject::where('exam_id', $exam_id)->get();
+        // $this->subjects = ExamSubject::where('exam_id', $exam_id)->get();
+
         // dd($this->subjects);
+
+
+
+        $this->subjects = ExamSubject::with(['marks' => function($q) use ($student_id) {
+            $q->where('student_id', $student_id);
+        }])->where('exam_id', $exam_id)->get();
+    
+        // Pre-fill marks array for binding
+        foreach ($this->subjects as $subject) {
+            $this->marks[$subject->id] = $subject->marks->first()->marks_obtained ?? null;
+        }
     }
 
     public function saveMarks()
     {
+        $rules = [];
+        $messages = [];
+
+        foreach ($this->subjects as $subject) {
+            $rules["marks.{$subject->id}"] = "required|numeric|min:0|max:{$subject->max_marks}";
+            $messages["marks.{$subject->id}.required"] = "Marks are required for {$subject->subject->name}.";
+            $messages["marks.{$subject->id}.numeric"]  = "Marks must be a number for {$subject->subject->name}.";
+            $messages["marks.{$subject->id}.max"]      = "Marks cannot exceed {$subject->max_marks} in {$subject->subject->name}.";
+        }
+
+         $this->validate($rules, $messages);
         foreach ($this->marks as $examSubjectId => $enteredMarks) {
-            // Validation (optional, but recommended)
-            if ($enteredMarks < 0) {
-                $this->addError('marks.' . $examSubjectId, 'Marks cannot be negative');
-                continue;
-            }
+            // // Validation (optional, but recommended)
+            // if ($enteredMarks < 0) {
+            //     $this->addError('marks.' . $examSubjectId, 'Marks cannot be negative');
+            //     continue;
+            // }
     
-            $examSubject = \App\Models\ExamSubject::find($examSubjectId);
-            if ($examSubject && $enteredMarks > $examSubject->max_marks) {
-                $this->addError('marks.' . $examSubjectId, 'Marks cannot exceed ' . $examSubject->max_marks);
-                continue;
-            }
+            // $examSubject = \App\Models\ExamSubject::find($examSubjectId);
+            // if ($examSubject && $enteredMarks > $examSubject->max_marks) {
+            //     $this->addError('marks.' . $examSubjectId, 'Marks cannot exceed ' . $examSubject->max_marks);
+            //     continue;
+            // }
 
     
             // Save or update marks

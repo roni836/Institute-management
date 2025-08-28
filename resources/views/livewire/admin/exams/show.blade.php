@@ -47,7 +47,7 @@
         </td>
 
         <td class="p-3">
-            <a href=""
+            <a href="{{route('admin.exams.marking', ['exam_id' => $exam->id, 'student_id' => $s['student']->id])}}"
                class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
                 Edit details
             </a>
