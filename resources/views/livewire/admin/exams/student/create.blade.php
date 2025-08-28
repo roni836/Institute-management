@@ -25,10 +25,7 @@
                         <td class="px-6 py-4">{{ $s->student->email }}</td>
                         <td class="px-6 py-4">{{ $s->batch->batch_name }}</td>
                         <td class="px-6 py-4">
-                          {{--  <button wire:click="addStudent({{ $s->student->id }})"
-                                    class="bg-blue-500 text-white px-3 py-1 rounded">
-                                Add
-                            </button> --}}
+                         
                             <button>
                             <a href="{{ route('admin.exams.marking', ['exam_id' => $exam->id, 'student_id' => $s->student->id]) }}"
                                class="bg-blue-500 text-white px-3 py-1 rounded">

@@ -22,23 +22,39 @@
             <tr>
                 <th class="p-3 text-left">Name</th>
                 <th class="p-3 text-left">Email</th>
+                <th class="p-3 text-left">Total Marks Obtained</th>
+                <th class="p-3 text-left">Subject-wise Marks</th>
                 <th class="p-3 text-left">Action</th>
             </tr>
         </thead>
         <tbody>
        
-            @foreach($students as $s)
-                <tr>
-                    <td>{{ $s->student->name }}</td>
-                    <td>{{ $s->student->email }}</td>
-                    <td class="p-3">
-                        <a href=""
-                           class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
-                            Edit details
-                        </a>
-                    </td>
-                </tr>
-            @endforeach
+        @foreach($students as $s)
+    <tr>
+        <td>{{ $s['student']->name }}</td>
+        <td>{{ $s['student']->email }}</td>
+        <td>{{ $s['total_marks'] }}</td>
+
+        <td>
+            {{-- If you want to list subject-wise marks --}}
+            <ul>
+            <ul>
+                @foreach($s['marks'] as $mark)
+                    <li>{{ $mark['subject'] }}: {{ $mark['marks_obtained'] }}</li>
+                @endforeach
+            </ul>
+            </ul>
+        </td>
+
+        <td class="p-3">
+            <a href=""
+               class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
+                Edit details
+            </a>
+        </td>
+    </tr>
+@endforeach
+
         </tbody>
     </table>
 </div>

@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Exams\Student;
 
 use App\Models\ExamSubject;
 use App\Models\Mark;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 #[Layout('components.layouts.admin')]
@@ -11,10 +12,13 @@ use Livewire\Component;
 class MarksForm extends Component
 {
     public $subjects;
+    public $exam_id;
     public $marks = [];
     public $student_id;
     public function mount($exam_id, $student_id){
         // dd($exam_id, $student_id);
+        $this->exam_id = $exam_id;
+        $this->student_id = $student_id;
         $this->subjects = ExamSubject::where('exam_id', $exam_id)->get();
         // dd($this->subjects);
     }
@@ -33,6 +37,7 @@ class MarksForm extends Component
                 $this->addError('marks.' . $examSubjectId, 'Marks cannot exceed ' . $examSubject->max_marks);
                 continue;
             }
+
     
             // Save or update marks
             Mark::updateOrCreate(
@@ -45,6 +50,15 @@ class MarksForm extends Component
                 ]
             );
         }
+        DB::table('exam_student')->updateOrInsert(
+            [
+                'exam_id' => $this->exam_id,
+                'student_id' => $this->student_id,
+                'created_at' => now(), // only set when creating a new record
+                'updated_at' => now(), // always update timestamp
+            ],
+            [] // nothing to update, just ensure exists
+        );
     
         session()->flash('message', 'Marks saved successfully.');
     }

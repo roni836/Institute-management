@@ -37,19 +37,8 @@ class Create extends Component
 
 
         //Students who are not assigned to this exam yet
-        $this->students = Admission::with('student')
-        ->whereNotIn('student_id', $assignedStudentIds)
-        ->get();        
-        // dd($this->students);
-    }
-    public function addStudent($student_id){
-        DB::table('exam_student')->insert([
-            'exam_id'   => $this->examId,
-            'student_id'=> $student_id,
-            'created_at'=> now(),
-            'updated_at'=> now(),
-        ]);
-        session()->flash('message', 'Student added successfully.');
+        $this->students = Admission::where('batch_id', $this->exam->batch_id)->whereNotIn('student_id', $assignedStudentIds)->get();
+       
     }
   
 
