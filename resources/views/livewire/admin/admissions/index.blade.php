@@ -4,10 +4,32 @@
             <h1 class="text-2xl font-bold">Admissions</h1>
             <p class="text-gray-600">Manage student applications and admissions</p>
         </div>
-        <a href="{{ route('admin.admissions.create') }}"
-           class="px-4 py-2 bg-orange-500 text-white rounded-lg flex items-center gap-2">
-            <span>+</span> New Admission
-        </a>
+        <div class="flex gap-2">
+            {{-- IMPORT --}}
+            {{-- <form wire:submit.prevent="import" class="flex items-center gap-2">
+                <input type="file" wire:model="importFile"
+                    class="block text-sm text-gray-700 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-gray-200 file:bg-gray-50 file:text-gray-700 file:text-sm"
+                    accept=".xlsx,.xls,.csv" />
+                @error('importFile')
+                    <span class="text-xs text-red-600">{{ $message }}</span>
+                @enderror
+
+                <button type="submit" class="px-4 py-2 rounded-lg bg-primary-600 text-white disabled:opacity-60"
+                    wire:loading.attr="disabled" wire:target="import,importFile">
+                    <span wire:loading.remove wire:target="import">Import</span>
+                    <span wire:loading wire:target="import">Importing…</span>
+                </button>
+            </form> --}}
+            <button type="button" wire:click="export" class="px-4 py-2 rounded-lg border bg-orange-500 hover:bg-orange-600 text-white"
+                wire:loading.attr="disabled" wire:target="export">
+                <span wire:loading.remove wire:target="export">Export</span>
+                <span wire:loading wire:target="export">Preparing…</span>
+            </button>
+            <a href="{{ route('admin.admissions.create') }}"
+                class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg flex items-center gap-2">
+                <span>+</span> New Admission
+            </a>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -20,8 +42,8 @@
                 </div>
                 <div class="p-2 bg-orange-100 text-orange-500 rounded-lg">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                 </div>
             </div>
@@ -36,8 +58,7 @@
                 </div>
                 <div class="p-2 bg-green-100 text-green-500 rounded-lg">
                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M5 13l4 4L19 7"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
                 </div>
             </div>
@@ -53,7 +74,7 @@
                 <div class="p-2 bg-gray-100 text-gray-500 rounded-lg">
                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
             </div>
@@ -69,7 +90,7 @@
                 <div class="p-2 bg-red-100 text-red-500 rounded-lg">
                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M6 18L18 6M6 6l12 12"/>
+                            d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </div>
             </div>
@@ -80,16 +101,15 @@
         <div class="flex flex-col sm:flex-row gap-4">
             <!-- Search and filters -->
             <div class="relative flex-1">
-                <input type="text" wire:model.live.debounce.300ms="q" 
-                       class="w-full pl-10 pr-4 py-2 border rounded-lg" 
-                       placeholder="Search by name, email, or phone">
+                <input type="text" wire:model.live.debounce.300ms="q"
+                    class="w-full pl-10 pr-4 py-2 border rounded-lg" placeholder="Search by name, email, or phone">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3">
                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                 </span>
             </div>
-            
+
             <!-- Status and Batch filters -->
             <select wire:model.live="status" class="border rounded-lg px-4 py-2">
                 <option value="">All Status</option>
@@ -100,7 +120,7 @@
 
             <select wire:model.live="batchId" class="border rounded-lg px-4 py-2">
                 <option value="">All Batches</option>
-                @foreach($batches as $b)
+                @foreach ($batches as $b)
                     <option value="{{ $b->id }}">{{ $b->batch_name }}</option>
                 @endforeach
             </select>
@@ -146,14 +166,16 @@
                             </span>
                         </td>
                         <td class="p-3 text-right space-x-2">
-                            <a href="{{ route('admin.admissions.show', $admission) }}" 
-                               class="px-2 py-1 rounded bg-blue-50 text-blue-700">View</a>
-                            <a href="{{ route('admin.payments.create', ['admission_id' => $admission->id]) }}" 
-                               class="px-2 py-1 rounded bg-green-50 text-green-700">Payment</a>
+                            <a href="{{ route('admin.admissions.show', $admission) }}"
+                                class="px-2 py-1 rounded bg-blue-50 text-blue-700">View</a>
+                            <a href="{{ route('admin.payments.create', ['admission_id' => $admission->id]) }}"
+                                class="px-2 py-1 rounded bg-green-50 text-green-700">Payment</a>
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="p-3 text-center text-gray-500">No admissions found.</td></tr>
+                    <tr>
+                        <td colspan="6" class="p-3 text-center text-gray-500">No admissions found.</td>
+                    </tr>
                 @endforelse
             </tbody>
         </table>

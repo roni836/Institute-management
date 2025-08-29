@@ -5,7 +5,7 @@ use App\Models\Transaction;
 use App\Models\PaymentSchedule;
 use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
-use DB;
+use Illuminate\Support\Facades\DB as FacadesDB;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
@@ -74,7 +74,7 @@ class Index extends Component
 
             $overduePayments = PaymentSchedule::where('due_date', '<', now())
                 ->where('status', '!=', 'paid')
-                ->sum(DB::raw('amount - paid_amount'));
+                ->sum(FacadesDB::raw('amount - paid_amount'));
 
             $percentChange = $revenues->last_month_revenue > 0
                 ? round((($revenues->current_month_revenue - $revenues->last_month_revenue) / $revenues->last_month_revenue) * 100, 1)

@@ -1,6 +1,10 @@
 <?php
 namespace App\Livewire\Admin\Admissions;
 
+use Maatwebsite\Excel\Facades\Excel;
+use App\Excel\AdmissionsExport;
+use App\Excel\AdmissionsImport;
+use Livewire\WithFileUploads; 
 use App\Models\Admission;
 use App\Models\Batch;
 use Livewire\Attributes\Layout;
@@ -12,12 +16,32 @@ use Illuminate\Support\Facades\Cache;
 class Index extends Component
 {
     use WithPagination;
+    use WithFileUploads;
 
     public string $q = '';
     public ?string $status = null;
     public ?int $batchId = null;
+    public $importFile;
 
     protected $queryString = ['q', 'status', 'batchId', 'page'];
+
+     public function export()
+    {
+        $name = 'admissions_' . now()->format('Ymd_His') . '.xlsx';
+        return Excel::download(new AdmissionsExport, $name);
+    }
+
+    public function import()
+    {
+        $this->validate([
+            'importFile' => ['required', 'file', 'mimes:xlsx,csv,xls', 'max:10240'],
+        ]);
+
+        Excel::import(new AdmissionsImport, $this->importFile->getRealPath());
+
+        $this->reset('importFile');
+        session()->flash('ok', 'Admissions imported successfully.');
+    }
 
     public function updating($name)
     {
