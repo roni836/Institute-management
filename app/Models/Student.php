@@ -39,4 +39,12 @@ class Student extends Model
     {
         return $this->belongsToMany(Exam::class, 'exam_student')->withTimestamps();
     }
+
+    public function attendanceRecords()
+    {
+        return $this->hasMany(\App\Models\StudentAttendance::class)
+            ->latest('date')
+            ->with('admission.batch');
+    }
+
 }

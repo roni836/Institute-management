@@ -42,4 +42,10 @@ class Admission extends Model
         'fee_due'        => 'decimal:2',
         'admission_date' => 'date',
     ];
+
+    public function attendanceRecords()
+    {
+        return $this->hasMany(\App\Models\StudentAttendance::class);
+    }
+
 }
