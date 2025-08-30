@@ -109,7 +109,7 @@ class Dashboard extends Component
             ->concat($recentBatches)
             ->concat($recentAttendance)
             ->sortByDesc('time')
-            ->take(8)
+            ->take(5)
             ->values();
 
         return $activities;
