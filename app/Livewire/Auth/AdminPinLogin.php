@@ -17,6 +17,11 @@ class AdminPinLogin extends Component
 
     public function mount()
     {
+        // If user is already authenticated, redirect to dashboard
+        if (Auth::check()) {
+            return $this->redirect(route('admin.dashboard'));
+        }
+
         // If no device cookie or device has no PIN, redirect to password login
         $device = $this->getCurrentDevice();
         if (!$device || !$device->hasPin()) {

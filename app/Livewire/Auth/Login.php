@@ -19,6 +19,26 @@ class Login extends Component
     #[Validate('required|min:5')]
     public $password = '';
 
+    public function mount()
+    {
+        // Check if user is already authenticated
+        if (Auth::check()) {
+            return $this->redirect(route('admin.dashboard'));
+        }
+
+        // Check if there's a recognized device with PIN
+        $publicId = request()->cookie('adm_dev');
+        if ($publicId) {
+            $device = Device::where('public_id', $publicId)->first();
+            
+            // If device exists and has PIN, redirect to pin page
+            if ($device && $device->hasPin()) {
+                Log::info('Recognized device with PIN found, redirecting to pin page');
+                return $this->redirect(route('admin.pin'));
+            }
+        }
+    }
+
     public function login()
     {
         $this->validate();
