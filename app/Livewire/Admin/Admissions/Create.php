@@ -17,8 +17,7 @@ class Create extends Component
     public int $step = 1; // 1: Student, 2: Admission, 3: Plan & Review
 
     // Student fields (new student at admission time)
-    public $name, $father_name, $mother_name, $roll_no, $student_uid,
-    $email, $phone, $address, $admission;
+    public $name, $father_name, $mother_name, $email, $phone, $address, $admission;
     public string $student_status = 'active';
 
     // Admission fields
@@ -51,15 +50,13 @@ class Create extends Component
             $this->name = $student->name;
             $this->email = $student->email;
             $this->phone = $student->phone;
-            $this->roll_no = $student->roll_no;
-            $this->student_uid = $student->student_uid;
             $this->father_name = $student->father_name;
             $this->mother_name = $student->mother_name;
             $this->address = $student->address;
             $this->student_status = $student->status;
         } else {
             $this->isExistingStudent = false;
-            $this->reset(['name', 'email', 'roll_no', 'student_uid', 'father_name', 'mother_name', 'address']);
+            $this->reset(['name', 'email', 'father_name', 'mother_name', 'address']);
         }
     }
 
@@ -71,8 +68,6 @@ class Create extends Component
             'name'           => ['required', 'string', 'max:255'],
             'father_name'    => ['nullable', 'string', 'max:255'],
             'mother_name'    => ['nullable', 'string', 'max:255'],
-            'roll_no'        => ['required', 'string'],
-            'student_uid'    => ['required', 'string'],
             'email'          => ['nullable', 'email', 'max:255'],
             'phone'          => ['nullable', 'string', 'max:20'],
             'address'        => ['nullable', 'string'],
@@ -103,7 +98,7 @@ class Create extends Component
                 'email'       => ['nullable', 'email', 'max:255'],
                 'phone'       => ['nullable', 'string', 'max:20'],
             ],
-            2       => [
+            2 => [
                 'batch_id'       => ['required', 'exists:batches,id'],
                 'admission_date' => ['required', 'date'],
                 'discount'       => ['nullable', 'numeric', 'min:0'],
@@ -172,6 +167,65 @@ class Create extends Component
         }
     }
 
+
+
+    /**
+     * Generate unique student UID (STU20250001, STU20250002, ...)
+     */
+    private function generateStudentUid(): string
+    {
+        $year = date('Y');
+        $lastStudent = Student::whereYear('created_at', $year)
+            ->orderBy('id', 'desc')
+            ->first();
+        
+        if ($lastStudent && $lastStudent->student_uid) {
+            // Extract the number from the last student UID
+            $lastNumber = (int) substr($lastStudent->student_uid, -5);
+            $nextNumber = $lastNumber + 1;
+        } else {
+            $nextNumber = 1;
+        }
+        
+        return 'STU' . $year . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Generate unique roll number (A0001, A0002, ...)
+     */
+    private function generateRollNumber(): string
+    {
+        $lastStudent = Student::orderBy('id', 'desc')->first();
+        
+        if ($lastStudent && $lastStudent->roll_no) {
+            // Extract the number from the last roll number
+            $lastNumber = (int) substr($lastStudent->roll_no, 1);
+            $nextNumber = $lastNumber + 1;
+        } else {
+            $nextNumber = 1;
+        }
+        
+        return 'A' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Get next roll number for display (without creating)
+     */
+    public function getNextRollNumber(): string
+    {
+        return $this->generateRollNumber();
+    }
+
+
+
+    /**
+     * Get next student UID for display (without creating)
+     */
+    public function getNextStudentUid(): string
+    {
+        return $this->generateStudentUid();
+    }
+
     public function save()
     {
         $data = $this->validate();
@@ -185,8 +239,8 @@ class Create extends Component
                     'name' => $this->name,
                     'email' => $this->email,
                     'phone' => $this->phone,
-                    'roll_no' => $this->roll_no,
-                    'student_uid' => $this->student_uid,
+                    'roll_no' => $this->generateRollNumber(),
+                    'student_uid' => $this->generateStudentUid(),
                     'father_name' => $this->father_name,
                     'mother_name' => $this->mother_name,
                     'address' => $this->address,

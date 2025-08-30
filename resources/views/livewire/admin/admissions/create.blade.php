@@ -73,6 +73,22 @@
                         @endif
                     </div>
 
+                    {{-- Auto-generation Notice --}}
+                    <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-blue-800">
+                                    <strong>Note:</strong> Roll Number and Student UID will be automatically generated after admission submission.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     {{-- Rest of Student Form --}}
                     <div class="grid md:grid-cols-2 gap-3">
                         <div>
@@ -83,9 +99,9 @@
                             @enderror
                         </div>
                         <div>
-                            <label class="text-xs">Roll No</label>
-                            <input type="text" class="w-full border rounded p-2" wire:model="roll_no">
-                            @error('roll_no')
+                            <label class="text-xs">Phone</label>
+                            <input type="tel" class="w-full border rounded p-2" wire:model="phone">
+                            @error('phone')
                                 <p class="text-xs text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
@@ -93,9 +109,9 @@
 
                     <div class="grid md:grid-cols-2 gap-3">
                         <div>
-                            <label class="text-xs">Student UID</label>
-                            <input type="text" class="w-full border rounded p-2" wire:model="student_uid">
-                            @error('student_uid')
+                            <label class="text-xs">Email</label>
+                            <input type="email" class="w-full border rounded p-2" wire:model="email">
+                            @error('email')
                                 <p class="text-xs text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
@@ -120,22 +136,7 @@
                         </div>
                     </div>
 
-                    <div class="grid md:grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-xs">Email</label>
-                            <input type="email" class="w-full border rounded p-2" wire:model="email">
-                            @error('email')
-                                <p class="text-xs text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                        <div>
-                            <label class="text-xs">Phone</label>
-                            <input type="tel" class="w-full border rounded p-2" wire:model="phone">
-                            @error('phone')
-                                <p class="text-xs text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                    </div>
+
 
                     <div>
                         <label class="text-xs">Address</label>
@@ -383,7 +384,22 @@
                                         </div>
                                         <div>
                                             <p class="text-sm text-gray-600">Roll Number</p>
-                                            <p class="font-medium">{{ $roll_no ?: '—' }}</p>
+                                            <p class="font-medium text-green-600">Next: {{ $this->getNextRollNumber() }}</p>
+                                        </div>
+                                    </div>
+
+
+
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-600">Student UID</p>
+                                            <p class="font-medium text-green-600">Next: {{ $this->getNextStudentUid() }}</p>
                                         </div>
                                     </div>
                                 </div>
