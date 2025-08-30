@@ -3,10 +3,12 @@
 namespace App\Livewire\Admin\Attendance;
 
 use App\Models\StudentAttendance;
+use App\Excel\AttendanceExport;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
 
 #[Layout('components.layouts.admin')]
 class View extends Component
@@ -75,5 +77,11 @@ class View extends Component
             'attendanceRecords' => $attendanceRecords,
             'dateStats' => $dateStats
         ]);
+    }
+
+    public function exportDateAttendance()
+    {
+        $filename = "attendance_{$this->date}.xlsx";
+        return Excel::download(new AttendanceExport($this->date), $filename);
     }
 }

@@ -3,10 +3,12 @@
 namespace App\Livewire\Admin\Attendance;
 
 use App\Models\StudentAttendance;
+use App\Excel\AttendanceExport;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
 
 #[Layout('components.layouts.admin')]
 class Index extends Component
@@ -40,6 +42,13 @@ class Index extends Component
         }
 
         return $query->paginate($this->perPage);
+    }
+
+    public function exportAttendance($date = null)
+    {
+        $filename = $date ? "attendance_{$date}.xlsx" : "attendance_all.xlsx";
+        
+        return Excel::download(new AttendanceExport($date), $filename);
     }
 
     public function render()

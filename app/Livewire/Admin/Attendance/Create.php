@@ -6,21 +6,31 @@ use App\Models\Student;
 use App\Models\Admission;
 use App\Models\StudentAttendance;
 use App\Models\Batch;
+use App\Excel\AttendanceImport;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
 
 #[Layout('components.layouts.admin')]
 class Create extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     public $selectedDate;
     public $selectedBatch = '';
     public $attendanceData = [];
     public $searchStudent = '';
     public $perPage = 20;
+    
+    // Excel import properties
+    public $excelFile;
+    public $showImportModal = false;
+    public $importProgress = 0;
+    public $importErrors = [];
+    public $importSuccess = false;
 
     public function mount()
     {
@@ -123,6 +133,59 @@ class Create extends Component
         
         // Reload students to refresh the data
         $this->loadStudents();
+    }
+
+    public function importAttendance()
+    {
+        $this->validate([
+            'excelFile' => 'required|file|mimes:xlsx,xls,csv|max:2048',
+        ]);
+
+        try {
+            $this->importProgress = 0;
+            $this->importErrors = [];
+            $this->importSuccess = false;
+
+            Excel::import(new AttendanceImport(), $this->excelFile);
+
+            $this->importSuccess = true;
+            $this->importProgress = 100;
+            
+            session()->flash('success', 'Attendance imported successfully!');
+            
+            // Close modal and refresh data
+            $this->showImportModal = false;
+            $this->excelFile = null;
+            $this->loadStudents();
+            
+        } catch (\Exception $e) {
+            $this->importErrors[] = $e->getMessage();
+            session()->flash('error', 'Error importing attendance: ' . $e->getMessage());
+        }
+    }
+
+    public function downloadSampleTemplate()
+    {
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="attendance_template.csv"',
+        ];
+
+        $callback = function() {
+            $file = fopen('php://output', 'w');
+            
+            // Add headers
+            fputcsv($file, ['roll_no', 'student_phone', 'date', 'status', 'remarks']);
+            
+            // Add sample data
+            fputcsv($file, ['ROLL20250001', '9876543210', '2025-01-15', 'present', 'On time']);
+            fputcsv($file, ['ROLL20250002', '9876543211', '2025-01-15', 'absent', 'Sick leave']);
+            fputcsv($file, ['ROLL20250003', '9876543212', '2025-01-15', 'late', 'Traffic delay']);
+            
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     public function render()
