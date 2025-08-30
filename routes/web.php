@@ -50,6 +50,11 @@ Route::get('/courses/create', \App\Livewire\Admin\Courses\Create::class)->name('
 Route::get('/courses/{id}/edit', \App\Livewire\Admin\Courses\Edit::class)->name('admin.courses.edit');
 Route::get('/courses/{id}/view', \App\Livewire\Admin\Courses\View::class)->name('admin.courses.view');
 
+Route::get('/attendance', \App\Livewire\Admin\Attendance\Index::class)->name('admin.atttendance.index');
+Route::get('/attendance/create', \App\Livewire\Admin\Attendance\Create::class)->name('admin.atttendance.create');
+// Route::get('/attendance/{id}/edit', \App\Livewire\Admin\Attendance\Edit::class)->name('admin.atttendance.edit');
+// Route::get('/attendance/{id}/view', \App\Livewire\Admin\Attendance\View::class)->name('admin.atttendance.view');
+
 Route::get('/subjects', \App\Livewire\Admin\Subjects\Index::class)->name('admin.subjects.index');
 Route::get('/subjects/create', \App\Livewire\Admin\Subjects\Create::class)->name('admin.subjects.create');
 Route::get('/subjects/{id}/edit', \App\Livewire\Admin\Subjects\Edit::class)->name('admin.subjects.edit');
