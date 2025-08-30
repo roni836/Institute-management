@@ -97,7 +97,7 @@
                         </div>
                         Payments
                     </a>
-                    <a href="{{ route('admin.atttendance.index') }}"
+                    <a href="{{ route('admin.attendance.index') }}"
                        class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
                         <div class="w-5 h-5 mr-3">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">

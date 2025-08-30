@@ -4,7 +4,7 @@
         <div class="flex items-center justify-between mb-6">
             <div>
                 <div class="flex items-center space-x-3">
-                    <a href="{{ route('admin.atttendance.index') }}" 
+                    <a href="{{ route('admin.attendance.index') }}" 
                        class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
