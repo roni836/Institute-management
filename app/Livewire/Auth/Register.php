@@ -5,7 +5,9 @@ namespace App\Livewire\Auth;
 use App\Models\User;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
+use Livewire\Attributes\Layout;
 
+#[Layout('components.layouts.app')]
 class Register extends Component
 {
     #[Validate('required|string|max:255')]

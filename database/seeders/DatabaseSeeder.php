@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             ExamSubjectSeeder::class,
             MarkSeeder::class,
             AttendanceSeeder::class,
+            UserSeeder::class,
         ]);
     }
 }

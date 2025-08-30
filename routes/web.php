@@ -21,11 +21,13 @@ use App\Livewire\Admin\Students\Index as StudentsIndex;
 use App\Livewire\Admin\Students\StudentProfile;
 use App\Livewire\Admin\Teachers\Create as TeachersCreate;
 use App\Livewire\Admin\Teachers\Index as TeachersIndex;
+use App\Livewire\Auth\AdminPinLogin;
 use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
+use App\Livewire\Auth\SetPinForDevice;
 use App\Livewire\Public\LandingPage;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', Dashboard::class)->name('admin.dashboard');
 Route::get('/home', LandingPage::class)->name('public.home');
@@ -80,9 +82,19 @@ Route::get('/admin/exams/{exam}/edit', Edit::class)->name('admin.exams.edit');
 Route::get('/admin/exams/marking/{exam_id}/{student_id}', MarksForm::class)->name('admin.exams.marking');
 // Auth
 Route::get('/login', Login::class)->name('login');
-Route::get('/login', Login::class)->name('logout');
+// Route::get('/login', Login::class)->name('logout');
 Route::get('/register', Register::class)->name('register');
 
+Route::middleware('guest')->group(function () {
+    Route::get('/admin/login', Login::class)->name('admin.login');
+    Route::get('/admin/pin', AdminPinLogin::class)->name('admin.pin');          // shown if device is recognized
+    Route::get('/admin/set-pin', SetPinForDevice::class)->name('admin.setpin'); // after first password login
+});
+
+Route::post('/admin/logout', function () {
+    auth('admin')->logout();
+    return redirect()->route('admin.login');
+})->name('admin.logout');
 
 Route::get('/clear-cache', function () {
     Artisan::call('cache:clear');
@@ -94,4 +106,3 @@ Route::get('/clear-cache', function () {
 
     return "All Caches are cleared by @Roni";
 });
-
