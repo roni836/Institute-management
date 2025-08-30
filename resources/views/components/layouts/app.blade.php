@@ -14,15 +14,9 @@
     <div class="min-h-screen flex">
         <!-- Content -->
         <main class="flex-1">
-            <header >
-                @livewire('public.header')
-            </header>
             <div class="p-4">
                 {{ $slot }}
             </div>
-            <footer>
-                @livewire('public.footer')
-            </footer>
         </main>
     </div>
     @livewireScripts

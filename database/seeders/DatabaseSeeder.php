@@ -16,12 +16,12 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         $this->call([
+            AdminUserSeeder::class,
             SubjectSeeder::class,
             ExamSeeder::class,
             ExamSubjectSeeder::class,
             MarkSeeder::class,
             AttendanceSeeder::class,
-            UserSeeder::class,
         ]);
     }
 }

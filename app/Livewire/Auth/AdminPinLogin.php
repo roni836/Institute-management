@@ -18,9 +18,9 @@ class AdminPinLogin extends Component
     public function mount()
     {
         // If no device cookie or device has no PIN, redirect to password login
-        $device = request()->attributes->get('resolvedDevice');
-        if (! $device || ! $device->hasPin()) {
-            redirect()->route('admin.login')->send();
+        $device = $this->getCurrentDevice();
+        if (!$device || !$device->hasPin()) {
+            return $this->redirect(route('admin.login'));
         }
     }
 
@@ -28,53 +28,44 @@ class AdminPinLogin extends Component
     {
         $this->validate();
 
-        /** @var Device|null $device */
-        $device = request()->attributes->get('resolvedDevice');
-        if (! $device || ! $device->hasPin()) {
-            return redirect()->route('admin.login');
+        $device = $this->getCurrentDevice();
+        if (!$device || !$device->hasPin()) {
+            return $this->redirect(route('admin.login'));
         }
 
         // lockout protection
-        if ($device->locked_until && now()->lessThan($device->locked_until)) {
+        if ($device->isLocked()) {
             $mins = now()->diffInMinutes($device->locked_until) + 1;
             throw ValidationException::withMessages([
                 'pin' => "Too many attempts. Try again in {$mins} minute(s)."
             ]);
         }
 
-        if (! Hash::check($this->pin, $device->pin_hash)) {
-            $device->increment('failed_attempts');
-
-            if ($device->failed_attempts >= 5) {
-                $device->update([
-                    'locked_until' => now()->addMinutes(10),
-                    'failed_attempts' => 0,
-                ]);
-            }
-
+        if (!$device->verifyPin($this->pin)) {
             throw ValidationException::withMessages(['pin' => 'Incorrect PIN.']);
         }
 
-        // success
-        $device->update([
-            'failed_attempts' => 0,
-            'locked_until'    => null,
-            'last_used_at'    => now(),
-            'ip'              => request()->ip(),
-            'user_agent'      => request()->userAgent(),
-        ]);
+        // Log in the user bound to this device
+        Auth::login($device->user);
 
-        // Log in the admin bound to this device
-        Auth::guard('admin')->login($device->admin);
-
-        return redirect()->intended(route('admin.dashboard'));
+        return $this->redirect(route('admin.dashboard'));
     }
 
     public function logoutDevice()
     {
         // Delete cookie so next visit shows password screen
         cookie()->queue(cookie()->forget('adm_dev'));
-        return redirect()->route('admin.login');
+        return $this->redirect(route('admin.login'));
+    }
+
+    private function getCurrentDevice(): ?Device
+    {
+        $publicId = request()->cookie('adm_dev');
+        if (!$publicId) {
+            return null;
+        }
+
+        return Device::where('public_id', $publicId)->first();
     }
 
     public function render()

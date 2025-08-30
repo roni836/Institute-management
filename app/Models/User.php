@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -21,6 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'is_admin',
     ];
 
     /**
@@ -43,6 +45,32 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
         ];
+    }
+
+    public function devices(): HasMany
+    {
+        return $this->hasMany(Device::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->is_admin === true;
+    }
+
+    public function hasDevice(string $publicId): bool
+    {
+        return $this->devices()->where('public_id', $publicId)->exists();
+    }
+
+    public function getDevice(string $publicId): ?Device
+    {
+        return $this->devices()->where('public_id', $publicId)->first();
+    }
+
+    public function registerDevice(array $deviceData): Device
+    {
+        return $this->devices()->create($deviceData);
     }
 }

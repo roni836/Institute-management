@@ -88,13 +88,15 @@ Route::get('/register', Register::class)->name('register');
 Route::middleware('guest')->group(function () {
     Route::get('/admin/login', Login::class)->name('admin.login');
     Route::get('/admin/pin', AdminPinLogin::class)->name('admin.pin');          // shown if device is recognized
-    Route::get('/admin/set-pin', SetPinForDevice::class)->name('admin.setpin'); // after first password login
 });
 
-Route::post('/admin/logout', function () {
-    auth('admin')->logout();
-    return redirect()->route('admin.login');
-})->name('admin.logout');
+Route::middleware('auth')->group(function () {
+    Route::get('/admin/set-pin', SetPinForDevice::class)->name('admin.setpin'); // after first password login
+    Route::post('/admin/logout', function () {
+        \Illuminate\Support\Facades\Auth::logout();
+        return redirect()->route('admin.login');
+    })->name('admin.logout');
+});
 
 Route::get('/clear-cache', function () {
     Artisan::call('cache:clear');
