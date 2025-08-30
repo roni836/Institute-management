@@ -1,16 +1,16 @@
 <?php
 namespace App\Livewire\Admin\Admissions;
 
-use Maatwebsite\Excel\Facades\Excel;
 use App\Excel\AdmissionsExport;
 use App\Excel\AdmissionsImport;
-use Livewire\WithFileUploads; 
 use App\Models\Admission;
 use App\Models\Batch;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
-use Illuminate\Support\Facades\Cache;
+use Maatwebsite\Excel\Facades\Excel;
 
 #[Layout('components.layouts.admin')]
 class Index extends Component
@@ -18,17 +18,54 @@ class Index extends Component
     use WithPagination;
     use WithFileUploads;
 
-    public string $q = '';
+    public string $q       = '';
     public ?string $status = null;
-    public ?int $batchId = null;
+    public ?int $batchId   = null;
     public $importFile;
+
+    // NEW: export modal state
+    public bool $showExportModal = false;
+    public ?string $fromDate     = null; // 'Y-m-d'
+    public ?string $toDate       = null; // 'Y-m-d'
 
     protected $queryString = ['q', 'status', 'batchId', 'page'];
 
-     public function export()
+    // Open modal
+    public function openExport(): void
     {
+        $this->resetValidation();
+        $this->showExportModal = true;
+    }
+
+    // Close modal
+    public function closeExport(): void
+    {
+        $this->showExportModal = false;
+    }
+
+    public function export()
+    {
+        // Validate date range (both required; from <= to)
+        $this->validate([
+            'fromDate' => ['required', 'date'],
+            'toDate'   => ['required', 'date', 'after_or_equal:fromDate'],
+        ]);
+
         $name = 'admissions_' . now()->format('Ymd_His') . '.xlsx';
-        return Excel::download(new AdmissionsExport, $name);
+
+        // Pass filters (including current screen filters) into export
+        $export = new AdmissionsExport(
+            fromDate: $this->fromDate,
+            toDate: $this->toDate,
+            status: $this->status,
+            batchId: $this->batchId,
+            q: $this->q,
+        );
+
+        // Hide modal before returning response
+        $this->showExportModal = false;
+
+        return Excel::download($export, $name);
     }
 
     public function import()
@@ -60,12 +97,12 @@ class Index extends Component
     {
         return Admission::query()
             ->with(['student', 'batch.course'])
-            ->when($this->q, fn($q) => $q->where(function($qq) {
+            ->when($this->q, fn($q) => $q->where(function ($qq) {
                 $term = "%{$this->q}%";
-                $qq->whereHas('student', fn($s) => 
+                $qq->whereHas('student', fn($s) =>
                     $s->where('name', 'like', $term)
-                      ->orWhere('phone', 'like', $term)
-                      ->orWhere('email', 'like', $term)
+                        ->orWhere('phone', 'like', $term)
+                        ->orWhere('email', 'like', $term)
                 );
             }))
             ->when($this->status, fn($q) => $q->where('status', $this->status))
@@ -78,10 +115,10 @@ class Index extends Component
         // Cache stats for 5 minutes to reduce database queries
         return Cache::remember('admission_stats', 300, function () {
             return [
-                'total' => Admission::count(),
-                'active' => Admission::where('status', 'active')->count(),
-                'completed' => Admission::where('status', 'completed')->count(),
-                'cancelled' => Admission::where('status', 'cancelled')->count(),
+                'total'           => Admission::count(),
+                'active'          => Admission::where('status', 'active')->count(),
+                'completed'       => Admission::where('status', 'completed')->count(),
+                'cancelled'       => Admission::where('status', 'cancelled')->count(),
                 'pendingPayments' => Admission::where('fee_due', '>', 0)->count(),
             ];
         });
@@ -99,8 +136,8 @@ class Index extends Component
     {
         return view('livewire.admin.admissions.index', [
             'admissions' => $this->getAdmissionsQuery()->paginate(10),
-            'batches' => $this->getBatches(),
-            'stats' => $this->getStats(),
+            'batches'    => $this->getBatches(),
+            'stats'      => $this->getStats(),
         ]);
     }
 }

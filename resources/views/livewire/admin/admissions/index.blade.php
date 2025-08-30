@@ -20,10 +20,12 @@
                     <span wire:loading wire:target="import">Importing…</span>
                 </button>
             </form> --}}
-            <button type="button" wire:click="export" class="px-4 py-2 rounded-lg border bg-orange-500 hover:bg-orange-600 text-white"
-                wire:loading.attr="disabled" wire:target="export">
-                <span wire:loading.remove wire:target="export">Export</span>
-                <span wire:loading wire:target="export">Preparing…</span>
+            {{-- Export trigger --}}
+            <button type="button" wire:click="openExport"
+                class="px-4 py-2 rounded-lg border bg-orange-500 hover:bg-orange-600 text-white"
+                wire:loading.attr="disabled" wire:target="openExport">
+                <span wire:loading.remove wire:target="openExport">Export</span>
+                <span wire:loading wire:target="openExport">Opening…</span>
             </button>
             <a href="{{ route('admin.admissions.create') }}"
                 class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg flex items-center gap-2">
@@ -31,6 +33,69 @@
             </a>
         </div>
     </div>
+
+    {{-- Export Modal --}}
+    @if ($showExportModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center">
+            {{-- Backdrop --}}
+            <div class="absolute inset-0 bg-black/40" wire:click="closeExport"></div>
+
+            {{-- Dialog --}}
+            <div class="relative bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Export Admissions by Date</h3>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">From date</label>
+                        <input type="date" wire:model.defer="fromDate"
+                            class="w-full rounded-lg border-gray-300 focus:border-orange-500 focus:ring-orange-500">
+                        @error('fromDate')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1">To date</label>
+                        <input type="date" wire:model.defer="toDate"
+                            class="w-full rounded-lg border-gray-300 focus:border-orange-500 focus:ring-orange-500">
+                        @error('toDate')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- (Optional) show current list filters summary --}}
+                    @if ($status || $batchId || $q)
+                        <div class="text-xs text-gray-600 bg-gray-50 rounded-lg p-3">
+                            <div class="font-semibold mb-1">Current Filters Applied:</div>
+                            @if ($q)
+                                <div>Search: <span class="font-medium">{{ $q }}</span></div>
+                            @endif
+                            @if ($status)
+                                <div>Status: <span class="font-medium">{{ $status }}</span></div>
+                            @endif
+                            @if ($batchId)
+                                <div>Batch ID: <span class="font-medium">{{ $batchId }}</span></div>
+                            @endif
+                        </div>
+                    @endif
+                </div>
+
+                <div class="mt-6 flex items-center justify-end gap-3">
+                    <button type="button" wire:click="closeExport"
+                        class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </button>
+
+                    <button type="button" wire:click="export"
+                        class="px-4 py-2 rounded-lg border bg-orange-600 hover:bg-orange-700 text-white"
+                        wire:loading.attr="disabled" wire:target="export">
+                        <span wire:loading.remove wire:target="export">Export</span>
+                        <span wire:loading wire:target="export">Preparing…</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <!-- Total Admissions -->
