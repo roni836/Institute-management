@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             ExamSeeder::class,
             ExamSubjectSeeder::class,
             MarkSeeder::class,
+            AttendanceSeeder::class,
         ]);
     }
 }

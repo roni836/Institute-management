@@ -52,8 +52,8 @@ Route::get('/courses/{id}/view', \App\Livewire\Admin\Courses\View::class)->name(
 
 Route::get('/attendance', \App\Livewire\Admin\Attendance\Index::class)->name('admin.atttendance.index');
 Route::get('/attendance/create', \App\Livewire\Admin\Attendance\Create::class)->name('admin.atttendance.create');
+Route::get('/attendance/{date}/view', \App\Livewire\Admin\Attendance\View::class)->name('admin.attendance.view');
 // Route::get('/attendance/{id}/edit', \App\Livewire\Admin\Attendance\Edit::class)->name('admin.atttendance.edit');
-// Route::get('/attendance/{id}/view', \App\Livewire\Admin\Attendance\View::class)->name('admin.atttendance.view');
 
 Route::get('/subjects', \App\Livewire\Admin\Subjects\Index::class)->name('admin.subjects.index');
 Route::get('/subjects/create', \App\Livewire\Admin\Subjects\Create::class)->name('admin.subjects.create');
