@@ -45,23 +45,59 @@
                 <h3 class="text-lg font-semibold mb-4">Export Admissions by Date</h3>
 
                 <div class="space-y-4">
+                    <!-- Quick Date Range Selection -->
                     <div>
-                        <label class="block text-sm font-medium mb-1">From date</label>
-                        <input type="date" wire:model.defer="fromDate"
-                            class="w-full rounded-lg border-gray-300 focus:border-orange-500 focus:ring-orange-500">
-                        @error('fromDate')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                        <label class="block text-sm font-medium mb-1">Quick Date Range</label>
+                        <select wire:model.live="dateRange" 
+                                class="w-full rounded-lg border border-gray-300 focus:border-orange-500 focus:ring-orange-500 p-2  ">
+                            <option value="">-- Select a date range --</option>
+                            <option value="this_month">This Month</option>
+                            <option value="this_year">This Year</option>
+                            <option value="last_week">Last Week</option>
+                            <option value="last_month">Last Month</option>
+                            <option value="last_3_months">Last 3 Months</option>
+                            <option value="last_6_months">Last 6 Months</option>
+                            <option value="last_year">Last Year</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Choose a predefined range or set custom dates below</p>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium mb-1">To date</label>
-                        <input type="date" wire:model.defer="toDate"
-                            class="w-full rounded-lg border-gray-300 focus:border-orange-500 focus:ring-orange-500">
-                        @error('toDate')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                    <!-- Custom Date Range -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">From date</label>
+                            <input type="date" wire:model.defer="fromDate"
+                                class="w-full rounded-lg border border-gray-300 focus:border-orange-500 focus:ring-orange-500 p-2 ">
+                            @error('fromDate')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium mb-1">To date</label>
+                            <input type="date" wire:model.defer="toDate"
+                                class="w-full rounded-lg border border-gray-300 focus:border-orange-500 focus:ring-orange-500 p-2 ">
+                            @error('toDate')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
+
+                    <!-- Selected Date Range Display -->
+                    @if($fromDate && $toDate)
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm text-blue-800">
+                                    <span class="font-medium">Selected Range:</span>
+                                    <span class="ml-2">{{ \Carbon\Carbon::parse($fromDate)->format('M d, Y') }} - {{ \Carbon\Carbon::parse($toDate)->format('M d, Y') }}</span>
+                                </div>
+                                <button type="button" wire:click="clearDateRange" 
+                                        class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                    Clear
+                                </button>
+                            </div>
+                        </div>
+                    @endif
 
                     {{-- (Optional) show current list filters summary --}}
                     @if ($status || $batchId || $q)

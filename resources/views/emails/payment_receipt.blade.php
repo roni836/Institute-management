@@ -338,5 +338,5 @@
         <p>This is a computer-generated receipt. Thank you for choosing Mentors Eduserv™.</p>
     </div>
 </div>
-</body>
+  </body>
 </html>

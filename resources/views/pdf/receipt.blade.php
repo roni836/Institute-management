@@ -233,7 +233,7 @@
             <div class="info-row">
                 <div class="info-cell info-label">Status</div>
                 <div class="info-cell info-value">{{ safe($admission->status ?? 'active') }}</div>
-            </div>
+        </div>
         </div>
     </div>
 
@@ -241,14 +241,14 @@
     <div class="section">
         <div class="section-title">FEE DETAILS</div>
         <table class="table">
-            <thead>
-                <tr>
-                    <th>Description</th>
+        <thead>
+        <tr>
+            <th>Description</th>
                     <th class="text-right">Amount (₹)</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
                     <td>Gross Fee</td>
                     <td class="text-right">{{ number_format($admission->total_fee ?? 0, 2) }}</td>
                 </tr>
@@ -271,16 +271,16 @@
                 <tr>
                     <td>Plan Amount</td>
                     <td class="text-right">0.00</td>
-                </tr>
-                <tr>
+        </tr>
+        <tr>
                     <td>Late Fine</td>
                     <td class="text-right">0.00</td>
-                </tr>
-                <tr>
+        </tr>
+        <tr>
                     <td>Taxable Fee</td>
                     <td class="text-right">{{ number_format(($admission->total_fee ?? 0) - ($admission->discount ?? 0), 2) }}</td>
-                </tr>
-                <tr>
+        </tr>
+        <tr>
                     <td>Tax*</td>
                     <td class="text-right text-blue">{{ number_format($tx->gst ?? 0, 2) }}</td>
                 </tr>
@@ -407,9 +407,9 @@
             <tbody>
                 <tr>
                     <td colspan="7" class="text-center" style="color: #999;">No additional transactions</td>
-                </tr>
+        </tr>
             </tbody>
-        </table>
+    </table>
     </div>
 
     <!-- Terms & Conditions -->
