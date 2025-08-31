@@ -1,4 +1,4 @@
-<body class="bg-gray-50 font-poppins">
+<div class="bg-gray-50 font-poppins">
     <div class="max-w-7xl mx-auto">
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 m-6">
             <div class="p-6 space-y-6">
@@ -168,4 +168,4 @@
             </div>
         </div>
     </div>
-</body>
+</div>
