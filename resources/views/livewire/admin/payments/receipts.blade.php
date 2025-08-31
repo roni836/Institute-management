@@ -36,19 +36,14 @@
             </div>
             <div class="text-right">
                 <div class="text-sm text-gray-500">Receipt No.</div>
-                <div class="text-lg font-semibold">TX-{{ $tx->id }}</div>
+                <div class="text-lg font-semibold text-blue-600">{{ $tx->receipt_number ?? 'TX-'.$tx->id }}</div>
                 <div class="text-sm mt-2 text-gray-700">
                     Date: {{ $tx->date?->format('d-M-Y') }}
                 </div>
                 <div class="text-sm text-gray-700">
                     Status:
-                    <span class="@class([
-                        'px-2 py-1 rounded text-xs',
-                        'bg-green-100 text-green-700' => $tx->status === 'success',
-                        'bg-yellow-100 text-yellow-800' => $tx->status === 'pending',
-                        'bg-red-100 text-red-700' => $tx->status === 'failed',
-                    ])">
-                        {{ ucfirst($tx->status) }}
+                    <span class="px-2 py-1 rounded text-xs bg-green-100 text-green-700">
+                        Success
                     </span>
                 </div>
             </div>

@@ -97,7 +97,7 @@
                     <th class="text-left p-3">GST</th>
                     <th class="text-left p-3">Mode</th>
                     <th class="text-left p-3">Ref</th>
-                    <th class="text-left p-3">Status</th>
+                    <th class="text-left p-3">Receipt No</th>
                     <th class="text-left p-3">Action</th>
                 </tr>
             </thead>
@@ -118,12 +118,7 @@
                         <td class="p-3 capitalize">{{ $t->mode }}</td>
                         <td class="p-3">{{ $t->reference_no ?? '—' }}</td>
                         <td class="p-3">
-                            <span @class([
-                                'px-2 py-1 rounded text-xs',
-                                'bg-green-100 text-green-700' => $t->status === 'success',
-                                'bg-yellow-100 text-yellow-800' => $t->status === 'pending',
-                                'bg-red-100 text-red-700' => $t->status === 'failed',
-                            ])>{{ $t->status }}</span>
+                            <span class="font-mono text-sm text-blue-600">{{ $t->receipt_number ?? '—' }}</span>
                         </td>
                         <td class="p-3 no-print">
                             <a href="{{ route('admin.payments.receipt', $t->id) }}"

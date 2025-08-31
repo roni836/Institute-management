@@ -26,6 +26,7 @@ class Create extends Component
     public $amount;
     public bool $applyGst = false;
     public $gstAmount = 0.00;
+    public string $receipt_number = '';
 
     // Helpers
     public array $admissions         = [];
@@ -60,6 +61,7 @@ class Create extends Component
         $this->selectedScheduleIds = [];
         $this->applyGst = false;
         $this->gstAmount = 0.00;
+        $this->receipt_number = $this->generateReceiptNumber();
 
         $admission = Admission::with('schedules')->find($this->admission_id);
 
@@ -115,6 +117,28 @@ class Create extends Component
         }
     }
 
+    private function generateReceiptNumber(): string
+    {
+        $prefix = 'RCP';
+        $year = date('Y');
+        $month = date('m');
+        
+        // Get the last receipt number for this month
+        $lastReceipt = Transaction::where('receipt_number', 'like', $prefix . $year . $month . '%')
+            ->orderBy('receipt_number', 'desc')
+            ->first();
+        
+        if ($lastReceipt) {
+            // Extract the sequence number and increment
+            $lastSequence = (int) substr($lastReceipt->receipt_number, -4);
+            $newSequence = $lastSequence + 1;
+        } else {
+            $newSequence = 1;
+        }
+        
+        return $prefix . $year . $month . str_pad($newSequence, 4, '0', STR_PAD_LEFT);
+    }
+
     private function onModeChanged(): void
     {
         if ($this->mode === 'cash') {
@@ -147,6 +171,7 @@ class Create extends Component
         $this->status = 'success'; // default value
         $this->applyGst = false;
         $this->gstAmount = 0.00;
+        $this->receipt_number = $this->generateReceiptNumber();
     }
 
     public function updatedSearch(): void
@@ -182,6 +207,7 @@ class Create extends Component
         $this->admission_fee_due = '0.00';
         $this->applyGst = false;
         $this->gstAmount = 0.00;
+        $this->receipt_number = $this->generateReceiptNumber();
 
         $this->admissions = Admission::with('batch')
             ->where('student_id', $id)
@@ -205,10 +231,13 @@ class Create extends Component
             'date'                  => ['required', 'date'],
             'mode'                  => ['required', Rule::in(['cash', 'cheque', 'online'])],
             'reference_no'          => ['nullable', 'string', 'max:100'],
-            'status'                => ['required', Rule::in(['success', 'pending', 'failed'])],
             'amount'                => ['required', 'numeric', 'min:0.01'],
             'applyGst'              => ['boolean'],
         ]);
+
+        // Auto-set status to success and generate receipt number
+        $this->status = 'success';
+        $this->receipt_number = $this->generateReceiptNumber();
 
         // 1) Build the schedule set (prefer multi-select; fallback to single)
         $scheduleIds = collect($this->selectedScheduleIds)
@@ -246,7 +275,7 @@ class Create extends Component
         }
 
         $incoming = (float) $data['amount'];
-        if (in_array($data['status'], ['success', 'pending']) && $incoming - $selectedLeft > 0.00001) {
+        if ($incoming - $selectedLeft > 0.00001) {
             // Auto-cap amount and stop; user can press Save again.
             $this->amount = number_format($selectedLeft, 2, '.', '');
             $this->addError('amount', 'Amount reduced to the maximum payable for the selected installments (₹' . number_format($selectedLeft, 2) . ').');
@@ -287,41 +316,39 @@ class Create extends Component
                     'date'                => $data['date'],
                     'mode'                => $data['mode'],
                     'reference_no'        => $data['reference_no'] ?? null,
-                    'status'              => $data['status'],
+                    'status'              => 'success',
+                    'receipt_number'      => $this->receipt_number,
                 ]);
 
-                if (in_array($tx->status, ['success', 'pending'])) {
-                    $schedule->paid_amount = (float) $schedule->paid_amount + $portion;
-                    if ($schedule->paid_amount + 0.00001 >= (float) $schedule->amount) {
-                        $schedule->status    = 'paid';
-                        $schedule->paid_date = $schedule->paid_date ?? $tx->date;
-                    } elseif ($schedule->paid_amount > 0) {
-                        $schedule->status = 'partial';
-                    } else {
-                        $schedule->status = 'pending';
-                    }
-                    $schedule->save();
-
-                    $allocatedTotal += $portion;
-                    $remaining -= $portion;
+                // Since status is always success, always process the payment
+                $schedule->paid_amount = (float) $schedule->paid_amount + $portion;
+                if ($schedule->paid_amount + 0.00001 >= (float) $schedule->amount) {
+                    $schedule->status    = 'paid';
+                    $schedule->paid_date = $schedule->paid_date ?? $tx->date;
+                } elseif ($schedule->paid_amount > 0) {
+                    $schedule->status = 'partial';
+                } else {
+                    $schedule->status = 'pending';
                 }
+                $schedule->save();
+
+                $allocatedTotal += $portion;
+                $remaining -= $portion;
             }
 
             // Recompute admission due from ALL schedules (authoritative) and sync
-            if (in_array($data['status'], ['success', 'pending'])) {
-                $recomputedAllDue = (float) PaymentSchedule::where('admission_id', $admission->id)
-                    ->get()
-                    ->sum(fn($s) => max(0.0, (float) $s->amount - (float) $s->paid_amount));
+            $recomputedAllDue = (float) PaymentSchedule::where('admission_id', $admission->id)
+                ->get()
+                ->sum(fn($s) => max(0.0, (float) $s->amount - (float) $s->paid_amount));
 
-                $admission->fee_due = round($recomputedAllDue, 2);
-                if ($admission->fee_due <= 0.00001) {
-                    $admission->status = 'completed';
-                }
-                $admission->save();
+            $admission->fee_due = round($recomputedAllDue, 2);
+            if ($admission->fee_due <= 0.00001) {
+                $admission->status = 'completed';
             }
+            $admission->save();
         });
 
-        session()->flash('success', 'Payment recorded successfully across selected installments.');
+        session()->flash('success', "Payment recorded successfully! Receipt Number: {$this->receipt_number}");
         return redirect()->route('admin.payments.index');
     }
 

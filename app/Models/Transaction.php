@@ -18,6 +18,18 @@ class Transaction extends Model
         'date'   => 'date',
     ];
 
+    protected $fillable = [
+        'admission_id',
+        'payment_schedule_id',
+        'amount',
+        'gst',
+        'date',
+        'mode',
+        'reference_no',
+        'status',
+        'receipt_number',
+    ];
+
     public function admission()
     {
         return $this->belongsTo(Admission::class);

@@ -161,7 +161,7 @@
                                             Status</th>
                                         <th scope="col"
                                             class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                            Reference</th>
+                                            Receipt No</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
@@ -194,7 +194,7 @@
                                                 </span>
                                             </td>
                                             <td class="px-4 sm:px-6 py-4 text-sm text-gray-700">
-                                                {{ $payment['reference_no'] ?? '-' }}</td>
+                                                <span class="font-mono text-blue-600">{{ $payment['receipt_number'] ?? '-' }}</span></td>
                                         </tr>
                                     @empty
                                         <tr>

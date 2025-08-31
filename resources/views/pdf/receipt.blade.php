@@ -44,12 +44,11 @@
         </div>
         <div class="right">
             <div class="muted" style="font-size:11px;">Receipt No.</div>
-            <div class="bold">TX-{{ $tx->id }}</div>
+            <div class="bold" style="color:#3b82f6;">{{ $tx->receipt_number ?? 'TX-'.$tx->id }}</div>
             <div class="muted mt-4">Date: {{ $tx->date?->format('d-M-Y') }}</div>
-            @php $st = $tx->status; @endphp
             <div class="mt-4">
-                <span class="badge {{ $st==='success'?'success':($st==='pending'?'pending':'failed') }}">
-                    {{ strtoupper($st) }}
+                <span class="badge success">
+                    SUCCESS
                 </span>
             </div>
         </div>

@@ -2,7 +2,7 @@
 <html>
   <body style="font-family:Arial, sans-serif; color:#111; font-size:14px;">
     <p>Dear {{ $transaction->admission?->student?->name ?? 'Student' }},</p>
-    <p>Please find attached your payment receipt <strong>#TX-{{ $transaction->id }}</strong>
+    <p>Please find attached your payment receipt <strong>#{{ $transaction->receipt_number ?? 'TX-'.$transaction->id }}</strong>
        from <strong>Antra Institutions</strong>.</p>
     @if($transaction->gst > 0)
         <p><strong>Payment Details:</strong><br>
