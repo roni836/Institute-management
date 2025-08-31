@@ -95,6 +95,16 @@ class Create extends Component
 
     public function updatedSelectedScheduleIds(): void
     {
+        // Filter out disabled installments (fully paid ones)
+        $this->selectedScheduleIds = array_filter($this->selectedScheduleIds, function($id) {
+            foreach ($this->schedules as $schedule) {
+                if ($schedule['id'] == $id) {
+                    return $schedule['left'] > 0;
+                }
+            }
+            return false;
+        });
+
         // Prefill amount with the sum of "left" of selected rows
         $this->amount = number_format($this->selected_total, 2, '.', '');
         // Keep original single-link behavior by picking the first checked schedule
@@ -146,7 +156,7 @@ class Create extends Component
         }
     }
 
-// Livewire accessor: $this->selected_total
+    // Livewire accessor: $this->selected_total
     public function getSelectedTotalProperty(): float
     {
         if (empty($this->selectedScheduleIds) || empty($this->schedules)) {
@@ -160,6 +170,21 @@ class Create extends Component
             }
         }
         return round($sum, 2);
+    }
+
+    // Check if any installments are available for selection
+    public function getHasAvailableInstallmentsProperty(): bool
+    {
+        if (empty($this->schedules)) {
+            return false;
+        }
+        
+        foreach ($this->schedules as $schedule) {
+            if ($schedule['left'] > 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public function mount($id = null)
@@ -256,6 +281,8 @@ class Create extends Component
             return;
         }
 
+
+
         // Load selected schedules (no lock yet; we’ll lock inside the transaction)
         $schedules = PaymentSchedule::where('admission_id', $data['admission_id'])
             ->whereIn('id', $scheduleIds)
@@ -264,6 +291,20 @@ class Create extends Component
 
         if ($schedules->isEmpty()) {
             $this->addError('selectedScheduleIds', 'Selected installments were not found for this admission.');
+            return;
+        }
+
+        // Check if selected installments have any amount left to pay
+        $hasAmountLeft = false;
+        foreach ($schedules as $schedule) {
+            if (max(0.0, (float) $schedule->amount - (float) $schedule->paid_amount) > 0.00001) {
+                $hasAmountLeft = true;
+                break;
+            }
+        }
+
+        if (!$hasAmountLeft) {
+            $this->addError('selectedScheduleIds', 'All selected installments are already fully paid. Please select installments with pending amounts.');
             return;
         }
 
