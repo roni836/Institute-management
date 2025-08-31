@@ -166,22 +166,24 @@
             </div>
 
             <!-- Mode / Reference / Status -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-{{ $mode === 'cash' ? '2' : '3' }} gap-4">
                 <div>
                     <label class="block text-sm font-medium mb-1">Mode</label>
-                    <select wire:model="mode"
+                    <select wire:model.live="mode"
                         class="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-500">
                         <option value="cash">Cash</option>
                         <option value="cheque">Cheque</option>
                         <option value="online">Online</option>
                     </select>
                 </div>
+                @if($mode !== 'cash')
                 <div>
                     <label class="block text-sm font-medium mb-1">Reference No</label>
                     <input type="text" wire:model="reference_no"
                         class="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-500"
-                        placeholder="CHQ / UTR">
+                        placeholder="{{ $mode === 'cheque' ? 'CHQ' : 'UTR' }}">
                 </div>
+                @endif
                 <div>
                     <label class="block text-sm font-medium mb-1">Status</label>
                     <select wire:model="status"

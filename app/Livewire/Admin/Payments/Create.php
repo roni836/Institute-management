@@ -49,6 +49,9 @@ class Create extends Component
         if ($name === 'amount') {
             $this->updateGstAmount();
         }
+        if ($name === 'mode') {
+            $this->onModeChanged();
+        }
     }
 
     private function onAdmissionChanged(): void
@@ -109,6 +112,13 @@ class Create extends Component
             $this->gstAmount = round((float) $this->amount * 0.18, 2);
         } else {
             $this->gstAmount = 0.00;
+        }
+    }
+
+    private function onModeChanged(): void
+    {
+        if ($this->mode === 'cash') {
+            $this->reference_no = null;
         }
     }
 
