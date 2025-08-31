@@ -87,6 +87,12 @@
             <td>{{ safe($tx->reference_no ?? '—') }}</td>
             <td class="right"><span class="bold">{{ number_format($tx->amount, 2) }}</span></td>
         </tr>
+        @if($tx->gst > 0)
+        <tr>
+            <td colspan="3">GST (18%)</td>
+            <td class="right"><span class="bold" style="color:#3b82f6;">{{ number_format($tx->gst, 2) }}</span></td>
+        </tr>
+        @endif
         </tbody>
         <tfoot>
         <tr>
@@ -97,6 +103,12 @@
             <td colspan="3" class="right muted">Paid now</td>
             <td class="right">₹ {{ number_format($paid, 2) }}</td>
         </tr>
+        @if($tx->gst > 0)
+        <tr>
+            <td colspan="3" class="right muted">Total (including GST)</td>
+            <td class="right bold">₹ {{ number_format($paid + $tx->gst, 2) }}</td>
+        </tr>
+        @endif
         <tr>
             <td colspan="3" class="right bold">Balance due</td>
             <td class="right bold">₹ {{ number_format($afterDue, 2) }}</td>

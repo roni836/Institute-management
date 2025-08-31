@@ -94,6 +94,7 @@
                     <th class="text-left p-3">Student</th>
                     <th class="text-left p-3">Batch</th>
                     <th class="text-left p-3">Amount</th>
+                    <th class="text-left p-3">GST</th>
                     <th class="text-left p-3">Mode</th>
                     <th class="text-left p-3">Ref</th>
                     <th class="text-left p-3">Status</th>
@@ -107,6 +108,13 @@
                         <td class="p-3">{{ $t->admission?->student?->name }}</td>
                         <td class="p-3">{{ $t->admission?->batch?->batch_name }}</td>
                         <td class="p-3 font-medium">₹ {{ number_format($t->amount, 2) }}</td>
+                        <td class="p-3">
+                            @if($t->gst > 0)
+                                <span class="text-blue-600 font-medium">₹ {{ number_format($t->gst, 2) }}</span>
+                            @else
+                                <span class="text-gray-400">—</span>
+                            @endif
+                        </td>
                         <td class="p-3 capitalize">{{ $t->mode }}</td>
                         <td class="p-3">{{ $t->reference_no ?? '—' }}</td>
                         <td class="p-3">

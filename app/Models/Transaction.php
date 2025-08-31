@@ -14,6 +14,7 @@ class Transaction extends Model
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'gst'    => 'decimal:2',
         'date'   => 'date',
     ];
 

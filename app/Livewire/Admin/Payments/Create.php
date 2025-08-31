@@ -24,6 +24,8 @@ class Create extends Component
     public ?string $reference_no = null;
     public string $status        = 'success';
     public $amount;
+    public bool $applyGst = false;
+    public $gstAmount = 0.00;
 
     // Helpers
     public array $admissions         = [];
@@ -44,12 +46,17 @@ class Create extends Component
         if ($name === 'selectedScheduleIds') {
             $this->updatedSelectedScheduleIds();
         }
+        if ($name === 'amount') {
+            $this->updateGstAmount();
+        }
     }
 
     private function onAdmissionChanged(): void
     {
         $this->payment_schedule_id = null;
         $this->selectedScheduleIds = [];
+        $this->applyGst = false;
+        $this->gstAmount = 0.00;
 
         $admission = Admission::with('schedules')->find($this->admission_id);
 
@@ -87,6 +94,22 @@ class Create extends Component
         $this->amount = number_format($this->selected_total, 2, '.', '');
         // Keep original single-link behavior by picking the first checked schedule
         $this->payment_schedule_id = $this->selectedScheduleIds[0] ?? null;
+        // Update GST amount when amount changes
+        $this->updateGstAmount();
+    }
+
+    public function updatedApplyGst(): void
+    {
+        $this->updateGstAmount();
+    }
+
+    private function updateGstAmount(): void
+    {
+        if ($this->applyGst && $this->amount) {
+            $this->gstAmount = round((float) $this->amount * 0.18, 2);
+        } else {
+            $this->gstAmount = 0.00;
+        }
     }
 
 // Livewire accessor: $this->selected_total
@@ -112,6 +135,8 @@ class Create extends Component
         }
         $this->date   = now()->format('Y-m-d');
         $this->status = 'success'; // default value
+        $this->applyGst = false;
+        $this->gstAmount = 0.00;
     }
 
     public function updatedSearch(): void
@@ -145,6 +170,8 @@ class Create extends Component
         // reset dependent state when changing student
         $this->reset(['admission_id', 'payment_schedule_id', 'schedules']);
         $this->admission_fee_due = '0.00';
+        $this->applyGst = false;
+        $this->gstAmount = 0.00;
 
         $this->admissions = Admission::with('batch')
             ->where('student_id', $id)
@@ -170,6 +197,7 @@ class Create extends Component
             'reference_no'          => ['nullable', 'string', 'max:100'],
             'status'                => ['required', Rule::in(['success', 'pending', 'failed'])],
             'amount'                => ['required', 'numeric', 'min:0.01'],
+            'applyGst'              => ['boolean'],
         ]);
 
         // 1) Build the schedule set (prefer multi-select; fallback to single)
@@ -245,6 +273,7 @@ class Create extends Component
                     'admission_id'        => $admission->id,
                     'payment_schedule_id' => $schedule->id,
                     'amount'              => $portion,
+                    'gst'                 => $this->applyGst ? round($portion * 0.18, 2) : 0.00,
                     'date'                => $data['date'],
                     'mode'                => $data['mode'],
                     'reference_no'        => $data['reference_no'] ?? null,

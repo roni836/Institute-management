@@ -111,6 +111,14 @@
                         <td class="p-3">{{ $tx->reference_no ?? '—' }}</td>
                         <td class="p-3 text-right font-semibold">{{ number_format($tx->amount, 2) }}</td>
                     </tr>
+                    @if($tx->gst > 0)
+                        <tr class="border-t">
+                            <td class="p-3" colspan="3">
+                                <span class="text-blue-600">GST (18%)</span>
+                            </td>
+                            <td class="p-3 text-right font-semibold text-blue-600">{{ number_format($tx->gst, 2) }}</td>
+                        </tr>
+                    @endif
                 </tbody>
                 <tfoot class="bg-gray-50">
                     <tr>
@@ -121,6 +129,12 @@
                         <td colspan="3" class="p-3 text-right text-sm text-gray-600">Paid now</td>
                         <td class="p-3 text-right text-sm text-gray-800">₹ {{ number_format($paid, 2) }}</td>
                     </tr>
+                    @if($tx->gst > 0)
+                        <tr>
+                            <td colspan="3" class="p-3 text-right text-sm text-gray-600">Total (including GST)</td>
+                            <td class="p-3 text-right text-sm text-gray-800 font-medium">₹ {{ number_format($paid + $tx->gst, 2) }}</td>
+                        </tr>
+                    @endif
                     <tr>
                         <td colspan="3" class="p-3 text-right font-semibold">Balance due</td>
                         <td class="p-3 text-right font-semibold">₹ {{ number_format($afterDue, 2) }}</td>
@@ -133,8 +147,9 @@
             <span class="font-medium">Amount in words:</span>
             {{-- Fallback if intl extension missing --}}
             @php
+                $totalAmount = $tx->amount + $tx->gst;
                 try {
-                    $words = (new \NumberFormatter('en_IN', \NumberFormatter::SPELLOUT))->format((int)$tx->amount);
+                    $words = (new \NumberFormatter('en_IN', \NumberFormatter::SPELLOUT))->format((int)$totalAmount);
                     $words = strtoupper($words).' RUPEES ONLY';
                 } catch (\Throwable $e) {
                     $words = '';

@@ -129,12 +129,40 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-1">Amount</label>
-                    <input type="number" step="0.01" wire:model="amount"
+                    <input type="number" step="0.01" wire:model.live="amount"
                         class="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-500 @error('amount') border-red-500 @enderror">
                     @error('amount')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
+            </div>
+
+            <!-- GST Section -->
+            <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                <div class="flex items-center space-x-3">
+                    <input type="checkbox" id="applyGst" wire:model.live="applyGst" 
+                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                    <label for="applyGst" class="text-sm font-medium text-gray-700">
+                        Apply 18% GST
+                    </label>
+                </div>
+                
+                @if($applyGst)
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div class="bg-white rounded-lg p-3 border">
+                            <span class="text-gray-600">Base Amount:</span>
+                            <span class="font-medium ml-2">₹{{ number_format($amount, 2) }}</span>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 border">
+                            <span class="text-gray-600">GST (18%):</span>
+                            <span class="font-medium ml-2 text-blue-600">₹{{ number_format($gstAmount, 2) }}</span>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 border">
+                            <span class="text-gray-600">Total Amount:</span>
+                            <span class="font-medium ml-2 text-green-600">₹{{ number_format($amount + $gstAmount, 2) }}</span>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <!-- Mode / Reference / Status -->
