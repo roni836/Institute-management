@@ -41,6 +41,19 @@ class MarksForm extends Component
             $this->wrong[$subject->id]   = $existingMarks->wrong ?? 0;
             $this->blank[$subject->id]   = $existingMarks->blank ?? 0;        }
     }
+    public function updated()
+{
+    foreach ($this->subjects as $subject) {
+        $id = $subject->id;
+
+        $correct = (int)($this->correct[$id] ?? 0);
+        $wrong   = (int)($this->wrong[$id] ?? 0);
+        $blank   = (int)($this->blank[$id] ?? 0);
+
+        // Formula: Correct = +4, Wrong = -1, Blank = 0
+        $this->marks[$id] = ($correct * 4) + ($wrong * -1);
+    }
+}
 
     // public function updatedCorrect($value , $key){
     //     logger()->info("Updated Correct for Subject ID: {$key}, Value: {$value}");

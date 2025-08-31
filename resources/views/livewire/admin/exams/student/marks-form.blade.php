@@ -78,7 +78,7 @@
                                             </label>
                                         </div>
                                         <input type="number" id="correct-{{ $subject->id }}"
-                                            wire:model="correct.{{ $subject->id }}"
+                                            wire:model.live="correct.{{ $subject->id }}"
                                             min="0"
                                             class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200"
                                             placeholder="0">
@@ -103,7 +103,7 @@
                                             </label>
                                         </div>
                                         <input type="number" id="wrong-{{ $subject->id }}"
-                                            wire:model="wrong.{{ $subject->id }}"
+                                            wire:model.live="wrong.{{ $subject->id }}"
                                             min="0"
                                             class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200"
                                             placeholder="0">
@@ -128,7 +128,7 @@
                                             </label>
                                         </div>
                                         <input type="number" id="blank-{{ $subject->id }}"
-                                            wire:model="blank.{{ $subject->id }}"
+                                            wire:model.live="blank.{{ $subject->id }}"
                                             min="0"
                                             class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200"
                                             placeholder="0">
