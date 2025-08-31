@@ -99,7 +99,7 @@
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center">
                                             <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-primary-50 text-primary-800">
-                                                {{ $s['total_marks'] }} pts
+                                                {{ $s['total_marks'] }}
                                             </span>
                                         </div>
                                     </td>
@@ -120,14 +120,29 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <a href="{{route('admin.exams.marking', ['exam_id' => $exam->id, 'student_id' => $s['student']->id])}}"
+                                    <div class="flex flex-col space-y-2">
+                                    <a href="{{route('admin.exams.marking', ['exam_id' => $exam->id, 'student_id' => $s['student']->id])}}"
                                            class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md bg-primary-600 text-white hover:bg-primary-700 transition-colors duration-200">
                                            <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                            </svg>
                                            Edit Details
                                         </a>
+                                        <a href="{{route('admin.exams.student.details', ['exam_id' => $exam->id, 'student_id' => $s['student']->id])}}"
+                                           class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md bg-primary-600 text-white hover:bg-primary-700 transition-colors duration-200">
+                                           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="white">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 
+                                                        8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 
+                                                        7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                           View Details
+                                        </a>
+                                    </div>
                                     </td>
+                                    
                                 </tr>
                             @endforeach
                         </tbody>
