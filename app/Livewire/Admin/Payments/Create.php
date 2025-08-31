@@ -5,7 +5,10 @@ use App\Models\Admission;
 use App\Models\PaymentSchedule;
 use App\Models\Student;
 use App\Models\Transaction;
+use App\Mail\PaymentConfirmationMail;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -24,6 +27,9 @@ class Create extends Component
     public ?string $reference_no = null;
     public string $status        = 'success';
     public $amount;
+    public bool $applyGst = false;
+    public $gstAmount = 0.00;
+    public string $receipt_number = '';
 
     // Helpers
     public array $admissions         = [];
@@ -31,6 +37,7 @@ class Create extends Component
     public string $admission_fee_due = '0.00';
 
     public array $selectedScheduleIds = [];
+    public ?Transaction $lastTransaction = null;
 
     public function updated($name, $value): void
     {
@@ -44,12 +51,21 @@ class Create extends Component
         if ($name === 'selectedScheduleIds') {
             $this->updatedSelectedScheduleIds();
         }
+        if ($name === 'amount') {
+            $this->updateGstAmount();
+        }
+        if ($name === 'mode') {
+            $this->onModeChanged();
+        }
     }
 
     private function onAdmissionChanged(): void
     {
         $this->payment_schedule_id = null;
         $this->selectedScheduleIds = [];
+        $this->applyGst = false;
+        $this->gstAmount = 0.00;
+        $this->receipt_number = $this->generateReceiptNumber();
 
         $admission = Admission::with('schedules')->find($this->admission_id);
 
@@ -83,13 +99,68 @@ class Create extends Component
 
     public function updatedSelectedScheduleIds(): void
     {
+        // Filter out disabled installments (fully paid ones)
+        $this->selectedScheduleIds = array_filter($this->selectedScheduleIds, function($id) {
+            foreach ($this->schedules as $schedule) {
+                if ($schedule['id'] == $id) {
+                    return $schedule['left'] > 0;
+                }
+            }
+            return false;
+        });
+
         // Prefill amount with the sum of "left" of selected rows
         $this->amount = number_format($this->selected_total, 2, '.', '');
         // Keep original single-link behavior by picking the first checked schedule
         $this->payment_schedule_id = $this->selectedScheduleIds[0] ?? null;
+        // Update GST amount when amount changes
+        $this->updateGstAmount();
     }
 
-// Livewire accessor: $this->selected_total
+    public function updatedApplyGst(): void
+    {
+        $this->updateGstAmount();
+    }
+
+    private function updateGstAmount(): void
+    {
+        if ($this->applyGst && $this->amount) {
+            $this->gstAmount = round((float) $this->amount * 0.18, 2);
+        } else {
+            $this->gstAmount = 0.00;
+        }
+    }
+
+    private function generateReceiptNumber(): string
+    {
+        $prefix = 'RCP';
+        $year = date('Y');
+        $month = date('m');
+        
+        // Get the last receipt number for this month
+        $lastReceipt = Transaction::where('receipt_number', 'like', $prefix . $year . $month . '%')
+            ->orderBy('receipt_number', 'desc')
+            ->first();
+        
+        if ($lastReceipt) {
+            // Extract the sequence number and increment
+            $lastSequence = (int) substr($lastReceipt->receipt_number, -4);
+            $newSequence = $lastSequence + 1;
+        } else {
+            $newSequence = 1;
+        }
+        
+        return $prefix . $year . $month . str_pad($newSequence, 4, '0', STR_PAD_LEFT);
+    }
+
+    private function onModeChanged(): void
+    {
+        if ($this->mode === 'cash') {
+            $this->reference_no = null;
+        }
+    }
+
+    // Livewire accessor: $this->selected_total
     public function getSelectedTotalProperty(): float
     {
         if (empty($this->selectedScheduleIds) || empty($this->schedules)) {
@@ -105,6 +176,21 @@ class Create extends Component
         return round($sum, 2);
     }
 
+    // Check if any installments are available for selection
+    public function getHasAvailableInstallmentsProperty(): bool
+    {
+        if (empty($this->schedules)) {
+            return false;
+        }
+        
+        foreach ($this->schedules as $schedule) {
+            if ($schedule['left'] > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public function mount($id = null)
     {
         if ($id) {
@@ -112,6 +198,9 @@ class Create extends Component
         }
         $this->date   = now()->format('Y-m-d');
         $this->status = 'success'; // default value
+        $this->applyGst = false;
+        $this->gstAmount = 0.00;
+        $this->receipt_number = $this->generateReceiptNumber();
     }
 
     public function updatedSearch(): void
@@ -145,6 +234,9 @@ class Create extends Component
         // reset dependent state when changing student
         $this->reset(['admission_id', 'payment_schedule_id', 'schedules']);
         $this->admission_fee_due = '0.00';
+        $this->applyGst = false;
+        $this->gstAmount = 0.00;
+        $this->receipt_number = $this->generateReceiptNumber();
 
         $this->admissions = Admission::with('batch')
             ->where('student_id', $id)
@@ -168,9 +260,13 @@ class Create extends Component
             'date'                  => ['required', 'date'],
             'mode'                  => ['required', Rule::in(['cash', 'cheque', 'online'])],
             'reference_no'          => ['nullable', 'string', 'max:100'],
-            'status'                => ['required', Rule::in(['success', 'pending', 'failed'])],
             'amount'                => ['required', 'numeric', 'min:0.01'],
+            'applyGst'              => ['boolean'],
         ]);
+
+        // Auto-set status to success and generate receipt number
+        $this->status = 'success';
+        $this->receipt_number = $this->generateReceiptNumber();
 
         // 1) Build the schedule set (prefer multi-select; fallback to single)
         $scheduleIds = collect($this->selectedScheduleIds)
@@ -189,6 +285,8 @@ class Create extends Component
             return;
         }
 
+
+
         // Load selected schedules (no lock yet; we’ll lock inside the transaction)
         $schedules = PaymentSchedule::where('admission_id', $data['admission_id'])
             ->whereIn('id', $scheduleIds)
@@ -200,6 +298,20 @@ class Create extends Component
             return;
         }
 
+        // Check if selected installments have any amount left to pay
+        $hasAmountLeft = false;
+        foreach ($schedules as $schedule) {
+            if (max(0.0, (float) $schedule->amount - (float) $schedule->paid_amount) > 0.00001) {
+                $hasAmountLeft = true;
+                break;
+            }
+        }
+
+        if (!$hasAmountLeft) {
+            $this->addError('selectedScheduleIds', 'All selected installments are already fully paid. Please select installments with pending amounts.');
+            return;
+        }
+
         $selectedLeft = (float) $schedules->sum(fn($s) => max(0.0, (float) $s->amount - (float) $s->paid_amount));
 
         if ($selectedLeft <= 0.00001) {
@@ -208,7 +320,7 @@ class Create extends Component
         }
 
         $incoming = (float) $data['amount'];
-        if (in_array($data['status'], ['success', 'pending']) && $incoming - $selectedLeft > 0.00001) {
+        if ($incoming - $selectedLeft > 0.00001) {
             // Auto-cap amount and stop; user can press Save again.
             $this->amount = number_format($selectedLeft, 2, '.', '');
             $this->addError('amount', 'Amount reduced to the maximum payable for the selected installments (₹' . number_format($selectedLeft, 2) . ').');
@@ -245,44 +357,56 @@ class Create extends Component
                     'admission_id'        => $admission->id,
                     'payment_schedule_id' => $schedule->id,
                     'amount'              => $portion,
+                    'gst'                 => $this->applyGst ? round($portion * 0.18, 2) : 0.00,
                     'date'                => $data['date'],
                     'mode'                => $data['mode'],
                     'reference_no'        => $data['reference_no'] ?? null,
-                    'status'              => $data['status'],
+                    'status'              => 'success',
+                    'receipt_number'      => $this->receipt_number,
                 ]);
 
-                if (in_array($tx->status, ['success', 'pending'])) {
-                    $schedule->paid_amount = (float) $schedule->paid_amount + $portion;
-                    if ($schedule->paid_amount + 0.00001 >= (float) $schedule->amount) {
-                        $schedule->status    = 'paid';
-                        $schedule->paid_date = $schedule->paid_date ?? $tx->date;
-                    } elseif ($schedule->paid_amount > 0) {
-                        $schedule->status = 'partial';
-                    } else {
-                        $schedule->status = 'pending';
-                    }
-                    $schedule->save();
-
-                    $allocatedTotal += $portion;
-                    $remaining -= $portion;
+                // Since status is always success, always process the payment
+                $schedule->paid_amount = (float) $schedule->paid_amount + $portion;
+                if ($schedule->paid_amount + 0.00001 >= (float) $schedule->amount) {
+                    $schedule->status    = 'paid';
+                    $schedule->paid_date = $schedule->paid_date ?? $tx->date;
+                } elseif ($schedule->paid_amount > 0) {
+                    $schedule->status = 'partial';
+                } else {
+                    $schedule->status = 'pending';
                 }
+                $schedule->save();
+
+                $allocatedTotal += $portion;
+                $remaining -= $portion;
             }
 
             // Recompute admission due from ALL schedules (authoritative) and sync
-            if (in_array($data['status'], ['success', 'pending'])) {
-                $recomputedAllDue = (float) PaymentSchedule::where('admission_id', $admission->id)
-                    ->get()
-                    ->sum(fn($s) => max(0.0, (float) $s->amount - (float) $s->paid_amount));
+            $recomputedAllDue = (float) PaymentSchedule::where('admission_id', $admission->id)
+                ->get()
+                ->sum(fn($s) => max(0.0, (float) $s->amount - (float) $s->paid_amount));
 
-                $admission->fee_due = round($recomputedAllDue, 2);
-                if ($admission->fee_due <= 0.00001) {
-                    $admission->status = 'completed';
-                }
-                $admission->save();
+            $admission->fee_due = round($recomputedAllDue, 2);
+            if ($admission->fee_due <= 0.00001) {
+                $admission->status = 'completed';
             }
+            $admission->save();
+
+            // Store the transaction for email sending
+            $this->lastTransaction = $tx;
         });
 
-        session()->flash('success', 'Payment recorded successfully across selected installments.');
+        // Send payment confirmation email if student has email
+        if ($this->lastTransaction && $this->lastTransaction->student->email) {
+            try {
+                Mail::to($this->lastTransaction->student->email)->send(new PaymentConfirmationMail($this->lastTransaction));
+            } catch (\Exception $e) {
+                // Log error but don't fail the payment process
+                Log::error('Failed to send payment confirmation email: ' . $e->getMessage());
+            }
+        }
+
+        session()->flash('success', "Payment recorded successfully! Receipt Number: {$this->receipt_number}");
         return redirect()->route('admin.payments.index');
     }
 

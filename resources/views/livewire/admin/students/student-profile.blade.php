@@ -152,13 +152,16 @@
                                             Amount</th>
                                         <th scope="col"
                                             class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                            GST</th>
+                                        <th scope="col"
+                                            class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                             Mode</th>
                                         <th scope="col"
                                             class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                             Status</th>
                                         <th scope="col"
                                             class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                            Reference</th>
+                                            Receipt No</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
@@ -170,6 +173,13 @@
                                             </td>
                                             <td class="px-4 sm:px-6 py-4 text-sm text-gray-700">
                                                 ₹{{ number_format($payment['amount'], 2) }}</td>
+                                            <td class="px-4 sm:px-6 py-4 text-sm text-gray-700">
+                                                @if(isset($payment['gst']) && $payment['gst'] > 0)
+                                                    <span class="text-blue-600">₹{{ number_format($payment['gst'], 2) }}</span>
+                                                @else
+                                                    <span class="text-gray-400">—</span>
+                                                @endif
+                                            </td>
                                             <td class="px-4 sm:px-6 py-4 text-sm capitalize text-gray-700">
                                                 {{ $payment['mode'] }}</td>
                                             <td class="px-4 sm:px-6 py-4">
@@ -184,11 +194,11 @@
                                                 </span>
                                             </td>
                                             <td class="px-4 sm:px-6 py-4 text-sm text-gray-700">
-                                                {{ $payment['reference_no'] ?? '-' }}</td>
+                                                <span class="font-mono text-blue-600">{{ $payment['receipt_number'] ?? '-' }}</span></td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="6"
+                                            <td colspan="7"
                                                 class="px-4 sm:px-6 py-4 text-center text-sm text-gray-500">
                                                 No payment records found
                                             </td>

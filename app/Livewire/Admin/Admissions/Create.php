@@ -4,8 +4,11 @@ namespace App\Livewire\Admin\Admissions;
 use App\Models\Admission;
 use App\Models\Batch;
 use App\Models\Student;
+use App\Mail\AdmissionConfirmationMail;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -230,6 +233,8 @@ class Create extends Component
     {
         $data = $this->validate();
 
+        $admission = null;
+        
         DB::transaction(function () use ($data) {
             // Find or create student
             $student = Student::where('phone', $this->phone)->first();
@@ -273,6 +278,16 @@ class Create extends Component
                 }
             }
         });
+
+        // Send admission confirmation email if student has email
+        if ($admission && $admission->student->email) {
+            try {
+                Mail::to($admission->student->email)->send(new AdmissionConfirmationMail($admission));
+            } catch (\Exception $e) {
+                // Log error but don't fail the admission process
+                Log::error('Failed to send admission confirmation email: ' . $e->getMessage());
+            }
+        }
 
         session()->flash('ok', 'Admission created');
         return redirect()->route('admin.admissions.index');

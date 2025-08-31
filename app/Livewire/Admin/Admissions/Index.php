@@ -27,6 +27,7 @@ class Index extends Component
     public bool $showExportModal = false;
     public ?string $fromDate     = null; // 'Y-m-d'
     public ?string $toDate       = null; // 'Y-m-d'
+    public ?string $dateRange    = null; // For predefined date ranges
 
     protected $queryString = ['q', 'status', 'batchId', 'page'];
 
@@ -34,6 +35,7 @@ class Index extends Component
     public function openExport(): void
     {
         $this->resetValidation();
+        $this->reset(['fromDate', 'toDate', 'dateRange']);
         $this->showExportModal = true;
     }
 
@@ -41,6 +43,14 @@ class Index extends Component
     public function closeExport(): void
     {
         $this->showExportModal = false;
+    }
+
+    // Handle predefined date range selection
+    public function updatedDateRange($value): void
+    {
+        if ($value) {
+            $this->setDateRange($value);
+        }
     }
 
     public function export()
@@ -78,6 +88,55 @@ class Index extends Component
 
         $this->reset('importFile');
         session()->flash('ok', 'Admissions imported successfully.');
+    }
+
+    // Set date range based on predefined options
+    private function setDateRange(string $range): void
+    {
+        $today = now();
+        
+        switch ($range) {
+            case 'last_week':
+                $this->fromDate = $today->copy()->subWeek()->startOfWeek()->format('Y-m-d');
+                $this->toDate = $today->copy()->subWeek()->endOfWeek()->format('Y-m-d');
+                break;
+                
+            case 'last_month':
+                $this->fromDate = $today->copy()->subMonth()->startOfMonth()->format('Y-m-d');
+                $this->toDate = $today->copy()->subMonth()->endOfMonth()->format('Y-m-d');
+                break;
+                
+            case 'last_3_months':
+                $this->fromDate = $today->copy()->subMonths(3)->startOfMonth()->format('Y-m-d');
+                $this->toDate = $today->copy()->subMonth()->endOfMonth()->format('Y-m-d');
+                break;
+                
+            case 'last_6_months':
+                $this->fromDate = $today->copy()->subMonths(6)->startOfMonth()->format('Y-m-d');
+                $this->toDate = $today->copy()->subMonth()->endOfMonth()->format('Y-m-d');
+                break;
+                
+            case 'last_year':
+                $this->fromDate = $today->copy()->subYear()->startOfYear()->format('Y-m-d');
+                $this->toDate = $today->copy()->subYear()->endOfYear()->format('Y-m-d');
+                break;
+                
+            case 'this_month':
+                $this->fromDate = $today->copy()->startOfMonth()->format('Y-m-d');
+                $this->toDate = $today->copy()->endOfMonth()->format('Y-m-d');
+                break;
+                
+            case 'this_year':
+                $this->fromDate = $today->copy()->startOfYear()->format('Y-m-d');
+                $this->toDate = $today->copy()->endOfYear()->format('Y-m-d');
+                break;
+        }
+    }
+
+    // Clear date range and reset to null
+    public function clearDateRange(): void
+    {
+        $this->reset(['fromDate', 'toDate', 'dateRange']);
     }
 
     public function updating($name)

@@ -14,7 +14,20 @@ class Transaction extends Model
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'gst'    => 'decimal:2',
         'date'   => 'date',
+    ];
+
+    protected $fillable = [
+        'admission_id',
+        'payment_schedule_id',
+        'amount',
+        'gst',
+        'date',
+        'mode',
+        'reference_no',
+        'status',
+        'receipt_number',
     ];
 
     public function admission()

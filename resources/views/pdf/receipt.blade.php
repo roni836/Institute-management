@@ -3,10 +3,11 @@
     $admission = $tx->admission;
     $student   = $admission?->student;
     $batch     = $admission?->batch;
+    $course    = $batch?->course;
 
     $afterDue  = (float)($admission->fee_due ?? 0);
     $paid      = (float)$tx->amount;
-    $beforeDue = in_array($tx->status, ['success','pending']) ? $afterDue + $paid : $afterDue;
+    $beforeDue = $afterDue + $paid;
 
     function safe($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 @endphp
@@ -14,98 +15,413 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Receipt TX-{{ $tx->id }}</title>
+    <title>Receipt {{ $tx->receipt_number ?? 'TX-'.$tx->id }}</title>
     <style>
-        body { font-family: DejaVu Sans, Arial, sans-serif; color: #111; font-size: 12px; }
-        .wrap { width: 100%; max-width: 750px; margin: 0 auto; }
-        .row { display: flex; justify-content: space-between; align-items: flex-start; }
-        .mt-8 { margin-top: 24px; } .mt-4 { margin-top: 12px; } .mb-6 { margin-bottom: 18px; }
-        .card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; }
-        .muted { color: #6b7280; } .bold { font-weight: 700; } .right { text-align: right; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 10px; border-bottom: 1px solid #e5e7eb; }
-        thead th { background: #f3f4f6; text-align: left; }
-        tfoot td { background: #f9fafb; }
-        .badge { display:inline-block; padding: 2px 8px; border-radius: 999px; font-size: 10px; }
-        .success { background:#dcfce7; color:#166534; }
-        .pending { background:#fef9c3; color:#854d0e; }
-        .failed  { background:#fee2e2; color:#991b1b; }
-        .footnote { color:#6b7280; font-size: 10px; }
+        body { 
+            font-family: DejaVu Sans, Arial, sans-serif; 
+            color: #111; 
+            font-size: 12px; 
+            margin: 0;
+            padding: 20px;
+        }
+        .container { 
+            width: 100%; 
+            max-width: 800px; 
+            margin: 0 auto; 
+        }
+        .header { 
+            border-bottom: 2px solid #333; 
+            padding-bottom: 15px; 
+            margin-bottom: 20px; 
+        }
+        .company-info { 
+            float: left; 
+            width: 60%; 
+        }
+        .receipt-info { 
+            float: right; 
+            width: 35%; 
+            text-align: right; 
+        }
+        .clear { clear: both; }
+        .company-name { 
+            font-size: 24px; 
+            font-weight: bold; 
+            color: #333; 
+            margin-bottom: 5px; 
+        }
+        .company-tagline { 
+            font-size: 14px; 
+            color: #666; 
+            margin-bottom: 10px; 
+        }
+        .company-details { 
+            font-size: 11px; 
+            color: #666; 
+            line-height: 1.4; 
+        }
+        .receipt-title { 
+            font-size: 18px; 
+            font-weight: bold; 
+            color: #333; 
+            margin-bottom: 10px; 
+        }
+        .receipt-number { 
+            font-size: 16px; 
+            font-weight: bold; 
+            color: #2563eb; 
+            margin-bottom: 5px; 
+        }
+        .section { 
+            margin-bottom: 25px; 
+        }
+        .section-title { 
+            font-size: 16px; 
+            font-weight: bold; 
+            color: #333; 
+            margin-bottom: 15px; 
+            border-bottom: 1px solid #ddd; 
+            padding-bottom: 5px; 
+        }
+        .info-grid { 
+            display: table; 
+            width: 100%; 
+            margin-bottom: 20px; 
+        }
+        .info-row { 
+            display: table-row; 
+        }
+        .info-cell { 
+            display: table-cell; 
+            padding: 8px 15px; 
+            border: 1px solid #ddd; 
+            vertical-align: top; 
+        }
+        .info-label { 
+            font-weight: bold; 
+            background-color: #f8f9fa; 
+            width: 25%; 
+        }
+        .info-value { 
+            width: 75%; 
+        }
+        .table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 20px; 
+        }
+        .table th, .table td { 
+            border: 1px solid #ddd; 
+            padding: 10px; 
+            text-align: left; 
+        }
+        .table th { 
+            background-color: #f8f9fa; 
+            font-weight: bold; 
+            font-size: 11px; 
+        }
+        .table td { 
+            font-size: 11px; 
+        }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .font-bold { font-weight: bold; }
+        .text-green { color: #059669; }
+        .text-red { color: #dc2626; }
+        .text-blue { color: #2563eb; }
+        .total-row { 
+            background-color: #f8f9fa; 
+            font-weight: bold; 
+        }
+        .balance-highlight { 
+            background-color: #fef2f2; 
+            color: #dc2626; 
+            font-weight: bold; 
+        }
+        .terms { 
+            margin-top: 30px; 
+            font-size: 10px; 
+            color: #666; 
+            line-height: 1.4; 
+        }
+        .terms-title { 
+            font-weight: bold; 
+            margin-bottom: 10px; 
+            color: #333; 
+        }
+        .terms-list { 
+            margin: 0; 
+            padding-left: 20px; 
+        }
+        .terms-list li { 
+            margin-bottom: 5px; 
+        }
     </style>
 </head>
 <body>
-<div class="wrap">
-    <div class="row" style="border-bottom:1px solid #e5e7eb; padding-bottom:12px; margin-bottom:12px;">
-        <div>
-            <div style="font-size:20px;" class="bold">{{ safe($org['name']) }}</div>
-            <div class="muted">GST: {{ safe($org['gst']) }}</div>
-            <div class="muted">Contact: {{ safe($org['contact']) }}</div>
-            <div class="muted">Address: {{ safe($org['address']) }}</div>
-        </div>
-        <div class="right">
-            <div class="muted" style="font-size:11px;">Receipt No.</div>
-            <div class="bold">TX-{{ $tx->id }}</div>
-            <div class="muted mt-4">Date: {{ $tx->date?->format('d-M-Y') }}</div>
-            @php $st = $tx->status; @endphp
-            <div class="mt-4">
-                <span class="badge {{ $st==='success'?'success':($st==='pending'?'pending':'failed') }}">
-                    {{ strtoupper($st) }}
-                </span>
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <div class="company-info">
+            <div class="company-name">Mentors Eduserv™</div>
+            <div class="company-tagline">JEE | AIIMS | NEET | NTSE | KVPY | OLYMPIADS Get Started...</div>
+            <div class="company-details">
+                GST Regn No.: 10ADFPJ1214M1Z3<br>
+                Service Type.: Commercial coaching & Training<br>
+                SAC.: <br>
+                Contact No.: 8709833138<br>
+                Address: PURNIA<br>
+                State Code: 10<br>
+                Place of Supply: BIHAR
             </div>
         </div>
+        <div class="receipt-info">
+            <div class="receipt-title">FEE STRUCTURE</div>
+            <div class="receipt-number">{{ $tx->receipt_number ?? 'TX-'.$tx->id }}</div>
+            <div style="font-size: 11px; color: #666;">
+                Date: {{ $tx->date?->format('d-M-Y') }}<br>
+                Status: <span style="color: #059669; font-weight: bold;">SUCCESS</span>
+            </div>
+        </div>
+        <div class="clear"></div>
     </div>
 
-    <div class="row mb-6">
-        <div class="card" style="width:48%;">
-            <div class="muted" style="text-transform:uppercase; font-size:10px;">Student</div>
-            <div class="bold">{{ safe($student->name ?? '—') }}</div>
-            <div class="muted">Admission #{{ $tx->admission_id }}</div>
+    <!-- Account Overview -->
+    <div class="section">
+        <div class="section-title">ACCOUNT OVERVIEW</div>
+        <div class="info-grid">
+            <div class="info-row">
+                <div class="info-cell info-label">Name</div>
+                <div class="info-cell info-value">{{ safe($student->name ?? '—') }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-cell info-label">Father's Name</div>
+                <div class="info-cell info-value">{{ safe($student->father_name ?? '—') }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-cell info-label">Roll No</div>
+                <div class="info-cell info-value">{{ safe($student->roll_no ?? '—') }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-cell info-label">UID</div>
+                <div class="info-cell info-value">{{ safe($student->student_uid ?? '—') }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-cell info-label">Plan Name</div>
+                <div class="info-cell info-value">PLAN 1</div>
+            </div>
+            <div class="info-row">
+                <div class="info-cell info-label">Address</div>
+                <div class="info-cell info-value">{{ safe($student->address ?? '—') }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-cell info-label">Admission Date</div>
+                <div class="info-cell info-value">{{ $admission->created_at?->format('d-M-Y') ?? '—' }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-cell info-label">Mother's Name</div>
+                <div class="info-cell info-value">{{ safe($student->mother_name ?? '—') }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-cell info-label">Course</div>
+                <div class="info-cell info-value">{{ safe($course->name ?? '—') }} # {{ safe($batch->batch_name ?? '—') }} # ({{ date('Y') }}-{{ date('Y')+1 }})</div>
+            </div>
+            <div class="info-row">
+                <div class="info-cell info-label">Batch</div>
+                <div class="info-cell info-value">{{ safe($batch->batch_name ?? '—') }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-cell info-label">Status</div>
+                <div class="info-cell info-value">{{ safe($admission->status ?? 'active') }}</div>
         </div>
-        <div class="card" style="width:48%;">
-            <div class="muted" style="text-transform:uppercase; font-size:10px;">Batch</div>
-            <div class="bold">{{ safe($batch->batch_name ?? '—') }}</div>
-            @if($tx->schedule)
-                <div class="muted">Installment #{{ $tx->schedule->installment_no }}
-                    (Due {{ $tx->schedule->due_date?->format('d-M-Y') }})</div>
-            @endif
         </div>
     </div>
 
-    <table>
+    <!-- Fee Details -->
+    <div class="section">
+        <div class="section-title">FEE DETAILS</div>
+        <table class="table">
         <thead>
         <tr>
             <th>Description</th>
-            <th>Mode</th>
-            <th>Reference</th>
-            <th class="right">Amount (₹)</th>
+                    <th class="text-right">Amount (₹)</th>
         </tr>
         </thead>
         <tbody>
         <tr>
-            <td>Tuition Fee Payment @if($tx->schedule) — Installment #{{ $tx->schedule->installment_no }} @endif</td>
-            <td style="text-transform:capitalize;">{{ safe($tx->mode) }}</td>
-            <td>{{ safe($tx->reference_no ?? '—') }}</td>
-            <td class="right"><span class="bold">{{ number_format($tx->amount, 2) }}</span></td>
+                    <td>Gross Fee</td>
+                    <td class="text-right">{{ number_format($admission->total_fee ?? 0, 2) }}</td>
+                </tr>
+                <tr>
+                    <td>Total Discount</td>
+                    <td class="text-right">{{ number_format($admission->discount ?? 0, 2) }}</td>
+                </tr>
+                <tr>
+                    <td>Fee after Discount</td>
+                    <td class="text-right">{{ number_format(($admission->total_fee ?? 0) - ($admission->discount ?? 0), 2) }}</td>
+                </tr>
+                <tr>
+                    <td>Tuition Fee</td>
+                    <td class="text-right">{{ number_format($admission->tuition_fee ?? 0, 2) }}</td>
+                </tr>
+                <tr>
+                    <td>Others Fee</td>
+                    <td class="text-right">{{ number_format(($admission->total_fee ?? 0) - ($admission->tuition_fee ?? 0) - ($admission->discount ?? 0), 2) }}</td>
+                </tr>
+                <tr>
+                    <td>Plan Amount</td>
+                    <td class="text-right">0.00</td>
         </tr>
-        </tbody>
-        <tfoot>
         <tr>
-            <td colspan="3" class="right muted">Due before this payment</td>
-            <td class="right">₹ {{ number_format($beforeDue, 2) }}</td>
+                    <td>Late Fine</td>
+                    <td class="text-right">0.00</td>
         </tr>
         <tr>
-            <td colspan="3" class="right muted">Paid now</td>
-            <td class="right">₹ {{ number_format($paid, 2) }}</td>
+                    <td>Taxable Fee</td>
+                    <td class="text-right">{{ number_format(($admission->total_fee ?? 0) - ($admission->discount ?? 0), 2) }}</td>
         </tr>
         <tr>
-            <td colspan="3" class="right bold">Balance due</td>
-            <td class="right bold">₹ {{ number_format($afterDue, 2) }}</td>
-        </tr>
-        </tfoot>
-    </table>
+                    <td>Tax*</td>
+                    <td class="text-right text-blue">{{ number_format($tx->gst ?? 0, 2) }}</td>
+                </tr>
+                <tr class="total-row">
+                    <td>Total Payable Fee With Tax</td>
+                    <td class="text-right">{{ number_format((($admission->total_fee ?? 0) - ($admission->discount ?? 0)) + ($tx->gst ?? 0), 2) }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
-    <div class="mt-8 footnote">
-        This is a computer-generated receipt. Thank you for choosing {{ safe($org['name']) }}.
+    <!-- Installment Details -->
+    <div class="section">
+        <div class="section-title">INSTALLMENT DETAILS</div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Due Date</th>
+                    <th class="text-right">Instalment Amount</th>
+                    <th class="text-right">Paid Amount</th>
+                    <th class="text-right">Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php
+                    $totalInstalment = 0;
+                    $totalPaid = 0;
+                    $totalBalance = 0;
+                @endphp
+                @foreach($admission->schedules ?? [] as $schedule)
+                    @php
+                        $instalmentAmount = (float) $schedule->amount;
+                        $paidAmount = (float) $schedule->paid_amount;
+                        $balance = max(0, $instalmentAmount - $paidAmount);
+                        
+                        $totalInstalment += $instalmentAmount;
+                        $totalPaid += $paidAmount;
+                        $totalBalance += $balance;
+                    @endphp
+                    <tr>
+                        <td>{{ $schedule->due_date?->format('d-M-Y') ?? '—' }}</td>
+                        <td class="text-right">{{ number_format($instalmentAmount, 2) }}</td>
+                        <td class="text-right">{{ number_format($paidAmount, 2) }}</td>
+                        <td class="text-right {{ $balance > 0 ? 'text-red' : 'text-green' }}">
+                            {{ $balance > 0 ? number_format($balance, 2) : '0.00' }}
+                        </td>
+                    </tr>
+                @endforeach
+                <tr class="total-row">
+                    <td><strong>Total</strong></td>
+                    <td class="text-right"><strong>{{ number_format($totalInstalment, 2) }}</strong></td>
+                    <td class="text-right"><strong>{{ number_format($totalPaid, 2) }}</strong></td>
+                    <td class="text-right balance-highlight"><strong>{{ number_format($totalBalance, 2) }}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Transaction Details -->
+    <div class="section">
+        <div class="section-title">TRANSACTION DETAILS</div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th class="text-right">Amount Paid</th>
+                    <th>Inst Due date</th>
+                    <th>Receipt No.</th>
+                    <th>Mode</th>
+                    <th>Details</th>
+                    <th>Comment</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php
+                    $totalPaid = 0;
+                @endphp
+                @foreach($admission->transactions ?? [] as $transaction)
+                    @php
+                        $totalPaid += (float) $transaction->amount;
+                    @endphp
+                    <tr>
+                        <td>{{ $transaction->date?->format('d-M-Y') ?? '—' }}</td>
+                        <td class="text-right">{{ number_format($transaction->amount, 2) }}</td>
+                        <td>{{ $transaction->schedule?->due_date?->format('d-M-Y') ?? '—' }}</td>
+                        <td>{{ $transaction->receipt_number ?? '—' }}</td>
+                        <td>{{ strtoupper($transaction->mode ?? '—') }}</td>
+                        <td>
+                            @if($transaction->mode === 'cheque')
+                                CHQ NO: {{ $transaction->reference_no ?? '—' }} DT: {{ $transaction->date?->format('Y-m-d') ?? '—' }}
+                            @elseif($transaction->mode === 'online')
+                                UTR {{ $transaction->reference_no ?? '—' }}
+                            @else
+                                —
+                            @endif
+                        </td>
+                        <td>{{ strtoupper($transaction->mode ?? '—') }}</td>
+                    </tr>
+                @endforeach
+                <tr class="total-row">
+                    <td colspan="1"><strong>Total</strong></td>
+                    <td class="text-right"><strong>{{ number_format($totalPaid, 2) }}</strong></td>
+                    <td colspan="5"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Other Transaction Details -->
+    <div class="section">
+        <div class="section-title">OTHER TRANSACTION DETAILS</div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Receipt No.</th>
+                    <th class="text-right">Amount Paid</th>
+                    <th>Received In</th>
+                    <th>For</th>
+                    <th>Details</th>
+                    <th>Comment</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="7" class="text-center" style="color: #999;">No additional transactions</td>
+        </tr>
+            </tbody>
+    </table>
+    </div>
+
+    <!-- Terms & Conditions -->
+    <div class="terms">
+        <div class="terms-title">TERMS & CONDITIONS:</div>
+        <ol class="terms-list">
+            <li>Tax will be charged as per applicable rate of payment date.</li>
+            <li>Cheque/Draft is subject to Realization.</li>
+            <li>In case of cheque dishonor, bank charges of Rs. 500 and late fine (upto Rs. 50/day) will be charged.</li>
+            <li>Fee once paid will not be refunded/adjusted at any stage, under any circumstance.</li>
+            <li>Subject to Patna Jurisdiction.</li>
+        </ol>
     </div>
 </div>
 </body>
