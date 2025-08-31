@@ -87,7 +87,7 @@ Route::get('/register', Register::class)->name('register');
 
 Route::middleware('guest')->group(function () {
     Route::get('/admin/login', Login::class)->name('admin.login');
-    Route::get('/admin/pin', AdminPinLogin::class)->name('admin.pin');          // shown if device is recognized
+    Route::get('/admin/pin', AdminPinLogin::class)->name('admin.pin'); // shown if device is recognized
 });
 
 Route::middleware('auth')->group(function () {
@@ -98,7 +98,23 @@ Route::middleware('auth')->group(function () {
         \Illuminate\Support\Facades\Auth::logout();
         return redirect()->route('admin.login');
     })->name('admin.logout');
+
+    // Test email route (remove in production)
+
 });
+
+Route::get('/test-email', function () {
+    $admission = App\Models\Admission::with(['student', 'batch.course'])->first();
+    if ($admission) {
+        try {
+            \Illuminate\Support\Facades\Mail::to('test@example.com')->send(new App\Mail\AdmissionConfirmationMail($admission));
+            return 'Test admission email sent successfully!';
+        } catch (\Exception $e) {
+            return 'Failed to send email: ' . $e->getMessage();
+        }
+    }
+    return 'No admission found for testing.';
+})->name('test.email');
 
 Route::get('/clear-cache', function () {
     Artisan::call('cache:clear');

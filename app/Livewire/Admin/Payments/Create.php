@@ -5,7 +5,10 @@ use App\Models\Admission;
 use App\Models\PaymentSchedule;
 use App\Models\Student;
 use App\Models\Transaction;
+use App\Mail\PaymentConfirmationMail;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -34,6 +37,7 @@ class Create extends Component
     public string $admission_fee_due = '0.00';
 
     public array $selectedScheduleIds = [];
+    public ?Transaction $lastTransaction = null;
 
     public function updated($name, $value): void
     {
@@ -387,7 +391,20 @@ class Create extends Component
                 $admission->status = 'completed';
             }
             $admission->save();
+
+            // Store the transaction for email sending
+            $this->lastTransaction = $tx;
         });
+
+        // Send payment confirmation email if student has email
+        if ($this->lastTransaction && $this->lastTransaction->student->email) {
+            try {
+                Mail::to($this->lastTransaction->student->email)->send(new PaymentConfirmationMail($this->lastTransaction));
+            } catch (\Exception $e) {
+                // Log error but don't fail the payment process
+                Log::error('Failed to send payment confirmation email: ' . $e->getMessage());
+            }
+        }
 
         session()->flash('success', "Payment recorded successfully! Receipt Number: {$this->receipt_number}");
         return redirect()->route('admin.payments.index');
