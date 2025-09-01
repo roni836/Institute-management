@@ -11,334 +11,278 @@
         $beforeDue = $afterDue + $paid;
     @endphp
 
-    <div class="max-w-4xl mx-auto p-6 bg-white">
+    <div class="max-w-4xl mx-auto p-4 bg-white text-gray-800 receipt-printable" style="font-family: Arial, Helvetica, sans-serif;">
+        <!-- Selection Controls -->
+        <div class="mb-4 no-print" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <div style="font-weight:600">Include Sections:</div>
+            <label style="font-size:13px"><input type="checkbox" wire:model.live="show_account" class="mr-1" /> Account Details</label>
+            <label style="font-size:13px"><input type="checkbox" wire:model.live="show_fee" class="mr-1" /> Fee Details</label>
+            <label style="font-size:13px"><input type="checkbox" wire:model.live="show_installments" class="mr-1" /> Installments</label>
+            <label style="font-size:13px"><input type="checkbox" wire:model.live="show_transactions" class="mr-1" /> Transactions</label>
+            <label style="font-size:13px"><input type="checkbox" wire:model.live="show_other" class="mr-1" /> Other Transactions</label>
+            <label style="font-size:13px"><input type="checkbox" wire:model.live="show_terms" class="mr-1" /> Terms & Conditions</label>
+            <button wire:click="selectAll" style="margin-left:auto;padding:6px 10px;background:#111;color:#fff;border:none;cursor:pointer">Select All</button>
+            <button wire:click="selectNone" style="padding:6px 10px;background:#666;color:#fff;border:none;cursor:pointer">Select None</button>
+        </div>
         <!-- Header -->
-        <div class="border-b-2 border-gray-800 pb-4 mb-6">
-            <div class="flex justify-between items-start">
-                <div class="flex-1">
-                    <h1 class="text-3xl font-bold text-gray-800 mb-2">Mentors Eduserv™</h1>
-                    <p class="text-lg text-gray-600 mb-3">JEE | AIIMS | NEET | NTSE | KVPY | OLYMPIADS Get Started...</p>
-                    <div class="text-sm text-gray-600 space-y-1">
-                        <p>GST Regn No.: 10ADFPJ1214M1Z3</p>
-                        <p>Service Type.: Commercial coaching & Training</p>
-                        <p>SAC.: </p>
-                        <p>Contact No.: 8709833138</p>
-                        <p>Address: PURNIA</p>
-                        <p>State Code: 10</p>
-                        <p>Place of Supply: BIHAR</p>
+        <div style="border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:8px;display:flex;align-items:flex-start;justify-content:space-between;">
+            <div style="display:flex;gap:12px;align-items:center;">
+                <img src="{{ asset('logo.png') }}" alt="logo" style="height:48px;object-fit:contain" />
+                <div>
+                    <div style="font-size:18px;font-weight:700;">{{ env("APP_NAME") }}</div>
+                    <div style="font-size:12px;color:#333;margin-top:2px;">JEE | AIIMS | NEET | NTSE | KVPY | OLYMPIADS</div>
+                    <div style="font-size:11px;color:#333;margin-top:6px;line-height:1.2">
+                        GST Regn No.: 10ADFPJ1214M1Z3<br />
+                        Service Type: Commercial coaching & Training<br />
+                        Contact No.: 8709833138<br />
+                        Address: PURNIA, State Code: 10<br />
                     </div>
                 </div>
-                <div class="text-right">
-                    <h2 class="text-xl font-bold text-gray-800 mb-2">FEE STRUCTURE</h2>
-                    <div class="text-2xl font-bold text-blue-600 mb-2">{{ $tx->receipt_number ?? 'TX-' . $tx->id }}</div>
-                    <div class="text-sm text-gray-600">
-                        <p>Date: {{ $tx->date?->format('d-M-Y') }}</p>
-                        <p>Status: <span class="text-green-600 font-bold">SUCCESS</span></p>
-                    </div>
+            </div>
+            <div style="text-align:right">
+                <div style="font-size:14px;font-weight:700;margin-bottom:6px">FEE STRUCTURE</div>
+                <div style="font-size:18px;font-weight:700;color:#000;margin-bottom:6px;">{{ $tx->receipt_number ?? 'TX-' . $tx->id }}</div>
+                <div style="font-size:12px;color:#333;">
+                    <div>Date: {{ $tx->date?->format('d-M-Y') }}</div>
+                    <div>Status: <span style="color:#008000;font-weight:700">SUCCESS</span></div>
                 </div>
             </div>
         </div>
 
         <!-- Account Overview -->
-        <div class="mb-8">
-            <h3 class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b border-gray-300">ACCOUNT OVERVIEW</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-gray-50 p-3 border border-gray-300">
-                    <span class="font-bold text-gray-700">Name:</span>
-                    <span class="ml-2">{{ $student->name ?? '—' }}</span>
-                </div>
-                <div class="bg-gray-50 p-3 border border-gray-300">
-                    <span class="font-bold text-gray-700">Father's Name:</span>
-                    <span class="ml-2">{{ $student->father_name ?? '—' }}</span>
-                </div>
-                <div class="bg-gray-50 p-3 border border-gray-300">
-                    <span class="font-bold text-gray-700">Roll No:</span>
-                    <span class="ml-2">{{ $student->roll_no ?? '—' }}</span>
-                </div>
-                <div class="bg-gray-50 p-3 border border-gray-300">
-                    <span class="font-bold text-gray-700">UID:</span>
-                    <span class="ml-2">{{ $student->student_uid ?? '—' }}</span>
-                </div>
-                <div class="bg-gray-50 p-3 border border-gray-300">
-                    <span class="font-bold text-gray-700">Plan Name:</span>
-                    <span class="ml-2">PLAN 1</span>
-                </div>
-                <div class="bg-gray-50 p-3 border border-gray-300">
-                    <span class="font-bold text-gray-700">Address:</span>
-                    <span class="ml-2">{{ $student->address ?? '—' }}</span>
-                </div>
-                <div class="bg-gray-50 p-3 border border-gray-300">
-                    <span class="font-bold text-gray-700">Admission Date:</span>
-                    <span class="ml-2">{{ $admission->created_at?->format('d-M-Y') ?? '—' }}</span>
-                </div>
-                <div class="bg-gray-50 p-3 border border-gray-300">
-                    <span class="font-bold text-gray-700">Mother's Name:</span>
-                    <span class="ml-2">{{ $student->mother_name ?? '—' }}</span>
-                </div>
-                <div class="bg-gray-50 p-3 border border-gray-300 md:col-span-2">
-                    <span class="font-bold text-gray-700">Course:</span>
-                    <span class="ml-2">{{ $course->name ?? '—' }} # {{ $batch->batch_name ?? '—' }} #
-                        ({{ date('Y') }}-{{ date('Y') + 1 }})</span>
-                </div>
-                <div class="bg-gray-50 p-3 border border-gray-300">
-                    <span class="font-bold text-gray-700">Batch:</span>
-                    <span class="ml-2">{{ $batch->batch_name ?? '—' }}</span>
-                </div>
-                <div class="bg-gray-50 p-3 border border-gray-300">
-                    <span class="font-bold text-gray-700">Status:</span>
-                    <span class="ml-2">{{ $admission->status ?? 'active' }}</span>
-                </div>
+        @if($show_account)
+        <div style="margin-bottom:12px">
+            <div style="font-size:13px;font-weight:700;border-bottom:1px solid #333;padding-bottom:6px;margin-bottom:8px">ACCOUNT OVERVIEW</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;font-size:12px;">
+                <div style="flex:1 1 45%;border:1px solid #000;padding:6px;"> <strong>Name:</strong> {{ $student->name ?? '—' }}</div>
+                <div style="flex:1 1 45%;border:1px solid #000;padding:6px;"> <strong>Father's Name:</strong> {{ $student->father_name ?? '—' }}</div>
+                <div style="flex:1 1 30%;border:1px solid #000;padding:6px;"> <strong>Roll No:</strong> {{ $student->roll_no ?? '—' }}</div>
+                <div style="flex:1 1 30%;border:1px solid #000;padding:6px;"> <strong>UID:</strong> {{ $student->student_uid ?? '—' }}</div>
+                <div style="flex:1 1 30%;border:1px solid #000;padding:6px;"> <strong>Plan:</strong> PLAN 1</div>
+                <div style="flex:1 1 60%;border:1px solid #000;padding:6px;"> <strong>Address:</strong> {{ $student->address ?? '—' }}</div>
+                <div style="flex:1 1 30%;border:1px solid #000;padding:6px;"> <strong>Admission Date:</strong> {{ $admission->created_at?->format('d-M-Y') ?? '—' }}</div>
+                <div style="flex:1 1 30%;border:1px solid #000;padding:6px;"> <strong>Mother's Name:</strong> {{ $student->mother_name ?? '—' }}</div>
+                <div style="flex:1 1 100%;border:1px solid #000;padding:6px;"> <strong>Course:</strong> {{ $course->name ?? '—' }} # {{ $batch->batch_name ?? '—' }} ({{ date('Y') }}-{{ date('Y') + 1 }})</div>
+                <div style="flex:1 1 30%;border:1px solid #000;padding:6px;"> <strong>Batch:</strong> {{ $batch->batch_name ?? '—' }}</div>
+                <div style="flex:1 1 30%;border:1px solid #000;padding:6px;"> <strong>Status:</strong> {{ $admission->status ?? 'active' }}</div>
             </div>
-        </div>
+    </div>
+    @endif
 
         <!-- Fee Details -->
-        <div class="mb-8">
-            <h3 class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b border-gray-300">FEE DETAILS</h3>
-            <div class="overflow-x-auto">
-                <table class="min-w-full border border-gray-300">
-                    <thead>
-                        <tr class="bg-gray-50">
-                            <th class="border border-gray-300 p-3 text-left font-bold text-sm">Description</th>
-                            <th class="border border-gray-300 p-3 text-right font-bold text-sm">Amount (₹)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="border border-gray-300 p-3">Gross Fee</td>
-                            <td class="border border-gray-300 p-3 text-right">
-                                {{ number_format($admission->total_fee ?? 0, 2) }}</td>
-                        </tr>
-                        <tr>
-                            <td class="border border-gray-300 p-3">Total Discount</td>
-                            <td class="border border-gray-300 p-3 text-right">
-                                {{ number_format($admission->discount ?? 0, 2) }}</td>
-                        </tr>
-                        <tr>
-                            <td class="border border-gray-300 p-3">Fee after Discount</td>
-                            <td class="border border-gray-300 p-3 text-right">
-                                {{ number_format(($admission->total_fee ?? 0) - ($admission->discount ?? 0), 2) }}</td>
-                        </tr>
-                        <tr>
-                            <td class="border border-gray-300 p-3">Tuition Fee</td>
-                            <td class="border border-gray-300 p-3 text-right">
-                                {{ number_format($admission->tuition_fee ?? 0, 2) }}</td>
-                        </tr>
-                        <tr>
-                            <td class="border border-gray-300 p-3">Others Fee</td>
-                            <td class="border border-gray-300 p-3 text-right">
-                                {{ number_format(($admission->total_fee ?? 0) - ($admission->tuition_fee ?? 0) - ($admission->discount ?? 0), 2) }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="border border-gray-300 p-3">Plan Amount</td>
-                            <td class="border border-gray-300 p-3 text-right">0.00</td>
-                        </tr>
-                        <tr>
-                            <td class="border border-gray-300 p-3">Late Fine</td>
-                            <td class="border border-gray-300 p-3 text-right">0.00</td>
-                        </tr>
-                        <tr>
-                            <td class="border border-gray-300 p-3">Taxable Fee</td>
-                            <td class="border border-gray-300 p-3 text-right">
-                                {{ number_format(($admission->total_fee ?? 0) - ($admission->discount ?? 0), 2) }}</td>
-                        </tr>
-                        <tr>
-                            <td class="border border-gray-300 p-3">Tax*</td>
-                            <td class="border border-gray-300 p-3 text-right text-blue-600">
-                                {{ number_format($tx->gst ?? 0, 2) }}</td>
-                        </tr>
-                        <tr class="bg-gray-100 font-bold">
-                            <td class="border border-gray-300 p-3">Total Payable Fee With Tax</td>
-                            <td class="border border-gray-300 p-3 text-right">
-                                {{ number_format(($admission->total_fee ?? 0) - ($admission->discount ?? 0) + ($tx->gst ?? 0), 2) }}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    @if($show_fee)
+    <div style="margin-bottom:12px">
+            <div style="font-size:13px;font-weight:700;border-bottom:1px solid #333;padding-bottom:6px;margin-bottom:8px">FEE DETAILS</div>
+            <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #000;">
+                <thead>
+                    <tr>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Description</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:right;background:#f5f5f5">Amount (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border:1px solid #000;padding:6px">Gross Fee</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($admission->total_fee ?? 0, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #000;padding:6px">Total Discount</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($admission->discount ?? 0, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #000;padding:6px">Fee after Discount</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format(($admission->total_fee ?? 0) - ($admission->discount ?? 0), 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #000;padding:6px">Tuition Fee</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($admission->tuition_fee ?? 0, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #000;padding:6px">Others Fee</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format(($admission->total_fee ?? 0) - ($admission->tuition_fee ?? 0) - ($admission->discount ?? 0), 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #000;padding:6px">Plan Amount</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">0.00</td>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #000;padding:6px">Late Fine</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">0.00</td>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #000;padding:6px">Taxable Fee</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format(($admission->total_fee ?? 0) - ($admission->discount ?? 0), 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #000;padding:6px">Tax*</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right;color:#000">{{ number_format($tx->gst ?? 0, 2) }}</td>
+                    </tr>
+                    <tr style="font-weight:700;background:#f5f5f5">
+                        <td style="border:1px solid #000;padding:6px">Total Payable Fee With Tax</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format(($admission->total_fee ?? 0) - ($admission->discount ?? 0) + ($tx->gst ?? 0), 2) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+    </div>
+    @endif
 
         <!-- Installment Details -->
-        <div class="mb-8">
-            <h3 class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b border-gray-300">INSTALLMENT DETAILS</h3>
-            <div class="overflow-x-auto">
-                <table class="min-w-full border border-gray-300">
-                    <thead>
-                        <tr class="bg-gray-50">
-                            <th class="border border-gray-300 p-3 text-left font-bold text-sm">Due Date</th>
-                            <th class="border border-gray-300 p-3 text-right font-bold text-sm">Instalment Amount</th>
-                            <th class="border border-gray-300 p-3 text-right font-bold text-sm">Paid Amount</th>
-                            <th class="border border-gray-300 p-3 text-right font-bold text-sm">Balance</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+    @if($show_installments)
+    <div style="margin-bottom:12px">
+            <div style="font-size:13px;font-weight:700;border-bottom:1px solid #333;padding-bottom:6px;margin-bottom:8px">INSTALLMENT DETAILS</div>
+            <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #000;">
+                <thead>
+                    <tr>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Due Date</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:right;background:#f5f5f5">Instalment Amount</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:right;background:#f5f5f5">Paid Amount</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:right;background:#f5f5f5">Balance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @php
+                        $totalInstalment = 0;
+                        $totalPaid = 0;
+                        $totalBalance = 0;
+                    @endphp
+                    @foreach ($admission->schedules ?? [] as $schedule)
                         @php
-                            $totalInstalment = 0;
-                            $totalPaid = 0;
-                            $totalBalance = 0;
-                        @endphp
-                        @foreach ($admission->schedules ?? [] as $schedule)
-                            @php
-                                $instalmentAmount = (float) $schedule->amount;
-                                $paidAmount = (float) $schedule->paid_amount;
-                                $balance = max(0, $instalmentAmount - $paidAmount);
+                            $instalmentAmount = (float) $schedule->amount;
+                            $paidAmount = (float) $schedule->paid_amount;
+                            $balance = max(0, $instalmentAmount - $paidAmount);
 
-                                $totalInstalment += $instalmentAmount;
-                                $totalPaid += $paidAmount;
-                                $totalBalance += $balance;
-                            @endphp
-                            <tr>
-                                <td class="border border-gray-300 p-3">
-                                    {{ $schedule->due_date?->format('d-M-Y') ?? '—' }}</td>
-                                <td class="border border-gray-300 p-3 text-right">
-                                    {{ number_format($instalmentAmount, 2) }}</td>
-                                <td class="border border-gray-300 p-3 text-right">{{ number_format($paidAmount, 2) }}
-                                </td>
-                                <td
-                                    class="border border-gray-300 p-3 text-right {{ $balance > 0 ? 'text-red-600' : 'text-green-600' }}">
-                                    {{ $balance > 0 ? number_format($balance, 2) : '0.00' }}
-                                </td>
-                            </tr>
-                        @endforeach
-                        <tr class="bg-gray-100 font-bold">
-                            <td class="border border-gray-300 p-3"><strong>Total</strong></td>
-                            <td class="border border-gray-300 p-3 text-right">
-                                <strong>{{ number_format($totalInstalment, 2) }}</strong></td>
-                            <td class="border border-gray-300 p-3 text-right">
-                                <strong>{{ number_format($totalPaid, 2) }}</strong></td>
-                            <td class="border border-gray-300 p-3 text-right bg-red-50 text-red-600">
-                                <strong>{{ number_format($totalBalance, 2) }}</strong></td>
+                            $totalInstalment += $instalmentAmount;
+                            $totalPaid += $paidAmount;
+                            $totalBalance += $balance;
+                        @endphp
+                        <tr>
+                            <td style="border:1px solid #000;padding:6px">{{ $schedule->due_date?->format('d-M-Y') ?? '—' }}</td>
+                            <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($instalmentAmount, 2) }}</td>
+                            <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($paidAmount, 2) }}</td>
+                            <td style="border:1px solid #000;padding:6px;text-align:right;color:{{ $balance > 0 ? '#b91c1c' : '#046c4e' }}">{{ $balance > 0 ? number_format($balance, 2) : '0.00' }}</td>
                         </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                    @endforeach
+                    <tr style="font-weight:700;background:#f5f5f5">
+                        <td style="border:1px solid #000;padding:6px">Total</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($totalInstalment, 2) }}</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($totalPaid, 2) }}</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right;color:#b91c1c">{{ number_format($totalBalance, 2) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+    </div>
+    @endif
 
         <!-- Transaction Details -->
-        <div class="mb-8">
-            <h3 class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b border-gray-300">TRANSACTION DETAILS</h3>
-            <div class="overflow-x-auto">
-                <table class="min-w-full border border-gray-300">
-                    <thead>
-                        <tr class="bg-gray-50">
-                            <th class="border border-gray-300 p-3 text-left font-bold text-sm">Date</th>
-                            <th class="border border-gray-300 p-3 text-right font-bold text-sm">Amount Paid</th>
-                            <th class="border border-gray-300 p-3 text-left font-bold text-sm">Inst Due date</th>
-                            <th class="border border-gray-300 p-3 text-left font-bold text-sm">Receipt No.</th>
-                            <th class="border border-gray-300 p-3 text-left font-bold text-sm">Mode</th>
-                            <th class="border border-gray-300 p-3 text-left font-bold text-sm">Details</th>
-                            <th class="border border-gray-300 p-3 text-left font-bold text-sm">Comment</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+    @if($show_transactions)
+    <div style="margin-bottom:12px">
+            <div style="font-size:13px;font-weight:700;border-bottom:1px solid #333;padding-bottom:6px;margin-bottom:8px">TRANSACTION DETAILS</div>
+            <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #000;">
+                <thead>
+                    <tr>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Date</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:right;background:#f5f5f5">Amount Paid</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Inst Due date</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Receipt No.</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Mode</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Details</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Comment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @php
+                        $totalPaid = 0;
+                    @endphp
+                    @foreach ($admission->transactions ?? [] as $transaction)
                         @php
-                            $totalPaid = 0;
+                            $totalPaid += (float) $transaction->amount;
                         @endphp
-                        @foreach ($admission->transactions ?? [] as $transaction)
-                            @php
-                                $totalPaid += (float) $transaction->amount;
-                            @endphp
-                            <tr>
-                                <td class="border border-gray-300 p-3">
-                                    {{ $transaction->date?->format('d-M-Y') ?? '—' }}</td>
-                                <td class="border border-gray-300 p-3 text-right">
-                                    {{ number_format($transaction->amount, 2) }}</td>
-                                <td class="border border-gray-300 p-3">
-                                    {{ $transaction->schedule?->due_date?->format('d-M-Y') ?? '—' }}</td>
-                                <td class="border border-gray-300 p-3">{{ $transaction->receipt_number ?? '—' }}</td>
-                                <td class="border border-gray-300 p-3">{{ strtoupper($transaction->mode ?? '—') }}
-                                </td>
-                                <td class="border border-gray-300 p-3">
-                                    @if ($transaction->mode === 'cheque')
-                                        CHQ NO: {{ $transaction->reference_no ?? '—' }} DT:
-                                        {{ $transaction->date?->format('Y-m-d') ?? '—' }}
-                                    @elseif($transaction->mode === 'online')
-                                        UTR {{ $transaction->reference_no ?? '—' }}
-                                    @else
-                                        —
-                                    @endif
-                                </td>
-                                <td class="border border-gray-300 p-3">{{ strtoupper($transaction->mode ?? '—') }}
-                                </td>
-                            </tr>
-                        @endforeach
-                        <tr class="bg-gray-100 font-bold">
-                            <td class="border border-gray-300 p-3"><strong>Total</strong></td>
-                            <td class="border border-gray-300 p-3 text-right">
-                                <strong>{{ number_format($totalPaid, 2) }}</strong></td>
-                            <td class="border border-gray-300 p-3" colspan="5"></td>
+                        <tr>
+                            <td style="border:1px solid #000;padding:6px">{{ $transaction->date?->format('d-M-Y') ?? '—' }}</td>
+                            <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($transaction->amount, 2) }}</td>
+                            <td style="border:1px solid #000;padding:6px">{{ $transaction->schedule?->due_date?->format('d-M-Y') ?? '—' }}</td>
+                            <td style="border:1px solid #000;padding:6px">{{ $transaction->receipt_number ?? '—' }}</td>
+                            <td style="border:1px solid #000;padding:6px">{{ strtoupper($transaction->mode ?? '—') }}</td>
+                            <td style="border:1px solid #000;padding:6px">
+                                @if ($transaction->mode === 'cheque')
+                                    CHQ NO: {{ $transaction->reference_no ?? '—' }} DT: {{ $transaction->date?->format('Y-m-d') ?? '—' }}
+                                @elseif($transaction->mode === 'online')
+                                    UTR {{ $transaction->reference_no ?? '—' }}
+                                @else
+                                    —
+                                @endif
+                            </td>
+                            <td style="border:1px solid #000;padding:6px">{{ strtoupper($transaction->mode ?? '—') }}</td>
                         </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                    @endforeach
+                    <tr style="font-weight:700;background:#f5f5f5">
+                        <td style="border:1px solid #000;padding:6px">Total</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($totalPaid, 2) }}</td>
+                        <td style="border:1px solid #000;padding:6px" colspan="5"></td>
+                    </tr>
+                </tbody>
+            </table>
+    </div>
+    @endif
 
         <!-- Other Transaction Details -->
-        <div class="mb-8">
-            <h3 class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b border-gray-300">OTHER TRANSACTION DETAILS
-            </h3>
-            <div class="overflow-x-auto">
-                <table class="min-w-full border border-gray-300">
-                    <thead>
-                        <tr class="bg-gray-50">
-                            <th class="border border-gray-300 p-3 text-left font-bold text-sm">Date</th>
-                            <th class="border border-gray-300 p-3 text-left font-bold text-sm">Receipt No.</th>
-                            <th class="border border-gray-300 p-3 text-right font-bold text-sm">Amount Paid</th>
-                            <th class="border border-gray-300 p-3 text-left font-bold text-sm">Received In</th>
-                            <th class="border border-gray-300 p-3 text-left font-bold text-sm">For</th>
-                            <th class="border border-gray-300 p-3 text-left font-bold text-sm">Details</th>
-                            <th class="border border-gray-300 p-3 text-left font-bold text-sm">Comment</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="border border-gray-300 p-3 text-center text-gray-500" colspan="7">No
-                                additional transactions</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    @if($show_other)
+    <div style="margin-bottom:12px">
+            <div style="font-size:13px;font-weight:700;border-bottom:1px solid #333;padding-bottom:6px;margin-bottom:8px">OTHER TRANSACTION DETAILS</div>
+            <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #000;">
+                <thead>
+                    <tr>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Date</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Receipt No.</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:right;background:#f5f5f5">Amount Paid</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Received In</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">For</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Details</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Comment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border:1px solid #000;padding:6px;text-align:center;color:#666" colspan="7">No additional transactions</td>
+                    </tr>
+                </tbody>
+            </table>
+    </div>
+    @endif
 
         <!-- Terms & Conditions -->
-        <div class="mt-8">
-            <h3 class="text-lg font-bold text-gray-800 mb-3">TERMS & CONDITIONS:</h3>
-            <ol class="list-decimal list-inside text-sm text-gray-600 space-y-2">
+    @if($show_terms)
+    <div style="margin-top:12px">
+            <div style="font-size:13px;font-weight:700;margin-bottom:6px">TERMS & CONDITIONS:</div>
+            <ol style="font-size:11px;color:#333;margin:0 0 8px 18px;line-height:1.3">
                 <li>Tax will be charged as per applicable rate of payment date.</li>
                 <li>Cheque/Draft is subject to Realization.</li>
-                <li>In case of cheque dishonor, bank charges of Rs. 500 and late fine (upto Rs. 50/day) will be charged.
-                </li>
+                <li>In case of cheque dishonor, bank charges of Rs. 500 and late fine (upto Rs. 50/day) will be charged.</li>
                 <li>Fee once paid will not be refunded/adjusted at any stage, under any circumstance.</li>
                 <li>Subject to Patna Jurisdiction.</li>
             </ol>
-        </div>
+    </div>
+    @endif
 
         <!-- Print Button -->
-        <div class="mt-8 text-center no-print">
-            <button onclick="window.print()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                Print Receipt
-            </button>
-            <a href="{{ route('admin.payments.index') }}"
-                class="ml-4 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-                Back to Payments
-            </a>
+        <div class="mt-8 text-center no-print" style="margin-top:12px;text-align:center">
+            <button onclick="window.print()" style="padding:8px 14px;background:#000;color:#fff;border:none;cursor:pointer">Print Receipt</button>
+            <a href="{{ route('admin.payments.index') }}" style="margin-left:8px;padding:8px 14px;background:#666;color:#fff;text-decoration:none;">Back to Payments</a>
         </div>
     </div>
 
     <style>
+        /* Print friendly compact styles */
         @media print {
-            .no-print {
-                display: none;
-            }
+            .no-print { display: none !important; }
+            body { margin: 0; padding: 10px; }
+            img { max-width: 100%; }
+            a { color: #000; text-decoration: none; }
+        }
 
-            body {
-                margin: 0;
-                padding: 20px;
-            }
-
-            .max-w-4xl {
-                max-width: none;
-            }
+        /* Reduce default margins on small screens */
+        @media screen and (max-width:900px) {
+            .max-w-4xl { padding: 8px; }
         }
     </style>
 

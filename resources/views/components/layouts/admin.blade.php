@@ -51,6 +51,28 @@
             border-right: 3px solid #fef0e6;
         }
     </style>
+    <style>
+        /* Print rules: hide admin chrome and show only printable receipt */
+        @media print {
+            /* Hide everything by default */
+            body * { visibility: hidden !important; }
+
+            /* Show only elements explicitly marked as printable */
+            .receipt-printable, .receipt-printable * { visibility: visible !important; }
+
+            /* Position printable content at the top-left */
+            .receipt-printable { position: absolute !important; left: 0; top: 0; width: 100% !important; }
+
+            /* Remove any shadows/borders that affect print clarity */
+            .shadow-sm, .shadow { box-shadow: none !important; }
+
+            /* Avoid page overflow from fixed sidebar or header */
+            aside, header, nav, .no-print { display: none !important; }
+        }
+
+        /* Utility to force page breaks when printing long receipts */
+        .page-break { page-break-after: always; }
+    </style>
 </head>
 <body class="antialiased bg-gray-50">
     <div class="min-h-screen flex">

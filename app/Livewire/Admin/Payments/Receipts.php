@@ -14,6 +14,14 @@ class Receipts extends Component
 {
      public Transaction $transaction;
 
+    // Section selection toggles (show/hide for print)
+    public bool $show_account = true;
+    public bool $show_fee = true;
+    public bool $show_installments = true;
+    public bool $show_transactions = true;
+    public bool $show_other = true;
+    public bool $show_terms = true;
+
     // Email modal state
     public bool $showEmailModal = false;
     public string $email = '';
@@ -23,6 +31,13 @@ class Receipts extends Component
         // Eager load related data for the view
         $transaction->load(['admission.student', 'admission.batch', 'schedule']);
         $this->transaction = $transaction;
+        // Initialize section toggles (defaults can be adjusted)
+        $this->show_account = true;
+        $this->show_fee = true;
+        $this->show_installments = true;
+        $this->show_transactions = true;
+        $this->show_other = true;
+        $this->show_terms = true;
     }
 
     public function openEmailModal()
@@ -83,8 +98,8 @@ class Receipts extends Component
 
     public function render()
     {
-        // The on-screen view (Tailwind styled + print CSS)
-        return view('livewire.admin.payments.receipts', [
+        // If the request sets ?minimal=1 we render using a minimal print layout
+        $data = [
             'tx' => $this->transaction,
             'org' => [
                 'name'    => 'Antra Institutions',
@@ -92,6 +107,26 @@ class Receipts extends Component
                 'contact' => '615112123',
                 'address' => 'abcd',
             ],
-        ]);
+        ];
+
+        if (request()->query('minimal') == '1') {
+            // Render the receipt into the minimal print layout by injecting the rendered view as the slot content.
+            $html = view('livewire.admin.payments.receipts', $data)->render();
+            return view('components.layouts.print', array_merge($data, ['slot' => $html]));
+        }
+
+        // Default admin layout (interactive)
+        return view('livewire.admin.payments.receipts', $data);
+    }
+
+    // Helper actions bound to UI buttons
+    public function selectAll()
+    {
+        $this->show_account = $this->show_fee = $this->show_installments = $this->show_transactions = $this->show_other = $this->show_terms = true;
+    }
+
+    public function selectNone()
+    {
+        $this->show_account = $this->show_fee = $this->show_installments = $this->show_transactions = $this->show_other = $this->show_terms = false;
     }
 }
