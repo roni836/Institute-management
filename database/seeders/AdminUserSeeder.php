@@ -14,6 +14,7 @@ class AdminUserSeeder extends Seeder
             'name' => 'Admin User',
             'email' => 'admin@antra.com',
             'password' => Hash::make('admin123'),
+            'role' => 'admin',
             'is_admin' => true,
             'email_verified_at' => now(),
         ]);

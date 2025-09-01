@@ -13,15 +13,18 @@ class Edit extends Component
     public $duration_months;
     public $gross_fee;
     public $discount;
+    public $status;
     public $course;
-    public function mount(Course $course)
+
+    public function mount(Course $id)
     {
-        $this->course          = $course;
-        $this->name            = $course->name;
-        $this->batch_code      = $course->batch_code;
-        $this->duration_months = $course->duration_months;
-        $this->gross_fee       = $course->gross_fee;
-        $this->discount        = $course->discount;
+        $this->course          = $id;
+        $this->name            = $id->name;
+        $this->batch_code      = $id->batch_code;
+        $this->duration_months = $id->duration_months;
+        $this->gross_fee       = $id->gross_fee;
+        $this->discount        = $id->discount;
+        $this->status          = $id->status;
     }
 
     public function rules()
@@ -31,7 +34,8 @@ class Edit extends Component
             'batch_code'      => 'nullable|string|max:255',
             'duration_months' => 'nullable|integer|min:1|max:120',
             'gross_fee'       => 'required|numeric|min:0',
-            'discount'        => 'nullable|numeric|min:0',
+            'discount'        => 'nullable|numeric|min:0|max:' . $this->gross_fee,
+            'status'          => 'required|in:Active,Upcoming',
         ];
     }
 

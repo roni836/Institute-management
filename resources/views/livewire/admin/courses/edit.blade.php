@@ -18,13 +18,21 @@
                 @error('duration_months')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
             </div>
             <div>
+                <label class="text-xs">Status</label>
+                <select class="w-full border rounded p-2" wire:model="status">
+                    <option value="Active">Active</option>
+                    <option value="Upcoming">Upcoming</option>
+                </select>
+                @error('status')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-3">
+            <div>
                 <label class="text-xs">Gross Fee (₹)</label>
                 <input type="number" step="0.01" min="0" class="w-full border rounded p-2" wire:model="gross_fee">
                 @error('gross_fee')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
             </div>
-        </div>
-
-        <div class="grid md:grid-cols-3 gap-3 items-end">
             <div>
                 <label class="text-xs">Discount (₹)</label>
                 <input type="number" step="0.01" min="0" class="w-full border rounded p-2" wire:model="discount">
@@ -33,7 +41,7 @@
             <div>
                 <label class="text-xs">Net Fee</label>
                 <input type="text" readonly class="w-full border rounded p-2 bg-gray-50"
-                       value="₹{{ number_format((float)($course->gross_fee ?? 0) - (float)($course->discount ?? 0), 2) }}">
+                       value="₹{{ number_format((float)($gross_fee ?? 0) - (float)($discount ?? 0), 2) }}">
             </div>
         </div>
 
