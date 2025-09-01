@@ -20,6 +20,7 @@ use App\Livewire\Admin\Payments\Index as PaymentsIndex;
 use App\Livewire\Admin\Payments\Receipts as PaymentReceipt;
 use App\Livewire\Admin\Students\Index as StudentsIndex;
 use App\Livewire\Admin\Students\StudentProfile;
+use App\Livewire\Admin\Students\Edit as StudentEdit;
 use App\Livewire\Admin\Teachers\Create as TeachersCreate;
 use App\Livewire\Admin\Teachers\Index as TeachersIndex;
 use App\Livewire\Auth\AdminPinLogin;
@@ -73,6 +74,7 @@ Route::get('/teachers/create', TeachersCreate::class)->name('admin.teachers.crea
 
 //students
 Route::get('/students/{id}', StudentProfile::class)->name('student.profile');
+Route::get('/students/{id}/edit', StudentEdit::class)->name('student.edit');
 
 //Exams
 Route::get('/exams', Index::class)->name('admin.exams.index');
