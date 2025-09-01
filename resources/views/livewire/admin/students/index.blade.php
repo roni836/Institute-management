@@ -10,15 +10,15 @@
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <x-stat-card title="Total Students" :value="$stats['total']" icon="users" color="orange"/>
-        <x-stat-card title="Active Students" :value="$stats['active']" icon="user-check" color="green"/>
-        <x-stat-card title="Completed" :value="$stats['completed']" icon="user-graduate" color="blue"/>
-        <x-stat-card title="This Month" :value="$stats['thisMonth']" icon="calendar" color="orange"/>
+        <x-stat-card title="Total Students" :value="$stats['total']" icon="users" color="orange" />
+        <x-stat-card title="Active Students" :value="$stats['active']" icon="user-check" color="green" />
+        <x-stat-card title="Completed" :value="$stats['completed']" icon="user-graduate" color="blue" />
+        <x-stat-card title="This Month" :value="$stats['thisMonth']" icon="calendar" color="orange" />
     </div>
 
     <div class="mb-3 grid md:grid-cols-4 gap-2">
-        <input type="text" placeholder="Search name/email/phone" class="input input-bordered w-full border rounded-lg p-2"
-               wire:model.debounce.400ms="q">
+        <input type="text" placeholder="Search name/email/phone"
+            class="input input-bordered w-full border rounded-lg p-2" wire:model.debounce.400ms="q">
 
         <select class="border rounded-lg p-2" wire:model="status">
             <option value="">All Status</option>
@@ -29,7 +29,7 @@
 
         <select class="border rounded-lg p-2" wire:model="batchId">
             <option value="">All Batches</option>
-            @foreach($batches as $b)
+            @foreach ($batches as $b)
                 <option value="{{ $b->id }}">{{ $b->name }}</option>
             @endforeach
         </select>
@@ -43,27 +43,39 @@
         <table class="min-w-full text-sm">
             <thead class="bg-gray-50">
                 <tr>
+                    <th class="text-left p-3">S.no</th>
                     <th class="text-left p-3">Name</th>
+                    <th class="text-left p-3">Entrollement Id</th>
+                    <th class="text-left p-3">Roll No.</th>
                     <th class="text-left p-3">Email / Phone</th>
-                    <th class="text-left p-3">Status</th>
-                    <th class="text-right p-3">Actions</th>
+                    {{-- <th class="text-left p-3">Status</th> --}}
+                    <th class=" p-3">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse($students as $s)
+                @forelse($students as $i=>$s)
                     <tr class="border-t">
+                        <td class="p-3">{{ $i + 1 }}.</td>
                         <td class="p-3">{{ $s->name }}</td>
+                        <td class="p-3">{{ $s->student_uid }}</td>
+                        <td class="p-3">{{ $s->roll_no }}</td>
                         <td class="p-3">{{ $s->email ?? '—' }}<br>{{ $s->phone ?? '—' }}</td>
-                        <td class="p-3">{{ ucfirst($s->status) }}</td>
-                        <td class="p-3">
-                            <a href="{{ route('student.profile', $s->id) }}" 
-                            class="text-blue-600 hover:underline">
-                            View
+                        {{-- <td class="p-3">{{ ucfirst($s->status) }}</td> --}}
+                        <td class=" text-center p-3 space-x-2">
+                            <a href="{{ route('student.profile', $s->id) }}"
+                                class="text-green-600  bg-green-50 hover:bg-green-100 px-2 py-1 rounded">
+                                Edit
+                            </a>
+                            <a href="{{ route('student.edit', $s->id) }}"
+                                class="text-blue-600  bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded">
+                                View
                             </a>
                         </td>
                     </tr>
                 @empty
-                    <tr><td class="p-3" colspan="4">No students found.</td></tr>
+                    <tr>
+                        <td class="p-3" colspan="4">No students found.</td>
+                    </tr>
                 @endforelse
             </tbody>
         </table>
