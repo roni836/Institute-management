@@ -65,14 +65,14 @@
                                         Total Marks
                                     </div>
                                 </th>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                           {{--     <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     <div class="flex items-center">
                                         <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                                         </svg>
                                         Subject-wise Marks
                                     </div>
-                                </th>
+                                </th> --}}
                                 <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
@@ -97,13 +97,13 @@
                                         <div class="text-sm text-gray-600">{{ $s['student']->email }}</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center">
+                                        <div class="flex items-center"> 
                                             <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-primary-50 text-primary-800">
                                                 {{ $s['total_marks'] }}
                                             </span>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4">
+                                 {{--   <td class="px-6 py-4">
                                         <div class="max-w-xs">
                                             @if(count($s['marks']) > 0)
                                                 <div class="space-y-1">
@@ -118,7 +118,7 @@
                                                 <span class="text-xs text-gray-400 italic">No marks recorded</span>
                                             @endif
                                         </div>
-                                    </td>
+                                    </td> --}}
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <div class="flex flex-col space-y-2">
                                     <a href="{{route('admin.exams.marking', ['exam_id' => $exam->id, 'student_id' => $s['student']->id])}}"
