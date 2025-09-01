@@ -89,29 +89,39 @@ Route::middleware(['auth','admin'])->group(function () {
         Route::get('/admin/exams/marking/{exam_id}/{student_id}', MarksForm::class)->name('admin.exams.marking');
         Route::get('/admin/exams/{exam_id}/student/{student_id}/details', MarksDetail::class)->name('admin.exams.student.details');
 
+        //pin setup
+        Route::get('/admin/pin', AdminPinLogin::class)->name('admin.pin'); // shown if device is recognized
+        Route::get('/admin/set-pin', SetPinForDevice::class)->name('admin.setpin'); // after first password login
+        Route::post('/admin/logout', function () {
+            // Clear the device cookie when logging out
+            cookie()->queue(cookie()->forget('adm_dev'));
+            \Illuminate\Support\Facades\Auth::logout();
+            return redirect()->route('admin.login');
+        })->name('admin.logout');
+
 });
 // Auth
 // Route::get('/login', Login::class)->name('login');
 // Route::get('/login', Login::class)->name('logout');
 // Route::get('/register', Register::class)->name('register');
 
-Route::middleware('guest')->group(function () {
-    // Route::get('/admin/login', Login::class)->name('admin.login');
-    Route::get('/admin/pin', AdminPinLogin::class)->name('admin.pin'); // shown if device is recognized
-});
+// Route::middleware('guest')->group(function () {
+//     // Route::get('/admin/login', Login::class)->name('admin.login');
+//     Route::get('/admin/pin', AdminPinLogin::class)->name('admin.pin'); // shown if device is recognized
+// });
 
-Route::middleware('auth')->group(function () {
-    Route::get('/admin/set-pin', SetPinForDevice::class)->name('admin.setpin'); // after first password login
-    Route::post('/admin/logout', function () {
-        // Clear the device cookie when logging out
-        cookie()->queue(cookie()->forget('adm_dev'));
-        \Illuminate\Support\Facades\Auth::logout();
-        return redirect()->route('admin.login');
-    })->name('admin.logout');
+// Route::middleware('auth')->group(function () {
+//     Route::get('/admin/set-pin', SetPinForDevice::class)->name('admin.setpin'); // after first password login
+//     Route::post('/admin/logout', function () {
+//         // Clear the device cookie when logging out
+//         cookie()->queue(cookie()->forget('adm_dev'));
+//         \Illuminate\Support\Facades\Auth::logout();
+//         return redirect()->route('admin.login');
+//     })->name('admin.logout');
 
-    // Test email route (remove in production)
+//     // Test email route (remove in production)
 
-});
+// });
 
 Route::get('/test-email', function () {
     $admission = App\Models\Admission::with(['student', 'batch.course'])->first();
