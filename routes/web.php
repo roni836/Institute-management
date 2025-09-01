@@ -94,7 +94,7 @@ Route::middleware(['auth','admin'])->group(function () {
         Route::get('/admin/set-pin', SetPinForDevice::class)->name('admin.setpin'); // after first password login
         Route::post('/admin/logout', function () {
             // Clear the device cookie when logging out
-            cookie()->queue(cookie()->forget('adm_dev'));
+            // cookie()->queue(cookie()->forget('adm_dev'));
             \Illuminate\Support\Facades\Auth::logout();
             return redirect()->route('login');
         })->name('admin.logout');
