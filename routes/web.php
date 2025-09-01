@@ -12,6 +12,7 @@ use App\Livewire\Admin\Exams\Edit;
 use App\Livewire\Admin\Exams\Index;
 use App\Livewire\Admin\Exams\Show;
 use App\Livewire\Admin\Exams\Student\Create;
+use App\Livewire\Admin\Exams\Student\MarksDetail;
 use App\Livewire\Admin\Exams\Student\MarksForm;
 use App\Livewire\Admin\Payments\Create as PaymentsCreate;
 use App\Livewire\Admin\Payments\DuePayments;
@@ -80,6 +81,7 @@ Route::get('/admin/exams/{exam_id}/students/create', Create::class)->name('admin
 Route::get('/admin/exams/create', ExamsCreate::class)->name('admin.exams.create');
 Route::get('/admin/exams/{exam}/edit', Edit::class)->name('admin.exams.edit');
 Route::get('/admin/exams/marking/{exam_id}/{student_id}', MarksForm::class)->name('admin.exams.marking');
+Route::get('/admin/exams/{exam_id}/student/{student_id}/details', MarksDetail::class)->name('admin.exams.student.details');
 // Auth
 Route::get('/login', Login::class)->name('login');
 // Route::get('/login', Login::class)->name('logout');
