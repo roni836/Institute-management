@@ -36,7 +36,7 @@ Route::get('/', Login::class)->name('login');
 
 Route::middleware(['auth','admin'])->group(function () {
         // Admin Dashboard
-        Route::get('/admin/dashbard', Dashboard::class)->name('admin.dashboard');
+        Route::get('/admin/dashboard', Dashboard::class)->name('admin.dashboard');
         // Students
         Route::get('/students', StudentsIndex::class)->name('admin.students.index');
 
