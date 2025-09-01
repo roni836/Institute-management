@@ -53,9 +53,18 @@
             @error('expertise') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
         </div>
 
-        <div class="flex items-center gap-2">
-            <input id="apw" type="checkbox" wire:model="autoPassword" class="rounded">
-            <label for="apw" class="text-sm">Auto-generate password</label>
+        <div class="border rounded p-4 bg-gray-50">
+            <div class="flex items-center gap-2 mb-2">
+                <input id="apw" type="checkbox" wire:model.live="autoPassword" class="rounded">
+                <label for="apw" class="text-sm font-medium">Auto-generate password</label>
+            </div>
+            <p class="text-xs text-gray-600">
+                @if($autoPassword)
+                    ✓ A secure password will be automatically generated and sent to the teacher's email address.
+                @else
+                    ✓ You can manually set a password for the teacher account.
+                @endif
+            </p>
         </div>
 
         @unless($autoPassword)
@@ -73,8 +82,11 @@
         @endunless
 
         <div class="flex items-center gap-3">
-            <a href="{{ route('admin.teachers.index') }}" class="px-4 py-2 border rounded">Cancel</a>
-            <button class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+            <a href="{{ route('admin.teachers.index') }}" class="px-4 py-2 border rounded hover:bg-gray-50 transition-colors">Cancel</a>
+            <button type="submit" wire:loading.attr="disabled" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                <span wire:loading.remove>Save Teacher</span>
+                <span wire:loading>Creating...</span>
+            </button>
         </div>
     </form>
 </div>

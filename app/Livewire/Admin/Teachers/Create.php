@@ -1,8 +1,10 @@
 <?php
 namespace App\Livewire\Admin\Teachers;
 
+use App\Mail\TeacherPasswordMail;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -27,7 +29,7 @@ class Create extends Component
     {
         $rules = [
             'name'         => ['required', 'string', 'max:120'],
-            'email'        => ['required', 'email', Rule::unique('users', 'email')],
+            'email'        => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
             'autoPassword' => ['boolean'],
             'phone'        => ['nullable', 'string', 'max:20'],
             'address'      => ['nullable', 'string', 'max:500'],
@@ -58,14 +60,42 @@ class Create extends Component
         // If you're using Spatie roles instead of a 'role' column, use:
         // if (method_exists($user, 'assignRole')) { $user->assignRole('Teacher'); }
 
+        // Send email if auto-password is enabled
+        if ($this->autoPassword) {
+            try {
+                Mail::to($user->email)->send(new TeacherPasswordMail($user, $plain));
+                $emailMessage = ' and password has been sent to their email';
+            } catch (\Exception $e) {
+                $emailMessage = ' but there was an issue sending the email. Password: ' . $plain;
+            }
+        } else {
+            $emailMessage = '';
+        }
+
         $this->generatedPassword = $this->autoPassword ? $plain : null;
 
         session()->flash(
             'success',
-            'Teacher created successfully' . ($this->generatedPassword ? " (password: {$this->generatedPassword})" : '')
+            'Teacher created successfully' . $emailMessage
         );
 
         return redirect()->route('admin.teachers.index');
+    }
+
+    public function resetForm()
+    {
+        $this->reset([
+            'name', 'email', 'phone', 'address', 'expertise',
+            'autoPassword', 'password', 'password_confirmation', 'generatedPassword'
+        ]);
+    }
+
+    public function updatedAutoPassword()
+    {
+        if ($this->autoPassword) {
+            $this->password = null;
+            $this->password_confirmation = null;
+        }
     }
 
     public function render()
