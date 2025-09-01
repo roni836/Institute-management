@@ -27,16 +27,16 @@ class Login extends Component
         }
 
         // Check if there's a recognized device with PIN
-        $publicId = request()->cookie('adm_dev');
-        if ($publicId) {
-            $device = Device::where('public_id', $publicId)->first();
+        // $publicId = request()->cookie('adm_dev');
+        // if ($publicId) {
+        //     $device = Device::where('public_id', $publicId)->first();
             
-            // If device exists and has PIN, redirect to pin page
-            if ($device && $device->hasPin()) {
-                Log::info('Recognized device with PIN found, redirecting to pin page');
-                return $this->redirect(route('admin.pin'));
-            }
-        }
+        //     // If device exists and has PIN, redirect to pin page
+        //     if ($device && $device->hasPin()) {
+        //         Log::info('Recognized device with PIN found, redirecting to pin page');
+        //         return $this->redirect(route('admin.pin'));
+        //     }
+        // }
     }
 
     public function login()
@@ -45,76 +45,86 @@ class Login extends Component
 
         if (Auth::attempt(['email' => $this->email, 'password' => $this->password])) {
             $user = Auth::user();
-            
-            // Debug logging
-            Log::info('Login successful for user: ' . $user->email);
 
-            // Resolve device cookie if present
-            $publicId = request()->cookie('adm_dev');
-            $device = $publicId
-                ? Device::where('public_id', $publicId)->where('user_id', $user->id)->first()
-                : null;
-
-            if (!$device) {
-                // First successful login on this browser: create device row without PIN
-                $device = Device::create([
-                    'user_id'      => $user->id,
-                    'public_id'    => Str::random(60),
-                    'name'         => $this->guessDeviceName(),
-                    'user_agent'   => request()->userAgent(),
-                    'ip'           => request()->ip(),
-                    'last_used_at' => now(),
-                ]);
-                
-                Log::info('New device created: ' . $device->name . ' with ID: ' . $device->public_id);
+             if ($user->role === 'admin') {
+            return $this->redirect(route('admin.dashboard'));
+            } elseif ($user->role === 'teacher') {
+                return $this->redirect(route('teacher.dashboard'));
             } else {
-                $device->update(['last_used_at' => now()]);
-                Log::info('Existing device found: ' . $device->name);
+                // Logout immediately if role not allowed
+                Auth::logout();
+                $this->addError('email', 'You are not authorized to login.');
+                return;
             }
+            // Debug logging
+            // Log::info('Login successful for user: ' . $user->email);
 
-            // Set/update the device cookie for this browser
-            Cookie::queue('adm_dev', $device->public_id, 60 * 24 * 365); // 1 year
+            // // Resolve device cookie if present
+            // $publicId = request()->cookie('adm_dev');
+            // $device = $publicId
+            //     ? Device::where('public_id', $publicId)->where('user_id', $user->id)->first()
+            //     : null;
 
-            // If PIN already set, go straight to dashboard
-            if ($device->hasPin()) {
-                Log::info('Device has PIN, redirecting to dashboard');
-                return $this->redirect(route('admin.dashboard'));
-            }
+            // if (!$device) {
+            //     // First successful login on this browser: create device row without PIN
+            //     $device = Device::create([
+            //         'user_id'      => $user->id,
+            //         'public_id'    => Str::random(60),
+            //         'name'         => $this->guessDeviceName(),
+            //         'user_agent'   => request()->userAgent(),
+            //         'ip'           => request()->ip(),
+            //         'last_used_at' => now(),
+            //     ]);
+                
+            //     Log::info('New device created: ' . $device->name . ' with ID: ' . $device->public_id);
+            // } else {
+            //     $device->update(['last_used_at' => now()]);
+            //     Log::info('Existing device found: ' . $device->name);
+            // }
 
-            // Otherwise, force PIN setup once
-            Log::info('Device needs PIN setup, redirecting to setpin');
-            return $this->redirect(route('admin.setpin'));
+            // // Set/update the device cookie for this browser
+            // Cookie::queue('adm_dev', $device->public_id, 60 * 24 * 365); // 1 year
+
+            // // If PIN already set, go straight to dashboard
+            // if ($device->hasPin()) {
+            //     Log::info('Device has PIN, redirecting to dashboard');
+            //     return $this->redirect(route('admin.dashboard'));
+            // }
+
+            // // Otherwise, force PIN setup once
+            // Log::info('Device needs PIN setup, redirecting to setpin');
+            // return $this->redirect(route('admin.setpin'));
         }
 
         // If login fails
         $this->addError('email', 'Invalid credentials.');
     }
 
-    private function guessDeviceName(): string
-    {
-        $ua = request()->userAgent() ?? '';
-        if (str_contains($ua, 'Windows')) {
-            return 'Windows';
-        }
+    // private function guessDeviceName(): string
+    // {
+    //     $ua = request()->userAgent() ?? '';
+    //     if (str_contains($ua, 'Windows')) {
+    //         return 'Windows';
+    //     }
 
-        if (str_contains($ua, 'Macintosh')) {
-            return 'macOS';
-        }
+    //     if (str_contains($ua, 'Macintosh')) {
+    //         return 'macOS';
+    //     }
 
-        if (str_contains($ua, 'Linux')) {
-            return 'Linux';
-        }
+    //     if (str_contains($ua, 'Linux')) {
+    //         return 'Linux';
+    //     }
 
-        if (str_contains($ua, 'Android')) {
-            return 'Android';
-        }
+    //     if (str_contains($ua, 'Android')) {
+    //         return 'Android';
+    //     }
 
-        if (str_contains($ua, 'iPhone')) {
-            return 'iPhone';
-        }
+    //     if (str_contains($ua, 'iPhone')) {
+    //         return 'iPhone';
+    //     }
 
-        return 'Unknown Device';
-    }
+    //     return 'Unknown Device';
+    // }
 
     public function render()
     {

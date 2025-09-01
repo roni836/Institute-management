@@ -96,7 +96,7 @@ Route::middleware(['auth','admin'])->group(function () {
             // Clear the device cookie when logging out
             cookie()->queue(cookie()->forget('adm_dev'));
             \Illuminate\Support\Facades\Auth::logout();
-            return redirect()->route('admin.login');
+            return redirect()->route('login');
         })->name('admin.logout');
 
 });
