@@ -41,6 +41,11 @@ class Create extends Component
         if (in_array($name, ['batch_id', 'discount', 'mode', 'installments', 'admission_date'], true)) {
             $this->recalculate();
         }
+        
+        // Check for duplicate admission when batch is selected
+        if ($name === 'batch_id' && $value && $this->phone) {
+            $this->checkDuplicateAdmission();
+        }
     }
 
     public function updatedSearchPhone()
@@ -60,7 +65,40 @@ class Create extends Component
         } else {
             $this->isExistingStudent = false;
             $this->reset(['name', 'email', 'father_name', 'mother_name', 'address']);
+            // Clear any batch-related errors when switching to new student
+            $this->resetErrorBag('batch_id');
         }
+        
+        // Check if student is already admitted to the selected batch
+        if ($this->batch_id) {
+            $this->checkDuplicateAdmission();
+        }
+    }
+
+    /**
+     * Check if student is already admitted to the selected batch
+     */
+    public function checkDuplicateAdmission()
+    {
+        if (!$this->batch_id || !$this->phone) {
+            return;
+        }
+
+        $student = Student::where('phone', $this->phone)->first();
+        if ($student) {
+            $existingAdmission = Admission::where('student_id', $student->id)
+                ->where('batch_id', $this->batch_id)
+                ->where('status', '!=', 'cancelled')
+                ->first();
+            
+            if ($existingAdmission) {
+                $this->addError('batch_id', 'This student is already admitted to this batch.');
+                return;
+            }
+        }
+        
+        // Clear any previous errors
+        $this->resetErrorBag('batch_id');
     }
 
     /** Full rules (used on final save) */
@@ -77,7 +115,25 @@ class Create extends Component
             'student_status' => ['nullable', 'in:active,inactive,alumni'],
 
             // step 2
-            'batch_id'       => ['required', 'exists:batches,id'],
+            'batch_id'       => [
+                'required', 
+                'exists:batches,id',
+                function ($attribute, $value, $fail) {
+                    if ($this->phone && $value) {
+                        $student = Student::where('phone', $this->phone)->first();
+                        if ($student) {
+                            $existingAdmission = Admission::where('student_id', $student->id)
+                                ->where('batch_id', $value)
+                                ->where('status', '!=', 'cancelled')
+                                ->first();
+                            
+                            if ($existingAdmission) {
+                                $fail('This student is already admitted to this batch.');
+                            }
+                        }
+                    }
+                }
+            ],
             'admission_date' => ['required', 'date'],
             'discount'       => ['nullable', 'numeric', 'min:0'],
             'mode'           => ['required', 'in:full,installment'],
@@ -102,7 +158,25 @@ class Create extends Component
                 'phone'       => ['nullable', 'string', 'max:20'],
             ],
             2 => [
-                'batch_id'       => ['required', 'exists:batches,id'],
+                'batch_id'       => [
+                    'required', 
+                    'exists:batches,id',
+                    function ($attribute, $value, $fail) {
+                        if ($this->phone && $value) {
+                            $student = Student::where('phone', $this->phone)->first();
+                            if ($student) {
+                                $existingAdmission = Admission::where('student_id', $student->id)
+                                    ->where('batch_id', $value)
+                                    ->where('status', '!=', 'cancelled')
+                                    ->first();
+                                
+                                if ($existingAdmission) {
+                                    $fail('This student is already admitted to this batch.');
+                                }
+                            }
+                        }
+                    }
+                ],
                 'admission_date' => ['required', 'date'],
                 'discount'       => ['nullable', 'numeric', 'min:0'],
                 'mode'           => ['required', 'in:full,installment'],
@@ -235,7 +309,8 @@ class Create extends Component
 
         $admission = null;
         
-        DB::transaction(function () use ($data) {
+        try {
+            DB::transaction(function () use ($data) {
             // Find or create student
             $student = Student::where('phone', $this->phone)->first();
 
@@ -287,6 +362,15 @@ class Create extends Component
                 ]);
             }
         });
+        
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Check if it's a duplicate admission error
+            if ($e->getCode() == 23000 && str_contains($e->getMessage(), 'Duplicate entry')) {
+                $this->addError('batch_id', 'This student is already admitted to this batch.');
+                return;
+            }
+            throw $e; // Re-throw other database errors
+        }
 
         // Send admission confirmation email if student has email
         if ($admission && $admission->student->email) {
