@@ -31,66 +31,72 @@ use App\Livewire\Public\LandingPage;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', Dashboard::class)->name('admin.dashboard');
-Route::get('/home', LandingPage::class)->name('public.home');
-// Students
-Route::get('/students', StudentsIndex::class)->name('admin.students.index');
+Route::get('/', Login::class)->name('login');
 
-// Admissions
-Route::get('/admissions', AdmissionsIndex::class)->name('admin.admissions.index');
-Route::get('/admissions/create', AdmissionsCreate::class)->name('admin.admissions.create');
-Route::get('/admissions/{admission}/edit', AdmissionEdit::class)->name('admin.admissions.edit');
-Route::get('/admin/show-admissions/{admission}', AdmissionShow::class)->name('admin.admissions.show');
 
-// Payments
-Route::get('/payments', PaymentsIndex::class)->name('admin.payments.index');
-Route::get('/payments/create/{id?}', PaymentsCreate::class)->name('admin.payments.create');
-Route::get('/due-payments', DuePayments::class)->name('admin.due-payments.index');
-Route::get('/payments/{transaction}/receipt', PaymentReceipt::class)->name('admin.payments.receipt');
+Route::middleware(['auth','admin'])->group(function () {
+        // Admin Dashboard
+        Route::get('/admin/dashbard', Dashboard::class)->name('admin.dashboard');
+        // Students
+        Route::get('/students', StudentsIndex::class)->name('admin.students.index');
 
-// Courses & Batches
-Route::get('/courses', CoursesIndex::class)->name('admin.courses.index');
-Route::get('/courses/create', \App\Livewire\Admin\Courses\Create::class)->name('admin.courses.create');
-Route::get('/courses/{id}/edit', \App\Livewire\Admin\Courses\Edit::class)->name('admin.courses.edit');
-Route::get('/courses/{id}/view', \App\Livewire\Admin\Courses\View::class)->name('admin.courses.view');
+        // Admissions
+        Route::get('/admissions', AdmissionsIndex::class)->name('admin.admissions.index');
+        Route::get('/admissions/create', AdmissionsCreate::class)->name('admin.admissions.create');
+        Route::get('/admissions/{admission}/edit', AdmissionEdit::class)->name('admin.admissions.edit');
+        Route::get('/admin/show-admissions/{admission}', AdmissionShow::class)->name('admin.admissions.show');
 
-Route::get('/attendance', \App\Livewire\Admin\Attendance\Index::class)->name('admin.attendance.index');
-Route::get('/attendance/create', \App\Livewire\Admin\Attendance\Create::class)->name('admin.attendance.create');
-Route::get('/attendance/{date}/view', \App\Livewire\Admin\Attendance\View::class)->name('admin.attendance.view');
-// Route::get('/attendance/{id}/edit', \App\Livewire\Admin\Attendance\Edit::class)->name('admin.attendance.edit');
+        // Payments
+        Route::get('/payments', PaymentsIndex::class)->name('admin.payments.index');
+        Route::get('/payments/create/{id?}', PaymentsCreate::class)->name('admin.payments.create');
+        Route::get('/due-payments', DuePayments::class)->name('admin.due-payments.index');
+        Route::get('/payments/{transaction}/receipt', PaymentReceipt::class)->name('admin.payments.receipt');
 
-Route::get('/subjects', \App\Livewire\Admin\Subjects\Index::class)->name('admin.subjects.index');
-Route::get('/subjects/create', \App\Livewire\Admin\Subjects\Create::class)->name('admin.subjects.create');
-Route::get('/subjects/{id}/edit', \App\Livewire\Admin\Subjects\Edit::class)->name('admin.subjects.edit');
-Route::get('/subjects/{id}/view', \App\Livewire\Admin\Subjects\View::class)->name('admin.subjects.view');
+        // Courses & Batches
+        Route::get('/courses', CoursesIndex::class)->name('admin.courses.index');
+        Route::get('/courses/create', \App\Livewire\Admin\Courses\Create::class)->name('admin.courses.create');
+        Route::get('/courses/{id}/edit', \App\Livewire\Admin\Courses\Edit::class)->name('admin.courses.edit');
+        Route::get('/courses/{id}/view', \App\Livewire\Admin\Courses\View::class)->name('admin.courses.view');
 
-Route::get('/batches/create', \App\Livewire\Admin\Batches\Create::class)->name('admin.batches.create');
-Route::get('/batches/{batch}/edit', \App\Livewire\Admin\Batches\Edit::class)->name('admin.batches.edit');
-Route::get('/batches', BatchesIndex::class)->name('admin.batches.index');
+        Route::get('/attendance', \App\Livewire\Admin\Attendance\Index::class)->name('admin.attendance.index');
+        Route::get('/attendance/create', \App\Livewire\Admin\Attendance\Create::class)->name('admin.attendance.create');
+        Route::get('/attendance/{date}/view', \App\Livewire\Admin\Attendance\View::class)->name('admin.attendance.view');
+        // Route::get('/attendance/{id}/edit', \App\Livewire\Admin\Attendance\Edit::class)->name('admin.attendance.edit');
 
-// teachers
-Route::get('/teachers', TeachersIndex::class)->name('admin.teachers.index');
-Route::get('/teachers/create', TeachersCreate::class)->name('admin.teachers.create');
+        Route::get('/subjects', \App\Livewire\Admin\Subjects\Index::class)->name('admin.subjects.index');
+        Route::get('/subjects/create', \App\Livewire\Admin\Subjects\Create::class)->name('admin.subjects.create');
+        Route::get('/subjects/{id}/edit', \App\Livewire\Admin\Subjects\Edit::class)->name('admin.subjects.edit');
+        Route::get('/subjects/{id}/view', \App\Livewire\Admin\Subjects\View::class)->name('admin.subjects.view');
 
-//students
-Route::get('/students/{id}', StudentProfile::class)->name('student.profile');
-Route::get('/students/{id}/edit', StudentEdit::class)->name('student.edit');
+        Route::get('/batches/create', \App\Livewire\Admin\Batches\Create::class)->name('admin.batches.create');
+        Route::get('/batches/{batch}/edit', \App\Livewire\Admin\Batches\Edit::class)->name('admin.batches.edit');
+        Route::get('/batches', BatchesIndex::class)->name('admin.batches.index');
 
-//Exams
-Route::get('/exams', Index::class)->name('admin.exams.index');
-Route::get('exams/show/{examid}', Show::class)->name('admin.exams.show');
-Route::get('/admin/exams/{exam_id}/students/create', Create::class)->name('admin.students.create');
-Route::get('/admin/exams/create', ExamsCreate::class)->name('admin.exams.create');
-Route::get('/admin/exams/{exam}/edit', Edit::class)->name('admin.exams.edit');
-Route::get('/admin/exams/marking/{exam_id}/{student_id}', MarksForm::class)->name('admin.exams.marking');
-Route::get('/admin/exams/{exam_id}/student/{student_id}/details', MarksDetail::class)->name('admin.exams.student.details');
+        // teachers
+        Route::get('/teachers', TeachersIndex::class)->name('admin.teachers.index');
+        Route::get('/teachers/create', TeachersCreate::class)->name('admin.teachers.create');
+
+        //students
+        Route::get('/students/{id}', StudentProfile::class)->name('student.profile');
+        Route::get('/students/{id}/edit', StudentEdit::class)->name('student.edit');
+
+        //Exams
+        Route::get('/exams', Index::class)->name('admin.exams.index');
+        Route::get('exams/show/{examid}', Show::class)->name('admin.exams.show');
+        Route::get('/admin/exams/{exam_id}/students/create', Create::class)->name('admin.students.create');
+        Route::get('/admin/exams/create', ExamsCreate::class)->name('admin.exams.create');
+        Route::get('/admin/exams/{exam}/edit', Edit::class)->name('admin.exams.edit');
+        Route::get('/admin/exams/marking/{exam_id}/{student_id}', MarksForm::class)->name('admin.exams.marking');
+        Route::get('/admin/exams/{exam_id}/student/{student_id}/details', MarksDetail::class)->name('admin.exams.student.details');
+
+});
 // Auth
-Route::get('/login', Login::class)->name('login');
+// Route::get('/login', Login::class)->name('login');
 // Route::get('/login', Login::class)->name('logout');
-Route::get('/register', Register::class)->name('register');
+// Route::get('/register', Register::class)->name('register');
 
 Route::middleware('guest')->group(function () {
-    Route::get('/admin/login', Login::class)->name('admin.login');
+    // Route::get('/admin/login', Login::class)->name('admin.login');
     Route::get('/admin/pin', AdminPinLogin::class)->name('admin.pin'); // shown if device is recognized
 });
 
