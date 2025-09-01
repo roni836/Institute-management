@@ -13,8 +13,14 @@
         <div class="md:flex items-center p-6 sm:p-8">
             <div
                 class="h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-2xl sm:text-3xl font-bold text-white shadow-md">
-                {{ Str::of($student->name)->substr(0, 1)->upper() }}
+                @if ($student->photo)
+                    <img src="{{ asset('student-photo/' . $student->photo) }}" alt="{{ $student->name }}"
+                        class="h-full w-full rounded-full object-cover">
+                @else
+                    {{ Str::of($student->name)->substr(0, 1)->upper() }}
+                @endif
             </div>
+
             <div class="ml-0 mt-4 md:mt-0 md:ml-6 flex-1">
                 <h1 class="text-xl sm:text-2xl font-bold text-gray-900">{{ $student->name }}</h1>
                 <div class="text-sm text-gray-500 mt-1">
@@ -58,7 +64,7 @@
     <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
         <div class="border-b px-4 sm:px-6">
             <nav class="flex flex-wrap gap-2 sm:gap-4" role="tablist">
-                @foreach (['overview', 'courses', 'payments', 'performance','attendance'] as $tab)
+                @foreach (['overview', 'courses', 'payments', 'performance', 'attendance'] as $tab)
                     <button wire:click.debounce.500ms="updateTab('{{ $tab }}')"
                         class="px-4 py-3 text-sm font-medium border-b-2 transition-colors
                             @class([
@@ -174,8 +180,9 @@
                                             <td class="px-4 sm:px-6 py-4 text-sm text-gray-700">
                                                 ₹{{ number_format($payment['amount'], 2) }}</td>
                                             <td class="px-4 sm:px-6 py-4 text-sm text-gray-700">
-                                                @if(isset($payment['gst']) && $payment['gst'] > 0)
-                                                    <span class="text-blue-600">₹{{ number_format($payment['gst'], 2) }}</span>
+                                                @if (isset($payment['gst']) && $payment['gst'] > 0)
+                                                    <span
+                                                        class="text-blue-600">₹{{ number_format($payment['gst'], 2) }}</span>
                                                 @else
                                                     <span class="text-gray-400">—</span>
                                                 @endif
@@ -194,7 +201,9 @@
                                                 </span>
                                             </td>
                                             <td class="px-4 sm:px-6 py-4 text-sm text-gray-700">
-                                                <span class="font-mono text-blue-600">{{ $payment['receipt_number'] ?? '-' }}</span></td>
+                                                <span
+                                                    class="font-mono text-blue-600">{{ $payment['receipt_number'] ?? '-' }}</span>
+                                            </td>
                                         </tr>
                                     @empty
                                         <tr>
