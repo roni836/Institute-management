@@ -153,7 +153,7 @@
                     @endif
                 </div>
 
-                @if($admission->mode === 'installment' && $admission->schedules->count())
+                @if($admission->schedules->count())
                     <div class="overflow-x-auto">
                         <table class="min-w-full text-sm">
                             <thead>
@@ -189,8 +189,11 @@
                             </tbody>
                         </table>
                     </div>
+                    @if($admission->mode === 'full')
+                        <p class="text-xs text-gray-500 mt-2">Full payment - Single installment</p>
+                    @endif
                 @else
-                    <p class="text-sm text-gray-600">No installment schedule (full payment).</p>
+                    <p class="text-sm text-gray-600">No payment schedules found.</p>
                 @endif
             </div>
         </div>

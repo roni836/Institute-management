@@ -266,8 +266,9 @@ class Create extends Component
                 'status' => 'active',
             ]);
 
-            // 3) Create schedule if installments
+            // 3) Create payment schedule
             if ($this->mode === 'installment') {
+                // Create multiple installments
                 foreach ($this->plan as $p) {
                     $admission->schedules()->create([
                         'installment_no' => $p['no'],
@@ -276,6 +277,14 @@ class Create extends Component
                         'status'         => 'pending',
                     ]);
                 }
+            } else {
+                // Create single payment schedule for full payment
+                $admission->schedules()->create([
+                    'installment_no' => 1,
+                    'due_date'       => $this->admission_date,
+                    'amount'         => $this->fee_total,
+                    'status'         => 'pending',
+                ]);
             }
         });
 

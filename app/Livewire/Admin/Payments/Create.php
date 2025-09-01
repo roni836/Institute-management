@@ -397,7 +397,7 @@ class Create extends Component
         });
 
         // Send payment confirmation email if student has email
-        if ($this->lastTransaction && $this->lastTransaction->student->email) {
+        if ($this->lastTransaction && $this->lastTransaction->admission->student->email) {
             try {
                 Mail::to($this->lastTransaction->student->email)->send(new PaymentConfirmationMail($this->lastTransaction));
             } catch (\Exception $e) {
