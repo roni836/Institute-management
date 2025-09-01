@@ -232,20 +232,28 @@
         <table class="min-w-full text-sm">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="text-left p-3">Student</th>
+                    <th class="text-left p-3">S.no</th>
+                    <th class="text-left p-3">Name & Mobile</th>
+                    <th class="text-left p-3">Entrollement Id</th>
                     <th class="text-left p-3">Batch & Course</th>
                     <th class="text-left p-3">Admission Date</th>
                     <th class="text-left p-3">Fee Details</th>
-                    <th class="text-left p-3">Status</th>
-                    <th class="text-right p-3">Actions</th>
+                    {{-- <th class="text-left p-3">Status</th> --}}
+                    <th class=" p-3 ">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse($admissions as $admission)
+                @forelse($admissions as $i => $admission)
                     <tr class="border-t hover:bg-gray-50">
+                        <td class="p-3">
+                            <div class="font-medium">{{ $i+1 }}.</div>
+                        </td>
                         <td class="p-3">
                             <div class="font-medium">{{ $admission->student->name }}</div>
                             <div class="text-xs text-gray-500">{{ $admission->student->phone }}</div>
+                        </td>
+                        <td class="p-3">
+                            <div class="font-medium">{{ $admission->student->student_uid }}</div>
                         </td>
                         <td class="p-3">
                             <div>{{ $admission->batch->batch_name }}</div>
@@ -256,7 +264,7 @@
                             <div>Total: ₹{{ number_format($admission->fee_total, 2) }}</div>
                             <div class="text-xs text-gray-500">Due: ₹{{ number_format($admission->fee_due, 2) }}</div>
                         </td>
-                        <td class="p-3">
+                        {{-- <td class="p-3">
                             <span @class([
                                 'px-2 py-1 rounded-full text-xs font-medium',
                                 'bg-green-100 text-green-700' => $admission->status === 'active',
@@ -265,12 +273,12 @@
                             ])>
                                 {{ ucfirst($admission->status) }}
                             </span>
-                        </td>
-                        <td class="p-3 text-right space-x-2">
+                        </td> --}}
+                        <td class="p-2 text-center space-x-2">
                             <a href="{{ route('admin.admissions.show', $admission) }}"
-                                class="px-2 py-1 rounded bg-blue-50 text-blue-700">View</a>
+                                class="px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-700">View</a>
                             <a href="{{ route('admin.payments.create', ['admission_id' => $admission->id]) }}"
-                                class="px-2 py-1 rounded bg-green-50 text-green-700">Payment</a>
+                                class="px-2 py-1 rounded bg-green-50 hover:bg-green-100 text-green-700">Payment</a>
                         </td>
                     </tr>
                 @empty
