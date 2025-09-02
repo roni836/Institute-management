@@ -43,7 +43,10 @@ class AdminMiddleware
                 'admin.courses.view',
                 'admin.students.index',
                 'student.profile',
-                'student.edit'
+                'student.edit',
+                'admin.profile.edit',
+                'admin.logout',
+                'login'
             ];
             
             $currentRoute = $request->route()->getName();

@@ -237,6 +237,21 @@
                             Teachers
                         </a>
                     @endif
+
+                    <!-- Profile Link -->
+                    <div class="text-primary-200 text-xs uppercase tracking-wider font-semibold mb-4 px-3 pt-6">
+                        Account
+                    </div>
+                    <a href="{{ route('admin.profile.edit') }}"
+                        class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
+                        <div class="w-5 h-5 mr-3">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                        </div>
+                        My Profile
+                    </a>
                 </nav>
             </div>
         </aside>
@@ -292,6 +307,14 @@
                                         <span
                                             class="text-white text-sm font-semibold">{{ substr(auth()->user()->name ?? 'Admin User', 0, 2) }}</span>
                                     </div>
+                                    <a href="{{ route('admin.profile.edit') }}" 
+                                        class="p-2 text-gray-400 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                        title="Edit Profile">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                    </a>
                                     <form method="POST" action="{{ route('admin.logout') }}" class="ml-2">
                                         @csrf
                                         <button type="submit"

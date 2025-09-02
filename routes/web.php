@@ -23,6 +23,7 @@ use App\Livewire\Admin\Students\StudentProfile;
 use App\Livewire\Admin\Students\Edit as StudentEdit;
 use App\Livewire\Admin\Teachers\Create as TeachersCreate;
 use App\Livewire\Admin\Teachers\Index as TeachersIndex;
+use App\Livewire\Admin\Profile\Edit as ProfileEdit;
 use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
 use App\Livewire\Public\LandingPage;
@@ -71,6 +72,9 @@ Route::middleware(['auth','admin'])->group(function () {
         // teachers
         Route::get('/teachers', TeachersIndex::class)->name('admin.teachers.index');
         Route::get('/teachers/create', TeachersCreate::class)->name('admin.teachers.create');
+
+        // Profile
+        Route::get('/profile', ProfileEdit::class)->name('admin.profile.edit');
 
         //students
         Route::get('/students/{id}', StudentProfile::class)->name('student.profile');
