@@ -94,6 +94,7 @@
                 <tr>
                     <th class="text-left p-3">Name</th>
                     <th class="text-left p-3">Email</th>
+                    <th class="text-left p-3">Phone no.</th>
                     <th class="text-left p-3">Created</th>
                 </tr>
             </thead>
@@ -102,6 +103,7 @@
                     <tr class="border-t">
                         <td class="p-3 font-medium">{{ $t->name }}</td>
                         <td class="p-3">{{ $t->email }}</td>
+                        <td class="p-3">{{ $t->mobile }}</td>
                         <td class="p-3 text-gray-600 text-sm">{{ $t->created_at?->format('d-M-Y') }}</td>
                     </tr>
                 @empty
