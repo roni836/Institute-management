@@ -23,7 +23,7 @@ class Login extends Component
             if ($user->role === 'admin') {
                 return $this->redirect(route('admin.dashboard'));
             } elseif ($user->role === 'teacher') {
-                return $this->redirect(route('teacher.dashboard'));
+                return $this->redirect(route('admin.dashboard'));
             }
         }
     }
@@ -38,7 +38,7 @@ class Login extends Component
             if ($user->role === 'admin') {
                 return $this->redirect(route('admin.dashboard'));
             } elseif ($user->role === 'teacher') {
-                return $this->redirect(route('teacher.dashboard'));
+                return $this->redirect(route('admin.dashboard'));
             } else {
                 // Logout immediately if role not allowed
                 Auth::logout();

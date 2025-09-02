@@ -135,7 +135,7 @@
                        class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
                         <div class="w-5 h-5 mr-3">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a2 2 0 00-2-2H5a2 2 0 00-2-2z"/>
                             </svg>
                         </div>
                         Students
@@ -167,6 +167,7 @@
                         </div>
                         Courses
                     </a>
+                    @endif
                     <a href="{{ route('admin.subjects.index') }}" @click="currentPage = 'admin.subjects.index'"
                        :class="currentPage === 'admin.subjects.index' || currentPage === 'admin.subjects.create' || currentPage === 'admin.subjects.edit' ? 'active' : ''"
 
@@ -187,6 +188,7 @@
                         </div>
                         Batches
                     </a>
+                    @if(Auth::user()->isAdmin())
                     <a href="{{ route('admin.teachers.index') }}"
                        class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
                         <div class="w-5 h-5 mr-3">

@@ -92,16 +92,16 @@ Route::middleware(['auth','admin'])->group(function () {
 
 });
 
-// Teacher Routes
-Route::middleware(['auth', 'teacher'])->group(function () {
-    Route::get('/exams', \App\Livewire\Teacher\Exams\Index::class)->name('teacher.exams.index');
-    Route::get('/attendance', \App\Livewire\Teacher\Attendance\Index::class)->name('teacher.attendance.index');
+// Teacher Routes - Removed since teachers now use admin routes
+// Route::middleware(['auth', 'teacher'])->group(function () {
+//     Route::get('/exams', \App\Livewire\Teacher\Exams\Index::class)->name('teacher.exams.index');
+//     Route::get('/attendance', \App\Livewire\Teacher\Attendance\Index::class)->name('teacher.attendance.index');
     
-    Route::post('/logout', function () {
-        \Illuminate\Support\Facades\Auth::logout();
-        return redirect()->route('login');
-    })->name('teacher.logout');
-});
+//     Route::post('/logout', function () {
+//         \Illuminate\Support\Facades\Auth::logout();
+//         return redirect()->route('login');
+//     })->name('teacher.logout');
+// });
 
 Route::get('/test-email', function () {
     $admission = App\Models\Admission::with(['student', 'batch.course'])->first();
