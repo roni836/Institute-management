@@ -103,7 +103,7 @@
                     <tr class="border-t">
                         <td class="p-3 font-medium">{{ $t->name }}</td>
                         <td class="p-3">{{ $t->email }}</td>
-                        <td class="p-3">{{ $t->mobile }}</td>
+                        <td class="p-3">{{ $t->phone }}</td>
                         <td class="p-3 text-gray-600 text-sm">{{ $t->created_at?->format('d-M-Y') }}</td>
                     </tr>
                 @empty
