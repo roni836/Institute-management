@@ -23,16 +23,13 @@ use App\Livewire\Admin\Students\StudentProfile;
 use App\Livewire\Admin\Students\Edit as StudentEdit;
 use App\Livewire\Admin\Teachers\Create as TeachersCreate;
 use App\Livewire\Admin\Teachers\Index as TeachersIndex;
-use App\Livewire\Auth\AdminPinLogin;
 use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
-use App\Livewire\Auth\SetPinForDevice;
 use App\Livewire\Public\LandingPage;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', Login::class)->name('login');
-
 
 Route::middleware(['auth','admin'])->group(function () {
         // Admin Dashboard
@@ -61,7 +58,6 @@ Route::middleware(['auth','admin'])->group(function () {
         Route::get('/attendance', \App\Livewire\Admin\Attendance\Index::class)->name('admin.attendance.index');
         Route::get('/attendance/create', \App\Livewire\Admin\Attendance\Create::class)->name('admin.attendance.create');
         Route::get('/attendance/{date}/view', \App\Livewire\Admin\Attendance\View::class)->name('admin.attendance.view');
-        // Route::get('/attendance/{id}/edit', \App\Livewire\Admin\Attendance\Edit::class)->name('admin.attendance.edit');
 
         Route::get('/subjects', \App\Livewire\Admin\Subjects\Index::class)->name('admin.subjects.index');
         Route::get('/subjects/create', \App\Livewire\Admin\Subjects\Create::class)->name('admin.subjects.create');
@@ -89,39 +85,24 @@ Route::middleware(['auth','admin'])->group(function () {
         Route::get('/admin/exams/marking/{exam_id}/{student_id}', MarksForm::class)->name('admin.exams.marking');
         Route::get('/admin/exams/{exam_id}/student/{student_id}/details', MarksDetail::class)->name('admin.exams.student.details');
 
-        //pin setup
-        Route::get('/admin/pin', AdminPinLogin::class)->name('admin.pin'); // shown if device is recognized
-        Route::get('/admin/set-pin', SetPinForDevice::class)->name('admin.setpin'); // after first password login
         Route::post('/admin/logout', function () {
-            // Clear the device cookie when logging out
-            // cookie()->queue(cookie()->forget('adm_dev'));
             \Illuminate\Support\Facades\Auth::logout();
             return redirect()->route('login');
         })->name('admin.logout');
 
 });
-// Auth
-// Route::get('/login', Login::class)->name('login');
-// Route::get('/login', Login::class)->name('logout');
-// Route::get('/register', Register::class)->name('register');
 
-// Route::middleware('guest')->group(function () {
-//     // Route::get('/admin/login', Login::class)->name('admin.login');
-//     Route::get('/admin/pin', AdminPinLogin::class)->name('admin.pin'); // shown if device is recognized
-// });
-
-// Route::middleware('auth')->group(function () {
-//     Route::get('/admin/set-pin', SetPinForDevice::class)->name('admin.setpin'); // after first password login
-//     Route::post('/admin/logout', function () {
-//         // Clear the device cookie when logging out
-//         cookie()->queue(cookie()->forget('adm_dev'));
-//         \Illuminate\Support\Facades\Auth::logout();
-//         return redirect()->route('admin.login');
-//     })->name('admin.logout');
-
-//     // Test email route (remove in production)
-
-// });
+// Teacher Routes
+Route::middleware(['auth', 'teacher'])->group(function () {
+    Route::get('/teacher/dashboard', \App\Livewire\Teacher\Dashboard::class)->name('teacher.dashboard');
+    Route::get('/teacher/exams', \App\Livewire\Teacher\Exams\Index::class)->name('teacher.exams.index');
+    Route::get('/teacher/attendance', \App\Livewire\Teacher\Attendance\Index::class)->name('teacher.attendance.index');
+    
+    Route::post('/teacher/logout', function () {
+        \Illuminate\Support\Facades\Auth::logout();
+        return redirect()->route('login');
+    })->name('teacher.logout');
+});
 
 Route::get('/test-email', function () {
     $admission = App\Models\Admission::with(['student', 'batch.course'])->first();

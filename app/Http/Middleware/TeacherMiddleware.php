@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
-class AdminMiddleware
+class TeacherMiddleware
 {
     /**
      * Handle an incoming request.
@@ -16,8 +16,8 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check() && !in_array(Auth::user()->role, ['admin', 'teacher'])) {
-            abort(403, 'Unauthorized action.');
+        if (Auth::check() && Auth::user()->role !== 'teacher') {
+            abort(403, 'Unauthorized action. Teachers only.');
         }
         return $next($request);
     }

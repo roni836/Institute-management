@@ -101,6 +101,7 @@
                         </div>
                         Dashboard
                     </a>
+                    @if(Auth::user()->isAdmin())
                     <a href="{{ route('admin.admissions.index') }}"
                        class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
                         <div class="w-5 h-5 mr-3">
@@ -119,6 +120,7 @@
                         </div>
                         Payments
                     </a>
+                    @endif
                     <a href="{{ route('admin.attendance.index') }}"
                        class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
                         <div class="w-5 h-5 mr-3">
@@ -128,6 +130,7 @@
                         </div>
                         Attendance
                     </a>
+                    @if(Auth::user()->isAdmin())
                     <a href="{{ route('admin.students.index') }}"
                        class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
                         <div class="w-5 h-5 mr-3">
@@ -137,6 +140,7 @@
                         </div>
                         Students
                     </a>
+                    @endif
                     <div class="text-primary-200 text-xs uppercase tracking-wider font-semibold mb-4 px-3 pt-6">
                         Academic
                     </div>
@@ -151,6 +155,7 @@
                         </div>
                         Exams
                     </a>
+                    @if(Auth::user()->isAdmin())
                     <a href="{{ route('admin.courses.index') }}" @click="currentPage = 'admin.courses.index'"
                        :class="currentPage === 'admin.courses.index' || currentPage === 'admin.courses.create' || currentPage === 'admin.courses.edit' ? 'active' : ''"
 
@@ -191,6 +196,7 @@
                         </div>
                         Teachers
                     </a>
+                    @endif
                 </nav>
             </div>
         </aside>
@@ -210,8 +216,20 @@
                                     </svg>
                                 </button>
                                 <div>
-                                    <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
-                                    <p class="text-gray-600 text-sm font-medium">Welcome back to your admin panel</p>
+                                    <h1 class="text-2xl font-bold text-gray-900">
+                                        @if(Auth::user()->isAdmin())
+                                            Dashboard
+                                        @else
+                                            Teacher Dashboard
+                                        @endif
+                                    </h1>
+                                    <p class="text-gray-600 text-sm font-medium">
+                                        @if(Auth::user()->isAdmin())
+                                            Welcome back to your admin panel
+                                        @else
+                                            Welcome back to your teacher panel
+                                        @endif
+                                    </p>
                                 </div>
                             </div>
                             <div class="flex items-center space-x-4">

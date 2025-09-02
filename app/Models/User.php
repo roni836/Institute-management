@@ -6,7 +6,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -22,7 +21,11 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'is_admin',
+        'role',
+        'phone',
+        'address',
+        'expertise',
+        'status',
     ];
 
     /**
@@ -40,37 +43,23 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'is_admin' => 'boolean',
-        ];
-    }
-
-    public function devices(): HasMany
-    {
-        return $this->hasMany(Device::class);
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
 
     public function isAdmin(): bool
     {
-        return $this->is_admin === true;
+        return $this->role === 'admin';
     }
 
-    public function hasDevice(string $publicId): bool
+    public function isTeacher(): bool
     {
-        return $this->devices()->where('public_id', $publicId)->exists();
+        return $this->role === 'teacher';
     }
 
-    public function getDevice(string $publicId): ?Device
+    public function hasRole(string $role): bool
     {
-        return $this->devices()->where('public_id', $publicId)->first();
-    }
-
-    public function registerDevice(array $deviceData): Device
-    {
-        return $this->devices()->create($deviceData);
+        return $this->role === $role;
     }
 }
