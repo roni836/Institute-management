@@ -23,7 +23,6 @@ class AdminMiddleware
         // Allow teachers access to attendance and exam related routes
         if (Auth::user()->role === 'teacher') {
             $allowedRoutes = [
-                'admin.dashboard',
                 'admin.attendance.index',
                 'admin.attendance.create', 
                 'admin.attendance.view',
@@ -38,9 +37,6 @@ class AdminMiddleware
                 'admin.subjects.create',
                 'admin.subjects.edit',
                 'admin.subjects.view',
-                'admin.batches.index',
-                'admin.batches.create',
-                'admin.batches.edit',
                 'admin.courses.index',
                 'admin.courses.create',
                 'admin.courses.edit',
