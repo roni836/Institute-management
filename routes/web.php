@@ -33,7 +33,7 @@ Route::get('/', Login::class)->name('login');
 
 Route::middleware(['auth','admin'])->group(function () {
         // Admin Dashboard
-        Route::get('/admin/dashboard', Dashboard::class)->name('admin.dashboard');
+        Route::get('/', Dashboard::class)->name('admin.dashboard');
         // Students
         Route::get('/students', StudentsIndex::class)->name('admin.students.index');
 
@@ -79,13 +79,13 @@ Route::middleware(['auth','admin'])->group(function () {
         //Exams
         Route::get('/exams', Index::class)->name('admin.exams.index');
         Route::get('exams/show/{examid}', Show::class)->name('admin.exams.show');
-        Route::get('/admin/exams/{exam_id}/students/create', Create::class)->name('admin.students.create');
-        Route::get('/admin/exams/create', ExamsCreate::class)->name('admin.exams.create');
-        Route::get('/admin/exams/{exam}/edit', Edit::class)->name('admin.exams.edit');
-        Route::get('/admin/exams/marking/{exam_id}/{student_id}', MarksForm::class)->name('admin.exams.marking');
-        Route::get('/admin/exams/{exam_id}/student/{student_id}/details', MarksDetail::class)->name('admin.exams.student.details');
+        Route::get('/exams/{exam_id}/students/create', Create::class)->name('admin.students.create');
+        Route::get('/exams/create', ExamsCreate::class)->name('admin.exams.create');
+        Route::get('/exams/{exam}/edit', Edit::class)->name('admin.exams.edit');
+        Route::get('/exams/marking/{exam_id}/{student_id}', MarksForm::class)->name('admin.exams.marking');
+        Route::get('/exams/{exam_id}/student/{student_id}/details', MarksDetail::class)->name('admin.exams.student.details');
 
-        Route::post('/admin/logout', function () {
+        Route::post('/logout', function () {
             \Illuminate\Support\Facades\Auth::logout();
             return redirect()->route('login');
         })->name('admin.logout');
@@ -94,11 +94,10 @@ Route::middleware(['auth','admin'])->group(function () {
 
 // Teacher Routes
 Route::middleware(['auth', 'teacher'])->group(function () {
-    Route::get('/teacher/dashboard', \App\Livewire\Teacher\Dashboard::class)->name('teacher.dashboard');
-    Route::get('/teacher/exams', \App\Livewire\Teacher\Exams\Index::class)->name('teacher.exams.index');
-    Route::get('/teacher/attendance', \App\Livewire\Teacher\Attendance\Index::class)->name('teacher.attendance.index');
+    Route::get('/exams', \App\Livewire\Teacher\Exams\Index::class)->name('teacher.exams.index');
+    Route::get('/attendance', \App\Livewire\Teacher\Attendance\Index::class)->name('teacher.attendance.index');
     
-    Route::post('/teacher/logout', function () {
+    Route::post('/logout', function () {
         \Illuminate\Support\Facades\Auth::logout();
         return redirect()->route('login');
     })->name('teacher.logout');
