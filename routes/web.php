@@ -30,7 +30,7 @@ use App\Livewire\Public\LandingPage;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', Login::class)->name('login');
+Route::get('/login', Login::class)->name('login');
 
 Route::middleware(['auth','admin'])->group(function () {
         // Admin Dashboard
