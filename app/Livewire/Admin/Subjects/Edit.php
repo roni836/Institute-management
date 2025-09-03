@@ -11,8 +11,9 @@ class Edit extends Component
     public $name, $course_id;
     public $subject;
 
-    public function mount(Subject $subject)
+    public function mount($id)
     {
+        $subject = Subject::findOrFail($id);
         $this->subject   = $subject;
         $this->name      = $subject->name;
         $this->course_id = $subject->course_id;
