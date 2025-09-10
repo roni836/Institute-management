@@ -439,7 +439,7 @@
                         <button type="button" wire:click="prev" class="px-4 py-2 rounded-lg border">Back</button>
                         <a href="{{ route('admin.admissions.index') }}"
                             class="px-4 py-2 rounded-lg border">Cancel</a>
-                        <button class="px-4 py-2 rounded-lg bg-black text-white">
+                        <button type="submit" class="px-4 py-2 rounded-lg bg-black text-white">
                             {{ $this->admission ? 'Update Admission' : 'Save Admission' }}
                         </button>
                     </div>
