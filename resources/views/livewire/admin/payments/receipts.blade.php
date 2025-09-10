@@ -17,6 +17,7 @@
             <div style="font-weight:600">Include Sections:</div>
             <label style="font-size:13px"><input type="checkbox" wire:model.live="show_account" class="mr-1" /> Account Details</label>
             <label style="font-size:13px"><input type="checkbox" wire:model.live="show_fee" class="mr-1" /> Fee Details</label>
+            <label style="font-size:13px"><input type="checkbox" wire:model.live="show_breakdown" class="mr-1" /> Payment Breakdown</label>
             <label style="font-size:13px"><input type="checkbox" wire:model.live="show_installments" class="mr-1" /> Installments</label>
             <label style="font-size:13px"><input type="checkbox" wire:model.live="show_transactions" class="mr-1" /> Transactions</label>
             <label style="font-size:13px"><input type="checkbox" wire:model.live="show_other" class="mr-1" /> Other Transactions</label>
@@ -83,43 +84,98 @@
                 <tbody>
                     <tr>
                         <td style="border:1px solid #000;padding:6px">Gross Fee</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($admission->total_fee ?? 0, 2) }}</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($course->gross_fee ?? 0, 2) }}</td>
                     </tr>
                     <tr>
                         <td style="border:1px solid #000;padding:6px">Total Discount</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($admission->discount ?? 0, 2) }}</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right;color:#dc2626">-{{ number_format($admission->discount ?? 0, 2) }}</td>
                     </tr>
-                    <tr>
+                    <tr style="font-weight:700;background:#f5f5f5">
                         <td style="border:1px solid #000;padding:6px">Fee after Discount</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format(($admission->total_fee ?? 0) - ($admission->discount ?? 0), 2) }}</td>
-                    </tr>
-                    <tr>
-                        <td style="border:1px solid #000;padding:6px">Tuition Fee</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($admission->tuition_fee ?? 0, 2) }}</td>
-                    </tr>
-                    <tr>
-                        <td style="border:1px solid #000;padding:6px">Others Fee</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format(($admission->total_fee ?? 0) - ($admission->tuition_fee ?? 0) - ($admission->discount ?? 0), 2) }}</td>
-                    </tr>
-                    <tr>
-                        <td style="border:1px solid #000;padding:6px">Plan Amount</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right">0.00</td>
-                    </tr>
-                    <tr>
-                        <td style="border:1px solid #000;padding:6px">Late Fine</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right">0.00</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format(($course->gross_fee ?? 0) - ($admission->discount ?? 0), 2) }}</td>
                     </tr>
                     <tr>
                         <td style="border:1px solid #000;padding:6px">Taxable Fee</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format(($admission->total_fee ?? 0) - ($admission->discount ?? 0), 2) }}</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format(($course->gross_fee ?? 0) - ($admission->discount ?? 0), 2) }}</td>
                     </tr>
                     <tr>
-                        <td style="border:1px solid #000;padding:6px">Tax*</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right;color:#000">{{ number_format($tx->gst ?? 0, 2) }}</td>
+                        <td style="border:1px solid #000;padding:6px">Tax* (18%)</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right;color:#2563eb">{{ number_format($tx->gst ?? 0, 2) }}</td>
                     </tr>
                     <tr style="font-weight:700;background:#f5f5f5">
                         <td style="border:1px solid #000;padding:6px">Total Payable Fee With Tax</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format(($admission->total_fee ?? 0) - ($admission->discount ?? 0) + ($tx->gst ?? 0), 2) }}</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format(($course->gross_fee ?? 0) - ($admission->discount ?? 0) + ($tx->gst ?? 0), 2) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+    </div>
+    @endif
+
+        <!-- Payment Breakdown -->
+    @if($show_breakdown)
+    <div style="margin-bottom:12px">
+            <div style="font-size:13px;font-weight:700;border-bottom:1px solid #333;padding-bottom:6px;margin-bottom:8px">PAYMENT BREAKDOWN</div>
+            <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #000;">
+                <thead>
+                    <tr>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Fee Component</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:right;background:#f5f5f5">Amount (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if($course->tution_fee > 0)
+                    <tr>
+                        <td style="border:1px solid #000;padding:6px">Tuition Fee</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($course->tution_fee, 2) }}</td>
+                    </tr>
+                    @endif
+                    @if($course->admission_fee > 0)
+                    <tr>
+                        <td style="border:1px solid #000;padding:6px">Admission Fee</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($course->admission_fee, 2) }}</td>
+                    </tr>
+                    @endif
+                    @if($course->exam_fee > 0)
+                    <tr>
+                        <td style="border:1px solid #000;padding:6px">Exam Fee</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($course->exam_fee, 2) }}</td>
+                    </tr>
+                    @endif
+                    @if($course->infra_fee > 0)
+                    <tr>
+                        <td style="border:1px solid #000;padding:6px">Infrastructure Fee</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($course->infra_fee, 2) }}</td>
+                    </tr>
+                    @endif
+                    @if($course->SM_fee > 0)
+                    <tr>
+                        <td style="border:1px solid #000;padding:6px">Study Material Fee</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($course->SM_fee, 2) }}</td>
+                    </tr>
+                    @endif
+                    @if($course->tech_fee > 0)
+                    <tr>
+                        <td style="border:1px solid #000;padding:6px">Technology Fee</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($course->tech_fee, 2) }}</td>
+                    </tr>
+                    @endif
+                    @if($course->other_fee > 0)
+                    <tr>
+                        <td style="border:1px solid #000;padding:6px">Other Fee</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($course->other_fee, 2) }}</td>
+                    </tr>
+                    @endif
+                    <tr style="font-weight:700;background:#f5f5f5">
+                        <td style="border:1px solid #000;padding:6px">Subtotal</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($course->gross_fee ?? 0, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #000;padding:6px">Discount Applied</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right;color:#dc2626">-{{ number_format($admission->discount ?? 0, 2) }}</td>
+                    </tr>
+                    <tr style="font-weight:700;background:#f5f5f5">
+                        <td style="border:1px solid #000;padding:6px">Net Fee</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format(($course->gross_fee ?? 0) - ($admission->discount ?? 0), 2) }}</td>
                     </tr>
                 </tbody>
             </table>
