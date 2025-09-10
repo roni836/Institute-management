@@ -5,8 +5,9 @@
             @php
                 $steps = [
                     1 => 'Student',
-                    2 => 'Admission',
-                    3 => 'Plan & Review',
+                    2 => 'Education',
+                    3 => 'Admission',
+                    4 => 'Plan & Review',
                 ];
             @endphp
 
@@ -30,7 +31,7 @@
                                 {{ $label }}
                             </span>
                         </button>
-                        @if ($i < 3)
+                        @if ($i < 4)
                             <div
                                 class="flex-1 h-0.5 mx-3
                                 @if ($step > $i) bg-green-600 @else bg-gray-200 @endif">
@@ -58,15 +59,14 @@
                     <div class="mb-6 border-b pb-6">
                         <label class="text-xs">Search by Phone Number</label>
                         <div class="flex gap-4">
-                            <input type="tel" 
-                                class="w-full border rounded p-2" 
+                            <input type="tel" class="w-full border rounded p-2"
                                 wire:model.blur.debounce.500ms="searchPhone"
                                 placeholder="Enter phone number to check existing student">
                             <div wire:loading wire:target="searchPhone">
                                 <span class="text-sm text-gray-500">Checking...</span>
                             </div>
                         </div>
-                        @if($searchPhone && !$isExistingStudent)
+                        @if ($searchPhone && !$isExistingStudent)
                             <p class="mt-2 text-sm text-gray-600">
                                 No student found with this phone number. Please fill in the details below.
                             </p>
@@ -77,13 +77,16 @@
                     <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                         <div class="flex items-start">
                             <div class="flex-shrink-0">
-                                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
                             <div class="ml-3">
                                 <p class="text-sm text-blue-800">
-                                    <strong>Note:</strong> Roll Number and Student UID will be automatically generated after admission submission.
+                                    <strong>Note:</strong> Roll Number and Student UID will be automatically generated
+                                    after admission submission.
                                 </p>
                             </div>
                         </div>
@@ -99,9 +102,9 @@
                             @enderror
                         </div>
                         <div>
-                            <label class="text-xs">Phone</label>
-                            <input type="tel" class="w-full border rounded p-2" wire:model="phone">
-                            @error('phone')
+                            <label class="text-xs">Email</label>
+                            <input type="email" class="w-full border rounded p-2" wire:model="email">
+                            @error('email')
                                 <p class="text-xs text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
@@ -109,9 +112,16 @@
 
                     <div class="grid md:grid-cols-2 gap-3">
                         <div>
-                            <label class="text-xs">Email</label>
-                            <input type="email" class="w-full border rounded p-2" wire:model="email">
-                            @error('email')
+                            <label class="text-xs">Phone</label>
+                            <input type="tel" class="w-full border rounded p-2" wire:model="phone">
+                            @error('phone')
+                                <p class="text-xs text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label class="text-xs">Alternative Phone</label>
+                            <input type="tel" class="w-full border rounded p-2" wire:model="alt_phone">
+                            @error('alt_phone')
                                 <p class="text-xs text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
@@ -127,12 +137,45 @@
 
                     <div class="grid md:grid-cols-2 gap-3">
                         <div>
+                            <label class="text-xs">Gender</label>
+                            <select class="w-full border rounded p-2 bg-white" wire:model="gender">
+                                <option value="">Select</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="others">Others</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs">Category</label>
+                            <select class="w-full border rounded p-2 bg-white" wire:model="category">
+                                <option value="">Select</option>
+                                <option value="sc">SC</option>
+                                <option value="st">ST</option>
+                                <option value="obc">OBC</option>
+                                <option value="general">General</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-3">
+                        <div>
                             <label class="text-xs">Father's Name</label>
                             <input type="text" class="w-full border rounded p-2" wire:model="father_name">
                         </div>
                         <div>
                             <label class="text-xs">Mother's Name</label>
                             <input type="text" class="w-full border rounded p-2" wire:model="mother_name">
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-xs">Father's Occupation</label>
+                            <input type="text" class="w-full border rounded p-2" wire:model="father_occupation">
+                        </div>
+                        <div>
+                            <label class="text-xs">Mother's Occupation</label>
+                            <input type="text" class="w-full border rounded p-2" wire:model="mother_occupation">
                         </div>
                     </div>
 
@@ -153,6 +196,52 @@
 
         {{-- STEP 2: Admission --}}
         @if ($step === 2)
+            <div class="grid md:grid-cols-3 gap-4">
+                <div class="md:col-span-4 bg-white border rounded-xl p-4 space-y-4">
+                    <h3 class="font-semibold">Education Details</h3>
+
+                    <div class="grid md:grid-cols-1 gap-3">
+                        <div>
+                            <label class="text-xs">School Name</label>
+                            <input type="text" class="w-full border rounded p-2" wire:model="school_name">
+                            @error('school_name')
+                                <p class="text-xs text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label class="text-xs">School Address</label>
+                            <input type="text" class="w-full border rounded p-2" wire:model="school_address">
+                            @error('school_address')
+                                <p class="text-xs text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="grid md:grid-cols-1 gap-3">
+                        <div>
+                            <label class="text-xs">Previous/ Current Class </label>
+                            <input type="text" class="w-full border rounded p-2" wire:model="class">
+                            @error('class')
+                                <p class="text-xs text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label class="text-xs">Board </label>
+                            <input type="text" class="w-full border rounded p-2" wire:model="board">
+                            @error('board')
+                                <p class="text-xs text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 pt-2">
+                        <button type="button" wire:click="prev" class="px-4 py-2 rounded-lg border">Back</button>
+                        <button type="button" wire:click="next"
+                            class="px-4 py-2 rounded-lg bg-primary-600 text-white">Next</button>
+                    </div>
+                </div>
+            </div>
+        @endif
+        @if ($step === 3)
             <div class="grid md:grid-cols-3 gap-4">
                 <div class="md:col-span-2 bg-white border rounded-xl p-4 space-y-4">
                     <h3 class="font-semibold">Admission Details</h3>
@@ -242,7 +331,8 @@
                             <div class="p-6 space-y-4">
                                 <div class="flex justify-between items-center">
                                     <span class="text-gray-600">Mode</span>
-                                    <span class="px-3 py-1 rounded-full text-sm font-medium
+                                    <span
+                                        class="px-3 py-1 rounded-full text-sm font-medium
                                         {{ $mode === 'full' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700' }}">
                                         {{ ucfirst($mode) }} Payment
                                     </span>
@@ -250,67 +340,74 @@
 
                                 <!-- Fee Breakdown -->
                                 <div class="bg-gray-50 rounded-lg p-4 space-y-2">
-                                    @if($batch_id && ($b = $batches->firstWhere('id', (int)$batch_id)))
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-gray-600">Course Fee</span>
-                                        <span class="font-medium">₹{{ number_format($b->course->gross_fee, 2) }}</span>
-                                    </div>
+                                    @if ($batch_id && ($b = $batches->firstWhere('id', (int) $batch_id)))
+                                        <div class="flex justify-between text-sm">
+                                            <span class="text-gray-600">Course Fee</span>
+                                            <span
+                                                class="font-medium">₹{{ number_format($b->course->gross_fee, 2) }}</span>
+                                        </div>
                                     @endif
-                                    
+
                                     <div class="flex justify-between text-sm">
                                         <span class="text-gray-600">Discount Applied</span>
-                                        <span class="text-green-600 font-medium">- ₹{{ number_format($discount, 2) }}</span>
+                                        <span class="text-green-600 font-medium">-
+                                            ₹{{ number_format($discount, 2) }}</span>
                                     </div>
-                                    
+
                                     <div class="pt-2 border-t flex justify-between">
                                         <span class="font-medium">Total Payable</span>
-                                        <span class="text-lg font-bold text-orange-600">₹{{ number_format($fee_total, 2) }}</span>
+                                        <span
+                                            class="text-lg font-bold text-orange-600">₹{{ number_format($fee_total, 2) }}</span>
                                     </div>
                                 </div>
 
-                                @if($mode === 'installment')
-                                <div class="bg-yellow-50 border border-yellow-100 rounded-lg p-4">
-                                    <div class="flex items-center gap-2 text-yellow-800">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                        <span class="text-sm font-medium">{{ $installments }} installments</span>
+                                @if ($mode === 'installment')
+                                    <div class="bg-yellow-50 border border-yellow-100 rounded-lg p-4">
+                                        <div class="flex items-center gap-2 text-yellow-800">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <span class="text-sm font-medium">{{ $installments }} installments</span>
+                                        </div>
+                                        <p class="mt-1 text-xs text-yellow-700">Monthly payments will be calculated
+                                            based on the total amount.</p>
                                     </div>
-                                    <p class="mt-1 text-xs text-yellow-700">Monthly payments will be calculated based on the total amount.</p>
-                                </div>
                                 @endif
                             </div>
 
                             <!-- Course & Batch Info -->
-                            @if($batch_id && ($b = $batches->firstWhere('id', (int)$batch_id)))
-                            <div class="p-6 space-y-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                                        <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                                        </svg>
+                            @if ($batch_id && ($b = $batches->firstWhere('id', (int) $batch_id)))
+                                <div class="p-6 space-y-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-600">Course</p>
+                                            <p class="font-medium">{{ $b->course->name }}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p class="text-sm text-gray-600">Course</p>
-                                        <p class="font-medium">{{ $b->course->name }}</p>
-                                    </div>
-                                </div>
 
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
-                                        <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm text-gray-600">Batch</p>
-                                        <p class="font-medium">{{ $b->batch_name }}</p>
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-600">Batch</p>
+                                            <p class="font-medium">{{ $b->batch_name }}</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
                             @endif
                         </div>
                     </div>
@@ -319,7 +416,7 @@
         @endif
 
         {{-- STEP 3: Plan & Review --}}
-        @if ($step === 3)
+        @if ($step === 4)
             <div class="grid md:grid-cols-3 gap-4">
                 <div class="md:col-span-2 bg-white border rounded-xl p-4 space-y-4">
                     <h3 class="font-semibold">Payment Plan</h3>
@@ -363,10 +460,12 @@
                                 <h4 class="text-sm font-medium text-gray-700">Student Information</h4>
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="flex items-start gap-3">
-                                        <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                        <div
+                                            class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                             </svg>
                                         </div>
                                         <div>
@@ -376,91 +475,105 @@
                                     </div>
 
                                     <div class="flex items-start gap-3">
-                                        <div class="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                                      d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
+                                        <div
+                                            class="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
                                             </svg>
                                         </div>
                                         <div>
                                             <p class="text-sm text-gray-600">Roll Number</p>
-                                            <p class="font-medium text-green-600">Next: {{ $this->getNextRollNumber() }}</p>
+                                            <p class="font-medium text-green-600">Next:
+                                                {{ $this->getNextRollNumber() }}</p>
                                         </div>
                                     </div>
 
 
 
                                     <div class="flex items-start gap-3">
-                                        <div class="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                        <div
+                                            class="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-4 h-4 text-teal-500" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                             </svg>
                                         </div>
                                         <div>
                                             <p class="text-sm text-gray-600">Student UID</p>
-                                            <p class="font-medium text-green-600">Next: {{ $this->getNextStudentUid() }}</p>
+                                            <p class="font-medium text-green-600">Next:
+                                                {{ $this->getNextStudentUid() }}</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Course & Batch Details -->
-                            @if($batch_id && ($b = $batches->firstWhere('id', (int)$batch_id)))
-                            <div class="p-6 space-y-4">
-                                <h4 class="text-sm font-medium text-gray-700">Course & Batch Details</h4>
-                                
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div class="flex items-start gap-3">
-                                        <div class="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <p class="text-sm text-gray-600">Course</p>
-                                            <p class="font-medium">{{ $b->course->name }}</p>
-                                        </div>
-                                    </div>
+                            @if ($batch_id && ($b = $batches->firstWhere('id', (int) $batch_id)))
+                                <div class="p-6 space-y-4">
+                                    <h4 class="text-sm font-medium text-gray-700">Course & Batch Details</h4>
 
-                                    <div class="flex items-start gap-3">
-                                        <div class="w-8 h-8 bg-orange-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                            </svg>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="flex items-start gap-3">
+                                            <div
+                                                class="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                <svg class="w-4 h-4 text-green-500" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm text-gray-600">Course</p>
+                                                <p class="font-medium">{{ $b->course->name }}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p class="text-sm text-gray-600">Batch</p>
-                                            <p class="font-medium">{{ $b->batch_name }}</p>
+
+                                        <div class="flex items-start gap-3">
+                                            <div
+                                                class="w-8 h-8 bg-orange-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                <svg class="w-4 h-4 text-orange-500" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm text-gray-600">Batch</p>
+                                                <p class="font-medium">{{ $b->batch_name }}</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
                             @endif
 
                             <!-- Payment Summary -->
                             <div class="p-6">
                                 <h4 class="text-sm font-medium text-gray-700 mb-4">Payment Details</h4>
-                                
+
                                 <div class="bg-gray-50 rounded-lg p-4 space-y-3">
                                     <div class="flex justify-between text-sm">
                                         <span class="text-gray-600">Payment Mode</span>
-                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium
+                                        <span
+                                            class="px-2.5 py-0.5 rounded-full text-xs font-medium
                                             {{ $mode === 'full' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }}">
                                             {{ ucfirst($mode) }}
                                         </span>
                                     </div>
-                                    
+
                                     <div class="flex justify-between text-sm">
                                         <span class="text-gray-600">Discount Applied</span>
                                         <span class="text-green-600">-₹{{ number_format($discount, 2) }}</span>
                                     </div>
-                                    
+
                                     <div class="pt-2 border-t flex justify-between items-center">
                                         <span class="font-medium">Final Amount</span>
-                                        <span class="text-lg font-bold text-orange-600">₹{{ number_format($fee_total, 2) }}</span>
+                                        <span
+                                            class="text-lg font-bold text-orange-600">₹{{ number_format($fee_total, 2) }}</span>
                                     </div>
                                 </div>
                             </div>

@@ -193,7 +193,7 @@ class Create extends Component
     public function next()
     {
         $this->validate($this->stepRules($this->step));
-        if ($this->step < 3) {
+        if ($this->step < 4) {
             $this->step++;
         }
     }
@@ -211,7 +211,7 @@ class Create extends Component
         if ($to > $this->step) {
             $this->validate($this->stepRules($this->step));
         }
-        $this->step = max(1, min(3, $to));
+        $this->step = max(1, min(4, $to));
     }
 
     public function recalculate(): void
