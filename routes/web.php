@@ -130,3 +130,8 @@ Route::get('/clear-cache', function () {
 
     return "All Caches are cleared by @Roni";
 });
+
+Route::get('/run-migations', function () {
+    Artisan::call('migrate');
+    return "Migrations are run successfully.";
+});
