@@ -23,6 +23,7 @@ class Create extends Component
     public $name, $father_name, $mother_name, $email, $phone, $address, $admission;
     public $gender, $category, $alt_phone, $mother_occupation, $father_occupation;
     public $school_name, $school_address, $board, $class;
+    public $stream;
     public string $student_status = 'active';
 
     // Admission fields
@@ -72,10 +73,11 @@ class Create extends Component
             $this->school_address = $student->school_address;
             $this->board = $student->board;
             $this->class = $student->class;
+            $this->stream = $student->stream;
             $this->student_status = $student->status;
         } else {
             $this->isExistingStudent = false;
-            $this->reset(['name', 'email', 'father_name', 'mother_name', 'address', 'gender', 'category', 'alt_phone', 'mother_occupation', 'father_occupation', 'school_name', 'school_address', 'board', 'class']);
+            $this->reset(['name', 'email', 'father_name', 'mother_name', 'address', 'gender', 'category', 'alt_phone', 'mother_occupation', 'father_occupation', 'school_name', 'school_address', 'board', 'class', 'stream']);
             // Clear any batch-related errors when switching to new student
             $this->resetErrorBag('batch_id');
         }
@@ -128,6 +130,7 @@ class Create extends Component
             'alt_phone'      => ['nullable', 'string', 'max:20'],
             'mother_occupation' => ['nullable', 'string', 'max:255'],
             'father_occupation' => ['nullable', 'string', 'max:255'],
+            'stream'         => ['required', 'string', 'in:Engineering,Foundation,Medical,Other'],
             'student_status' => ['nullable', 'in:active,inactive,alumni'],
 
             // step 2 - Education details
@@ -178,6 +181,7 @@ class Create extends Component
                 'name'        => ['required', 'string', 'max:255'],
                 'email'       => ['nullable', 'email', 'max:255'],
                 'phone'       => ['nullable', 'string', 'max:20'],
+                'stream'      => ['required', 'string', 'in:Engineering,Foundation,Medical,Other'],
             ],
             2 => [
                 'school_name'    => ['nullable', 'string', 'max:255'],
@@ -275,6 +279,41 @@ class Create extends Component
 
 
     /**
+     * Generate unique enrollment ID based on stream (F25APU0001, E25APU0001, M25APU0001, O25APU0001)
+     */
+    private function generateEnrollmentId(): string
+    {
+        if (!$this->stream) {
+            throw new \Exception('Stream is required to generate enrollment ID');
+        }
+
+        $year = date('y'); // 2-digit year (25 for 2025)
+        $streamPrefix = match($this->stream) {
+            'Foundation' => 'F',
+            'Engineering' => 'E', 
+            'Medical' => 'M',
+            'Other' => 'O',
+            default => 'O'
+        };
+
+        // Find the last enrollment ID for this stream and year
+        $lastStudent = Student::where('stream', $this->stream)
+            ->where('enrollment_id', 'like', $streamPrefix . $year . 'APU%')
+            ->orderBy('enrollment_id', 'desc')
+            ->first();
+        
+        if ($lastStudent && $lastStudent->enrollment_id) {
+            // Extract the number from the last enrollment ID
+            $lastNumber = (int) substr($lastStudent->enrollment_id, -4);
+            $nextNumber = $lastNumber + 1;
+        } else {
+            $nextNumber = 1;
+        }
+        
+        return $streamPrefix . $year . 'APU' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
      * Generate unique student UID (STU20250001, STU20250002, ...)
      */
     private function generateStudentUid(): string
@@ -331,6 +370,17 @@ class Create extends Component
         return $this->generateStudentUid();
     }
 
+    /**
+     * Get next enrollment ID for display (without creating)
+     */
+    public function getNextEnrollmentId(): string
+    {
+        if (!$this->stream) {
+            return 'Select stream first';
+        }
+        return $this->generateEnrollmentId();
+    }
+
     public function save()
     {
         $data = $this->validate();
@@ -349,6 +399,7 @@ class Create extends Component
                         'phone' => $this->phone,
                         'roll_no' => $this->generateRollNumber(),
                         'student_uid' => $this->generateStudentUid(),
+                        'enrollment_id' => $this->generateEnrollmentId(),
                         'father_name' => $this->father_name,
                         'mother_name' => $this->mother_name,
                         'address' => $this->address,
@@ -361,6 +412,7 @@ class Create extends Component
                         'school_address' => $this->school_address,
                         'board' => $this->board,
                         'class' => $this->class,
+                        'stream' => $this->stream,
                         'status' => $this->student_status,
                         'admission_date' => $this->admission_date,
                     ]);

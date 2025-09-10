@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('student_uid')->unique(); // e.g., 2501458
             $table->date('admission_date');
             $table->string('address')->nullable();
-            $table->enum('status', ['active', 'inactive', 'completed'])->default('active');
+            $table->enum('status', ['active', 'inactive', 'completed','cancel'])->default('active');
             $table->decimal('attendance_percentage', 5, 2)->default(0);
             $table->integer('total_courses_enrolled')->default(0);
             $table->integer('courses_completed')->default(0);
