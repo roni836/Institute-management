@@ -29,6 +29,7 @@ class Create extends Component
     // Admission fields
     public $batch_id, $admission_date, $discount = 0.00, $mode = 'full';
     public $fee_total                            = 0.00, $installments                            = 2, $plan                            = [];
+    public $custom_installments = false; // Flag to track if user has customized installments
 
     public ?string $searchPhone = '';
     public bool $isExistingStudent = false;
@@ -48,6 +49,16 @@ class Create extends Component
         // Check for duplicate admission when batch is selected
         if ($name === 'batch_id' && $value && $this->phone) {
             $this->checkDuplicateAdmission();
+        }
+
+        // Reset custom installments flag when mode changes
+        if ($name === 'mode') {
+            $this->custom_installments = false;
+        }
+
+        // Reset custom installments flag when number of installments changes
+        if ($name === 'installments') {
+            $this->custom_installments = false;
         }
     }
 
@@ -167,6 +178,24 @@ class Create extends Component
                 Rule::requiredIf(fn() => $this->mode === 'installment'),
                 'integer', 'min:2',
             ],
+            'plan' => [
+                function ($attribute, $value, $fail) {
+                    if ($this->mode === 'installment' && !empty($this->plan)) {
+                        $total = array_sum(array_column($this->plan, 'amount'));
+                        if (abs($total - $this->fee_total) > 0.01) {
+                            $fail('Installment amounts must equal the total fee amount.');
+                        }
+                        
+                        // Validate dates are not in the past
+                        foreach ($this->plan as $installment) {
+                            if (Carbon::parse($installment['due_on'])->isPast()) {
+                                $fail('Installment due dates cannot be in the past.');
+                                break;
+                            }
+                        }
+                    }
+                }
+            ],
         ];
 
 
@@ -254,6 +283,11 @@ class Create extends Component
 
         $total           = max(0.00, round(((float) $courseFee) - $discount, 2));
         $this->fee_total = $total;
+
+        // Don't recalculate if user has customized installments
+        if ($this->custom_installments && $this->mode === 'installment') {
+            return;
+        }
 
         $this->plan = [];
         $n          = ($this->mode === 'installment') ? max(2, (int) $this->installments) : 1;
@@ -379,6 +413,54 @@ class Create extends Component
             return 'Select stream first';
         }
         return $this->generateEnrollmentId();
+    }
+
+    /**
+     * Update installment amount
+     */
+    public function updateInstallmentAmount($index, $amount)
+    {
+        if (isset($this->plan[$index])) {
+            $this->plan[$index]['amount'] = (float) $amount;
+            $this->custom_installments = true;
+            $this->validateInstallmentTotal();
+        }
+    }
+
+    /**
+     * Update installment due date
+     */
+    public function updateInstallmentDate($index, $date)
+    {
+        if (isset($this->plan[$index])) {
+            $this->plan[$index]['due_on'] = $date;
+            $this->custom_installments = true;
+        }
+    }
+
+    /**
+     * Validate that installment amounts match total
+     */
+    public function validateInstallmentTotal()
+    {
+        if ($this->mode === 'installment' && !empty($this->plan)) {
+            $total = array_sum(array_column($this->plan, 'amount'));
+            if (abs($total - $this->fee_total) > 0.01) {
+                $this->addError('plan', 'Installment amounts must equal the total fee amount.');
+            } else {
+                $this->resetErrorBag('plan');
+            }
+        }
+    }
+
+    /**
+     * Reset to auto-calculated installments
+     */
+    public function resetInstallments()
+    {
+        $this->custom_installments = false;
+        $this->recalculate();
+        $this->resetErrorBag('plan');
     }
 
     public function save()

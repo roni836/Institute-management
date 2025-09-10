@@ -443,17 +443,87 @@
                     <h3 class="font-semibold">Payment Plan</h3>
 
                     @if ($mode === 'installment')
-                        <div class="space-y-2 max-h-80 overflow-auto">
-                            @foreach ($plan as $row)
-                                <div class="flex justify-between text-sm border rounded p-2">
-                                    <span>#{{ $row['no'] }}</span>
-                                    <span>₹{{ number_format($row['amount'], 2) }}</span>
-                                    <span>Due: {{ $row['due_on'] }}</span>
+                        <div class="space-y-4">
+                            <!-- Installment Controls -->
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm font-medium">Installment Plan</span>
+                                    @if($custom_installments)
+                                        <span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">Custom</span>
+                                    @else
+                                        <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Auto</span>
+                                    @endif
                                 </div>
-                            @endforeach
+                                @if($custom_installments)
+                                    <button type="button" wire:click="resetInstallments" 
+                                        class="text-xs text-blue-600 hover:text-blue-800 underline">
+                                        Reset to Auto
+                                    </button>
+                                @endif
+                            </div>
+
+                            <!-- Installment List -->
+                            <div class="space-y-3 max-h-80 overflow-auto">
+                                @foreach ($plan as $index => $row)
+                                    <div class="border rounded-lg p-4 bg-gray-50">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <span class="font-medium text-sm">Installment #{{ $row['no'] }}</span>
+                                        </div>
+                                        
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div>
+                                                <label class="text-xs text-gray-600">Amount (₹)</label>
+                                                <input type="number" 
+                                                    step="0.01" 
+                                                    min="0"
+                                                    class="w-full border rounded p-2 text-sm"
+                                                    value="{{ $row['amount'] }}"
+                                                    wire:change="updateInstallmentAmount({{ $index }}, $event.target.value)">
+                                            </div>
+                                            <div>
+                                                <label class="text-xs text-gray-600">Due Date</label>
+                                                <input type="date" 
+                                                    class="w-full border rounded p-2 text-sm"
+                                                    value="{{ $row['due_on'] }}"
+                                                    wire:change="updateInstallmentDate({{ $index }}, $event.target.value)">
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            <!-- Total Validation -->
+                            @php
+                                $installmentTotal = array_sum(array_column($plan, 'amount'));
+                                $difference = abs($installmentTotal - $fee_total);
+                            @endphp
+                            
+                            <div class="bg-gray-100 rounded-lg p-3">
+                                <div class="flex justify-between text-sm">
+                                    <span>Installment Total:</span>
+                                    <span class="font-medium">₹{{ number_format($installmentTotal, 2) }}</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span>Course Total:</span>
+                                    <span class="font-medium">₹{{ number_format($fee_total, 2) }}</span>
+                                </div>
+                                @if($difference > 0.01)
+                                    <div class="flex justify-between text-sm text-red-600 mt-1">
+                                        <span>Difference:</span>
+                                        <span class="font-medium">₹{{ number_format($difference, 2) }}</span>
+                                    </div>
+                                @endif
+                            </div>
+
+                            @error('plan')
+                                <p class="text-xs text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                     @else
-                        <p class="text-sm text-gray-600">Full payment. Collect on first day or via Payments.</p>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600">Full payment of ₹{{ number_format($fee_total, 2) }}</p>
+                            <p class="text-xs text-gray-500 mt-1">Collect on admission date or via Payments section.</p>
+                        </div>
                     @endif
 
                     <div class="flex items-center gap-3 pt-2">
