@@ -277,6 +277,8 @@
                         <td class="p-2 text-center space-x-2">
                             <a href="{{ route('admin.admissions.show', $admission) }}"
                                 class="px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-700">View</a>
+                            <a href="{{ route('admin.admissions.edit', $admission) }}"
+                                class="px-2 py-1 rounded bg-orange-50 hover:bg-orange-100 text-orange-700">Edit</a>
                             <a href="{{ route('admin.payments.create', ['admission_id' => $admission->id]) }}"
                                 class="px-2 py-1 rounded bg-green-50 hover:bg-green-100 text-green-700">Payment</a>
                         </td>
