@@ -270,6 +270,7 @@ class StudentProfile extends Component
             'end_date'       => Carbon::parse($admission->batch->end_date)->format('d M Y'),
             'progress'       => $this->calculateProgress($admission),
             'status'         => $admission->status,
+            'reason'         => $admission->reason,
             'fee_total'      => $admission->fee_total,
             'fee_paid'       => $admission->fee_total - $admission->fee_due,
             'attendance'     => $this->calculateCourseAttendance($admission),

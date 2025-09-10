@@ -31,6 +31,7 @@ class Edit extends Component
     // Admission fields
     public $batch_id, $admission_date, $discount = 0.00, $mode = 'full';
     public $fee_total = 0.00, $installments = 2, $plan = [];
+    public $status = 'active', $reason = '';
 
     public function mount(Admission $admission)
     {
@@ -61,6 +62,8 @@ class Edit extends Component
         $this->discount = $this->admission->discount;
         $this->mode = $this->admission->mode;
         $this->fee_total = $this->admission->fee_total;
+        $this->status = $this->admission->status;
+        $this->reason = $this->admission->reason ?? '';
         
         // Load payment schedule data
         $schedules = $this->admission->schedules;
@@ -143,6 +146,11 @@ class Edit extends Component
                 Rule::requiredIf(fn() => $this->mode === 'installment'),
                 'integer', 'min:2',
             ],
+            'status' => ['required', 'in:active,completed,cancelled'],
+            'reason' => [
+                Rule::requiredIf(fn() => in_array($this->status, ['cancelled'])),
+                'nullable', 'string', 'max:1000',
+            ],
         ];
     }
 
@@ -171,6 +179,11 @@ class Edit extends Component
                     'integer', 'min:2',
                 ],
                 'fee_total' => ['required', 'numeric', 'min:0'],
+                'status' => ['required', 'in:active,completed,cancelled'],
+                'reason' => [
+                    Rule::requiredIf(fn() => in_array($this->status, ['cancelled'])),
+                    'nullable', 'string', 'max:1000',
+                ],
             ],
             default => [],
         };
@@ -235,6 +248,8 @@ class Edit extends Component
                     'discount' => $this->discount,
                     'fee_total' => $this->fee_total,
                     'fee_due' => $this->fee_total, // Recalculate due amount
+                    'status' => $this->status,
+                    'reason' => $this->reason,
                 ]);
 
                 // Update payment schedules

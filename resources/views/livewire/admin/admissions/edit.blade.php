@@ -260,7 +260,45 @@
                                 <p class="text-xs text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
+                        <div>
+                            <label class="text-xs">Admission Status</label>
+                            <select class="w-full border rounded p-2" wire:model.live="status">
+                                <option value="active">Active</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                            @error('status')
+                                <p class="text-xs text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
+
+                    @if($status === 'cancelled')
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3 flex-1">
+                                    <h3 class="text-sm font-medium text-red-800">Cancellation Reason Required</h3>
+                                    <div class="mt-2">
+                                        <label class="text-xs text-red-700">Please provide a reason for cancelling this admission:</label>
+                                        <textarea 
+                                            class="w-full mt-1 border border-red-300 rounded p-2 text-sm" 
+                                            wire:model="reason" 
+                                            rows="3" 
+                                            placeholder="Enter the reason for cancellation..."
+                                        ></textarea>
+                                        @error('reason')
+                                            <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
 
                     <div class="grid md:grid-cols-3 gap-3 items-end">
                         <div>
@@ -527,6 +565,30 @@
                                     </div>
                                 </div>
                             @endif
+
+                            <!-- Admission Status -->
+                            <div class="p-6">
+                                <h4 class="text-sm font-medium text-gray-700 mb-4">Admission Status</h4>
+                                
+                                <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600">Status</span>
+                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium
+                                            @if($status === 'active') bg-green-100 text-green-800
+                                            @elseif($status === 'completed') bg-blue-100 text-blue-800
+                                            @else bg-red-100 text-red-800 @endif">
+                                            {{ ucfirst($status) }}
+                                        </span>
+                                    </div>
+                                    
+                                    @if($status === 'cancelled' && $reason)
+                                        <div class="pt-2 border-t">
+                                            <p class="text-sm text-gray-600 mb-1">Cancellation Reason:</p>
+                                            <p class="text-sm text-red-700 bg-red-50 p-2 rounded">{{ $reason }}</p>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
 
                             <!-- Payment Summary -->
                             <div class="p-6">

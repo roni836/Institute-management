@@ -289,7 +289,7 @@
                                         <span>{{ $course['start_date'] }} - {{ $course['end_date'] }}</span>
                                     </div>
                                 </div>
-                                <div>
+                                <div class="space-y-2">
                                     <span
                                         class="px-3 py-1 rounded-full text-xs font-medium
                                         @class([
@@ -299,6 +299,11 @@
                                         ])">
                                         {{ ucfirst($course['status']) }}
                                     </span>
+                                    @if($course['status'] === 'cancelled' && isset($course['reason']) && $course['reason'])
+                                        <div class="text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
+                                            <strong>Reason:</strong> {{ $course['reason'] }}
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                             <div class="mt-6 space-y-4">

@@ -21,6 +21,11 @@
                         ])>
                             {{ ucfirst($admission->status) }}
                         </span>
+                        @if($admission->status === 'cancelled' && $admission->reason)
+                            <div class="text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
+                                <strong>Reason:</strong> {{ $admission->reason }}
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
