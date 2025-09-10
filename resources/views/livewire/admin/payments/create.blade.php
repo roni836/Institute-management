@@ -49,7 +49,16 @@
             </p>
 
             <div>
-                <label class="block text-sm font-medium mb-2">Link Installments (optional)</label>
+                <div class="flex items-center justify-between mb-2">
+                    <label class="block text-sm font-medium">Link Installments (optional)</label>
+                    <div class="flex items-center space-x-2">
+                        <input type="checkbox" id="flexiblePayment" wire:model.live="flexiblePayment"
+                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="flexiblePayment" class="text-sm text-gray-700">
+                            Flexible Payment Mode
+                        </label>
+                    </div>
+                </div>
 
                 <div class="overflow-x-auto bg-white rounded-lg border">
                     <table class="min-w-full text-sm">
@@ -144,10 +153,62 @@
         <span class="text-green-600">✓</span> Fully paid installments are disabled and cannot be selected.
     </p> --}}
 </div>
+
+<!-- Flexible Payment Section -->
+@if ($flexiblePayment)
+    <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <h4 class="text-sm font-medium text-blue-800 mb-3">Flexible Payment Mode</h4>
+        
+        <div class="space-y-3">
+            <div>
+                <label class="block text-sm font-medium text-blue-700 mb-1">Payment Amount</label>
+                <input type="number" step="0.01" min="0" wire:model.live="flexibleAmount"
+                    class="w-full border border-blue-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 @error('flexibleAmount') border-red-500 @enderror"
+                    placeholder="Enter payment amount">
+                @error('flexibleAmount')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+
+            @if ($flexibleAmount > 0)
+                @php
+                    $allocation = $this->getSmartAllocationPreview();
+                @endphp
+                
+                @if (!empty($allocation['allocation']))
+                    <div class="bg-white rounded-lg p-3 border border-blue-200">
+                        <h5 class="text-sm font-medium text-blue-800 mb-2">Payment Allocation Preview:</h5>
+                        <div class="space-y-2">
+                            @foreach ($allocation['allocation'] as $item)
+                                <div class="flex justify-between text-sm">
+                                    <span>Installment #{{ $item['installment_no'] }} (Due: {{ $item['due_date'] }})</span>
+                                    <span class="font-medium">₹{{ number_format($item['amount'], 2) }}</span>
+                                </div>
+                            @endforeach
+                            
+                            @if ($allocation['overpayment'] > 0.01)
+                                <div class="flex justify-between text-sm text-green-600 border-t pt-2">
+                                    <span>Overpayment (for future installments)</span>
+                                    <span class="font-medium">₹{{ number_format($allocation['overpayment'], 2) }}</span>
+                                </div>
+                            @endif
+                            
+                            <div class="flex justify-between text-sm font-medium border-t pt-2">
+                                <span>Total Payment</span>
+                                <span>₹{{ number_format($flexibleAmount, 2) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            @endif
+        </div>
+    </div>
+@endif
+</div>
 </div>
 
 <!-- Payment Form Instructions -->
-@if ($admission_id && empty($selectedScheduleIds))
+@if ($admission_id && empty($selectedScheduleIds) && !$flexiblePayment)
     <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div class="flex items-center">
             <div class="flex-shrink-0">
@@ -158,7 +219,7 @@
             </div>
             <div class="ml-3">
                 <p class="text-sm text-blue-700">
-                    <strong>Select installments above</strong> to proceed with payment creation.
+                    <strong>Select installments above</strong> or <strong>enable Flexible Payment Mode</strong> to proceed with payment creation.
                 </p>
             </div>
         </div>
@@ -195,7 +256,7 @@
 @endif
 
 <!-- Payment Form -->
-@if ($admission_id && !empty($selectedScheduleIds))
+@if ($admission_id && (!empty($selectedScheduleIds) || $flexiblePayment))
     <form wire:submit.prevent="save" class="space-y-5">
 
         <!-- Date & Amount -->
@@ -210,9 +271,18 @@
             </div>
             <div>
                 <label class="block text-sm font-medium mb-1">Amount</label>
-                <input type="number" step="0.01" wire:model.live="amount"
+                <input type="number" step="0.01" 
+                    @if($flexiblePayment) 
+                        wire:model.live="flexibleAmount" 
+                        value="{{ $flexibleAmount }}"
+                    @else 
+                        wire:model.live="amount"
+                    @endif
                     class="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-500 @error('amount') border-red-500 @enderror">
                 @error('amount')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
+                @error('flexibleAmount')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                 @enderror
             </div>
@@ -232,7 +302,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div class="bg-white rounded-lg p-3 border">
                         <span class="text-gray-600">Base Amount:</span>
-                        <span class="font-medium ml-2">₹{{ number_format($amount, 2) }}</span>
+                        <span class="font-medium ml-2">₹{{ number_format($flexiblePayment ? $flexibleAmount : $amount, 2) }}</span>
                     </div>
                     <div class="bg-white rounded-lg p-3 border">
                         <span class="text-gray-600">GST (18%):</span>
@@ -241,7 +311,7 @@
                     <div class="bg-white rounded-lg p-3 border">
                         <span class="text-gray-600">Total Amount:</span>
                         <span
-                            class="font-medium ml-2 text-green-600">₹{{ number_format($amount + $gstAmount, 2) }}</span>
+                            class="font-medium ml-2 text-green-600">₹{{ number_format(($flexiblePayment ? $flexibleAmount : $amount) + $gstAmount, 2) }}</span>
                     </div>
                 </div>
             @endif

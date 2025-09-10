@@ -38,6 +38,8 @@ class Create extends Component
 
     public array $selectedScheduleIds = [];
     public ?Transaction $lastTransaction = null;
+    public bool $flexiblePayment = false; // New flag for flexible payment mode
+    public $flexibleAmount = 0.00; // Amount for flexible payment
 
     public function updated($name, $value): void
     {
@@ -54,8 +56,17 @@ class Create extends Component
         if ($name === 'amount') {
             $this->updateGstAmount();
         }
+        if ($name === 'flexibleAmount') {
+            $this->updateGstAmount();
+        }
         if ($name === 'mode') {
             $this->onModeChanged();
+        }
+        if ($name === 'flexiblePayment') {
+            $this->onFlexiblePaymentChanged();
+        }
+        if ($name === 'flexibleAmount') {
+            $this->onFlexibleAmountChanged();
         }
     }
 
@@ -124,8 +135,9 @@ class Create extends Component
 
     private function updateGstAmount(): void
     {
-        if ($this->applyGst && $this->amount) {
-            $this->gstAmount = round((float) $this->amount * 0.18, 2);
+        $baseAmount = $this->flexiblePayment ? $this->flexibleAmount : $this->amount;
+        if ($this->applyGst && $baseAmount) {
+            $this->gstAmount = round((float) $baseAmount * 0.18, 2);
         } else {
             $this->gstAmount = 0.00;
         }
@@ -250,6 +262,83 @@ class Create extends Component
             ->toArray();
     }
 
+    private function onFlexiblePaymentChanged(): void
+    {
+        if ($this->flexiblePayment) {
+            // Clear selected installments when switching to flexible mode
+            $this->selectedScheduleIds = [];
+            $this->flexibleAmount = 0.00;
+        }
+    }
+
+    private function onFlexibleAmountChanged(): void
+    {
+        // Auto-update the main amount field when flexible amount changes
+        $this->amount = $this->flexibleAmount;
+    }
+
+    /**
+     * Get smart payment allocation for flexible payments
+     */
+    public function getSmartAllocation($amount): array
+    {
+        if (!$this->admission_id) {
+            return [];
+        }
+
+        $schedules = PaymentSchedule::where('admission_id', $this->admission_id)
+            ->orderBy('installment_no')
+            ->get();
+
+        $allocation = [];
+        $remaining = (float) $amount;
+        $overpayment = 0.00;
+
+        foreach ($schedules as $schedule) {
+            if ($remaining <= 0) {
+                break;
+            }
+
+            $left = max(0.0, (float) $schedule->amount - (float) $schedule->paid_amount);
+            
+            if ($left > 0) {
+                $allocated = min($left, $remaining);
+                $allocation[] = [
+                    'schedule_id' => $schedule->id,
+                    'installment_no' => $schedule->installment_no,
+                    'due_date' => $schedule->due_date,
+                    'amount' => $allocated,
+                    'left_before' => $left,
+                    'left_after' => $left - $allocated,
+                ];
+                $remaining -= $allocated;
+            }
+        }
+
+        // If there's remaining amount, it's overpayment
+        if ($remaining > 0.01) {
+            $overpayment = $remaining;
+        }
+
+        return [
+            'allocation' => $allocation,
+            'overpayment' => $overpayment,
+            'total_allocated' => $amount - $overpayment,
+        ];
+    }
+
+    /**
+     * Get preview of smart allocation
+     */
+    public function getSmartAllocationPreview(): array
+    {
+        if (!$this->flexiblePayment || !$this->flexibleAmount || $this->flexibleAmount <= 0) {
+            return [];
+        }
+
+        return $this->getSmartAllocation($this->flexibleAmount);
+    }
+
     public function save()
     {
         $data = $this->validate([
@@ -262,13 +351,15 @@ class Create extends Component
             'reference_no'          => ['nullable', 'string', 'max:100'],
             'amount'                => ['required', 'numeric', 'min:0.01'],
             'applyGst'              => ['boolean'],
+            'flexiblePayment'       => ['boolean'],
+            'flexibleAmount'        => ['nullable', 'numeric', 'min:0.01'],
         ]);
 
         // Auto-set status to success and generate receipt number
         $this->status = 'success';
         $this->receipt_number = $this->generateReceiptNumber();
 
-        // 1) Build the schedule set (prefer multi-select; fallback to single)
+        // 1) Build the schedule set (prefer multi-select; fallback to single; or flexible)
         $scheduleIds = collect($this->selectedScheduleIds)
             ->map(fn($v) => (int) $v)
             ->filter()
@@ -279,10 +370,20 @@ class Create extends Component
             $scheduleIds = collect([(int) $data['payment_schedule_id']]);
         }
 
-        // 2) Early UX checks (no exceptions, just inline errors)
-        if ($scheduleIds->isEmpty()) {
-            $this->addError('selectedScheduleIds', 'Please select at least one installment to pay.');
-            return;
+        // Handle flexible payment mode
+        if ($this->flexiblePayment) {
+            $smartAllocation = $this->getSmartAllocation($this->amount);
+            if (empty($smartAllocation['allocation'])) {
+                $this->addError('flexibleAmount', 'No pending installments found to allocate payment to.');
+                return;
+            }
+            $scheduleIds = collect($smartAllocation['allocation'])->pluck('schedule_id');
+        } else {
+            // 2) Early UX checks for traditional mode
+            if ($scheduleIds->isEmpty()) {
+                $this->addError('selectedScheduleIds', 'Please select at least one installment to pay or enable flexible payment mode.');
+                return;
+            }
         }
 
 
@@ -331,54 +432,116 @@ class Create extends Component
         DB::transaction(function () use ($data, $scheduleIds) {
             $admission = Admission::lockForUpdate()->findOrFail($data['admission_id']);
 
-            $schedules = PaymentSchedule::lockForUpdate()
-                ->where('admission_id', $admission->id)
-                ->whereIn('id', $scheduleIds)
-                ->orderBy('installment_no')
-                ->get();
-
-            $incoming       = (float) $this->amount; // possibly auto-capped above
-            $remaining      = $incoming;
+            $incoming = (float) $this->amount;
             $allocatedTotal = 0.0;
+            $lastTransaction = null;
 
-            foreach ($schedules as $schedule) {
-                if ($remaining <= 0) {
-                    break;
+            if ($this->flexiblePayment) {
+                // Handle flexible payment with smart allocation
+                $smartAllocation = $this->getSmartAllocation($incoming);
+                
+                foreach ($smartAllocation['allocation'] as $allocation) {
+                    $schedule = PaymentSchedule::lockForUpdate()
+                        ->where('id', $allocation['schedule_id'])
+                        ->first();
+                    
+                    if (!$schedule) continue;
+
+                    $portion = $allocation['amount'];
+
+                    $tx = Transaction::create([
+                        'admission_id'        => $admission->id,
+                        'payment_schedule_id' => $schedule->id,
+                        'amount'              => $portion,
+                        'gst'                 => $this->applyGst ? round($portion * 0.18, 2) : 0.00,
+                        'date'                => $data['date'],
+                        'mode'                => $data['mode'],
+                        'reference_no'        => $data['reference_no'] ?? null,
+                        'status'              => 'success',
+                        'receipt_number'      => $this->receipt_number,
+                    ]);
+
+                    // Update schedule
+                    $schedule->paid_amount = (float) $schedule->paid_amount + $portion;
+                    if ($schedule->paid_amount + 0.00001 >= (float) $schedule->amount) {
+                        $schedule->status    = 'paid';
+                        $schedule->paid_date = $schedule->paid_date ?? $tx->date;
+                    } elseif ($schedule->paid_amount > 0) {
+                        $schedule->status = 'partial';
+                    } else {
+                        $schedule->status = 'pending';
+                    }
+                    $schedule->save();
+
+                    $allocatedTotal += $portion;
+                    $lastTransaction = $tx;
                 }
 
-                $left = max(0.0, (float) $schedule->amount - (float) $schedule->paid_amount);
-                if ($left <= 0) {
-                    continue;
+                // Handle overpayment - create a special transaction for future installments
+                if ($smartAllocation['overpayment'] > 0.01) {
+                    $overpaymentTx = Transaction::create([
+                        'admission_id'        => $admission->id,
+                        'payment_schedule_id' => null, // No specific schedule for overpayment
+                        'amount'              => $smartAllocation['overpayment'],
+                        'gst'                 => $this->applyGst ? round($smartAllocation['overpayment'] * 0.18, 2) : 0.00,
+                        'date'                => $data['date'],
+                        'mode'                => $data['mode'],
+                        'reference_no'        => $data['reference_no'] ?? null,
+                        'status'              => 'success',
+                        'receipt_number'      => $this->receipt_number,
+                    ]);
+                    $lastTransaction = $overpaymentTx;
                 }
+            } else {
+                // Handle traditional payment mode
+                $schedules = PaymentSchedule::lockForUpdate()
+                    ->where('admission_id', $admission->id)
+                    ->whereIn('id', $scheduleIds)
+                    ->orderBy('installment_no')
+                    ->get();
 
-                $portion = min($left, $remaining);
+                $remaining = $incoming;
 
-                $tx = Transaction::create([
-                    'admission_id'        => $admission->id,
-                    'payment_schedule_id' => $schedule->id,
-                    'amount'              => $portion,
-                    'gst'                 => $this->applyGst ? round($portion * 0.18, 2) : 0.00,
-                    'date'                => $data['date'],
-                    'mode'                => $data['mode'],
-                    'reference_no'        => $data['reference_no'] ?? null,
-                    'status'              => 'success',
-                    'receipt_number'      => $this->receipt_number,
-                ]);
+                foreach ($schedules as $schedule) {
+                    if ($remaining <= 0) {
+                        break;
+                    }
 
-                // Since status is always success, always process the payment
-                $schedule->paid_amount = (float) $schedule->paid_amount + $portion;
-                if ($schedule->paid_amount + 0.00001 >= (float) $schedule->amount) {
-                    $schedule->status    = 'paid';
-                    $schedule->paid_date = $schedule->paid_date ?? $tx->date;
-                } elseif ($schedule->paid_amount > 0) {
-                    $schedule->status = 'partial';
-                } else {
-                    $schedule->status = 'pending';
+                    $left = max(0.0, (float) $schedule->amount - (float) $schedule->paid_amount);
+                    if ($left <= 0) {
+                        continue;
+                    }
+
+                    $portion = min($left, $remaining);
+
+                    $tx = Transaction::create([
+                        'admission_id'        => $admission->id,
+                        'payment_schedule_id' => $schedule->id,
+                        'amount'              => $portion,
+                        'gst'                 => $this->applyGst ? round($portion * 0.18, 2) : 0.00,
+                        'date'                => $data['date'],
+                        'mode'                => $data['mode'],
+                        'reference_no'        => $data['reference_no'] ?? null,
+                        'status'              => 'success',
+                        'receipt_number'      => $this->receipt_number,
+                    ]);
+
+                    // Update schedule
+                    $schedule->paid_amount = (float) $schedule->paid_amount + $portion;
+                    if ($schedule->paid_amount + 0.00001 >= (float) $schedule->amount) {
+                        $schedule->status    = 'paid';
+                        $schedule->paid_date = $schedule->paid_date ?? $tx->date;
+                    } elseif ($schedule->paid_amount > 0) {
+                        $schedule->status = 'partial';
+                    } else {
+                        $schedule->status = 'pending';
+                    }
+                    $schedule->save();
+
+                    $allocatedTotal += $portion;
+                    $remaining -= $portion;
+                    $lastTransaction = $tx;
                 }
-                $schedule->save();
-
-                $allocatedTotal += $portion;
-                $remaining -= $portion;
             }
 
             // Recompute admission due from ALL schedules (authoritative) and sync
@@ -393,7 +556,7 @@ class Create extends Component
             $admission->save();
 
             // Store the transaction for email sending
-            $this->lastTransaction = $tx;
+            $this->lastTransaction = $lastTransaction;
         });
 
         // Send payment confirmation email if student has email
