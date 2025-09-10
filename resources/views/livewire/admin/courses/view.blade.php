@@ -37,6 +37,41 @@
             </div>
         </dl>
 
+        <!-- Fee Breakdown Section -->
+        <div class="border-t pt-4 mb-6">
+            <h3 class="text-sm font-medium mb-3">Fee Breakdown</h3>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                    <dt class="text-xs text-gray-500">Tuition Fee</dt>
+                    <dd class="text-base font-medium">₹{{ number_format($course->tution_fee ?? 0, 2) }}</dd>
+                </div>
+                <div>
+                    <dt class="text-xs text-gray-500">Admission Fee</dt>
+                    <dd class="text-base font-medium">₹{{ number_format($course->admission_fee ?? 0, 2) }}</dd>
+                </div>
+                <div>
+                    <dt class="text-xs text-gray-500">Exam Fee</dt>
+                    <dd class="text-base font-medium">₹{{ number_format($course->exam_fee ?? 0, 2) }}</dd>
+                </div>
+                <div>
+                    <dt class="text-xs text-gray-500">Infrastructure Fee</dt>
+                    <dd class="text-base font-medium">₹{{ number_format($course->infra_fee ?? 0, 2) }}</dd>
+                </div>
+                <div>
+                    <dt class="text-xs text-gray-500">SM Fee</dt>
+                    <dd class="text-base font-medium">₹{{ number_format($course->SM_fee ?? 0, 2) }}</dd>
+                </div>
+                <div>
+                    <dt class="text-xs text-gray-500">Tech Fee</dt>
+                    <dd class="text-base font-medium">₹{{ number_format($course->tech_fee ?? 0, 2) }}</dd>
+                </div>
+                <div>
+                    <dt class="text-xs text-gray-500">Other Fee</dt>
+                    <dd class="text-base font-medium">₹{{ number_format($course->other_fee ?? 0, 2) }}</dd>
+                </div>
+            </div>
+        </div>
+
         <!-- ✅ Tabs -->
         <div class="mt-8 border-b border-gray-200">
             <nav class="flex gap-4">

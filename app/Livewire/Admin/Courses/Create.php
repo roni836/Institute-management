@@ -10,6 +10,7 @@ use Livewire\Component;
 class Create extends Component
 {
     public $name, $batch_code, $duration_months, $gross_fee, $discount = 0;
+    public $tution_fee = 0, $admission_fee = 0, $exam_fee = 0, $infra_fee = 0, $SM_fee = 0, $tech_fee = 0, $other_fee = 0;
 
     protected function rules()
     {
@@ -19,6 +20,13 @@ class Create extends Component
             'duration_months'  => 'nullable|integer|min:1|max:120',
             'gross_fee'        => 'required|numeric|min:0',
             'discount'         => 'nullable|numeric|min:0',
+            'tution_fee'       => 'nullable|numeric|min:0',
+            'admission_fee'    => 'nullable|numeric|min:0',
+            'exam_fee'         => 'nullable|numeric|min:0',
+            'infra_fee'        => 'nullable|numeric|min:0',
+            'SM_fee'           => 'nullable|numeric|min:0',
+            'tech_fee'         => 'nullable|numeric|min:0',
+            'other_fee'        => 'nullable|numeric|min:0',
         ];
     }
 
