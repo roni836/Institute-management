@@ -1,10 +1,10 @@
 <?php
 namespace App\Livewire\Admin\Admissions;
 
+use App\Mail\AdmissionConfirmationMail;
 use App\Models\Admission;
 use App\Models\Batch;
 use App\Models\Student;
-use App\Mail\AdmissionConfirmationMail;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -29,9 +29,9 @@ class Create extends Component
     // Admission fields
     public $batch_id, $admission_date, $discount = 0.00, $mode = 'full';
     public $fee_total                            = 0.00, $installments                            = 2, $plan                            = [];
-    public $custom_installments = false; // Flag to track if user has customized installments
+    public $custom_installments                  = false; // Flag to track if user has customized installments
 
-    public ?string $searchPhone = '';
+    public ?string $searchPhone    = '';
     public bool $isExistingStudent = false;
 
     public function mount()
@@ -45,7 +45,7 @@ class Create extends Component
         if (in_array($name, ['batch_id', 'discount', 'mode', 'installments', 'admission_date'], true)) {
             $this->recalculate();
         }
-        
+
         // Check for duplicate admission when batch is selected
         if ($name === 'batch_id' && $value && $this->phone) {
             $this->checkDuplicateAdmission();
@@ -67,32 +67,32 @@ class Create extends Component
         $student = Student::where('phone', $this->searchPhone)->first();
         if ($student) {
             $this->isExistingStudent = true;
-            
+
             // Pre-fill form with existing student data
-            $this->name = $student->name;
-            $this->email = $student->email;
-            $this->phone = $student->phone;
-            $this->father_name = $student->father_name;
-            $this->mother_name = $student->mother_name;
-            $this->address = $student->address;
-            $this->gender = $student->gender;
-            $this->category = $student->category;
-            $this->alt_phone = $student->alt_phone;
+            $this->name              = $student->name;
+            $this->email             = $student->email;
+            $this->phone             = $student->phone;
+            $this->father_name       = $student->father_name;
+            $this->mother_name       = $student->mother_name;
+            $this->address           = $student->address;
+            $this->gender            = $student->gender;
+            $this->category          = $student->category;
+            $this->alt_phone         = $student->alt_phone;
             $this->mother_occupation = $student->mother_occupation;
             $this->father_occupation = $student->father_occupation;
-            $this->school_name = $student->school_name;
-            $this->school_address = $student->school_address;
-            $this->board = $student->board;
-            $this->class = $student->class;
-            $this->stream = $student->stream;
-            $this->student_status = $student->status;
+            $this->school_name       = $student->school_name;
+            $this->school_address    = $student->school_address;
+            $this->board             = $student->board;
+            $this->class             = $student->class;
+            $this->stream            = $student->stream;
+            $this->student_status    = $student->status;
         } else {
             $this->isExistingStudent = false;
             $this->reset(['name', 'email', 'father_name', 'mother_name', 'address', 'gender', 'category', 'alt_phone', 'mother_occupation', 'father_occupation', 'school_name', 'school_address', 'board', 'class', 'stream']);
             // Clear any batch-related errors when switching to new student
             $this->resetErrorBag('batch_id');
         }
-        
+
         // Check if student is already admitted to the selected batch
         if ($this->batch_id) {
             $this->checkDuplicateAdmission();
@@ -104,7 +104,7 @@ class Create extends Component
      */
     public function checkDuplicateAdmission()
     {
-        if (!$this->batch_id || !$this->phone) {
+        if (! $this->batch_id || ! $this->phone) {
             return;
         }
 
@@ -114,13 +114,13 @@ class Create extends Component
                 ->where('batch_id', $this->batch_id)
                 ->where('status', '!=', 'cancelled')
                 ->first();
-            
+
             if ($existingAdmission) {
                 $this->addError('batch_id', 'This student is already admitted to this batch.');
                 return;
             }
         }
-        
+
         // Clear any previous errors
         $this->resetErrorBag('batch_id');
     }
@@ -130,29 +130,29 @@ class Create extends Component
     {
         $rules = [
             // step 1 - Student details
-            'name'           => ['required', 'string', 'max:255'],
-            'father_name'    => ['nullable', 'string', 'max:255'],
-            'mother_name'    => ['nullable', 'string', 'max:255'],
-            'email'          => ['nullable', 'email', 'max:255'],
-            'phone'          => ['nullable', 'string', 'max:20'],
-            'address'        => ['nullable', 'string'],
-            'gender'         => ['nullable', 'string', 'in:male,female,others'],
-            'category'       => ['nullable', 'string', 'in:sc,st,obc,general,other'],
-            'alt_phone'      => ['nullable', 'string', 'max:20'],
+            'name'              => ['required', 'string', 'max:255'],
+            'father_name'       => ['nullable', 'string', 'max:255'],
+            'mother_name'       => ['nullable', 'string', 'max:255'],
+            'email'             => ['nullable', 'email', 'max:255'],
+            'phone'             => ['nullable', 'string', 'max:20'],
+            'address'           => ['nullable', 'string'],
+            'gender'            => ['nullable', 'string', 'in:male,female,others'],
+            'category'          => ['nullable', 'string', 'in:sc,st,obc,general,other'],
+            'alt_phone'         => ['nullable', 'string', 'max:20'],
             'mother_occupation' => ['nullable', 'string', 'max:255'],
             'father_occupation' => ['nullable', 'string', 'max:255'],
-            'stream'         => ['required', 'string', 'in:Engineering,Foundation,Medical,Other'],
-            'student_status' => ['nullable', 'in:active,inactive,alumni'],
+            'stream'            => ['required', 'string', 'in:Engineering,Foundation,Medical,Other'],
+            'student_status'    => ['nullable', 'in:active,inactive,alumni'],
 
             // step 2 - Education details
-            'school_name'    => ['nullable', 'string', 'max:255'],
-            'school_address' => ['nullable', 'string'],
-            'board'          => ['nullable', 'string', 'max:255'],
-            'class'          => ['nullable', 'string', 'max:255'],
+            'school_name'       => ['nullable', 'string', 'max:255'],
+            'school_address'    => ['nullable', 'string'],
+            'board'             => ['nullable', 'string', 'max:255'],
+            'class'             => ['nullable', 'string', 'max:255'],
 
             // step 3 - Admission details
-            'batch_id'       => [
-                'required', 
+            'batch_id'          => [
+                'required',
                 'exists:batches,id',
                 function ($attribute, $value, $fail) {
                     if ($this->phone && $value) {
@@ -162,30 +162,30 @@ class Create extends Component
                                 ->where('batch_id', $value)
                                 ->where('status', '!=', 'cancelled')
                                 ->first();
-                            
+
                             if ($existingAdmission) {
                                 $fail('This student is already admitted to this batch.');
                             }
                         }
                     }
-                }
+                },
             ],
-            'admission_date' => ['required', 'date'],
-            'discount'       => ['nullable', 'numeric', 'min:0'],
-            'mode'           => ['required', 'in:full,installment'],
-            'fee_total'      => ['required', 'numeric', 'min:0'],
-            'installments'   => [
+            'admission_date'    => ['required', 'date'],
+            'discount'          => ['nullable', 'numeric', 'min:0'],
+            'mode'              => ['required', 'in:full,installment'],
+            'fee_total'         => ['required', 'numeric', 'min:0'],
+            'installments'      => [
                 Rule::requiredIf(fn() => $this->mode === 'installment'),
                 'integer', 'min:2',
             ],
-            'plan' => [
+            'plan'              => [
                 function ($attribute, $value, $fail) {
-                    if ($this->mode === 'installment' && !empty($this->plan)) {
+                    if ($this->mode === 'installment' && ! empty($this->plan)) {
                         $total = array_sum(array_column($this->plan, 'amount'));
                         if (abs($total - $this->fee_total) > 0.01) {
                             $fail('Installment amounts must equal the total fee amount.');
                         }
-                        
+
                         // Validate dates are not in the past
                         foreach ($this->plan as $installment) {
                             if (Carbon::parse($installment['due_on'])->isPast()) {
@@ -194,10 +194,9 @@ class Create extends Component
                             }
                         }
                     }
-                }
+                },
             ],
         ];
-
 
         return $rules;
     }
@@ -206,21 +205,21 @@ class Create extends Component
     protected function stepRules(int $step): array
     {
         return match ($step) {
-            1 => [
-                'name'        => ['required', 'string', 'max:255'],
-                'email'       => ['nullable', 'email', 'max:255'],
-                'phone'       => ['nullable', 'string', 'max:20'],
-                'stream'      => ['required', 'string', 'in:Engineering,Foundation,Medical,Other'],
+            1       => [
+                'name'   => ['required', 'string', 'max:255'],
+                'email'  => ['nullable', 'email', 'max:255'],
+                'phone'  => ['nullable', 'string', 'max:20'],
+                'stream' => ['required', 'string', 'in:Engineering,Foundation,Medical,Other'],
             ],
-            2 => [
+            2       => [
                 'school_name'    => ['nullable', 'string', 'max:255'],
                 'school_address' => ['nullable', 'string'],
                 'board'          => ['nullable', 'string', 'max:255'],
                 'class'          => ['nullable', 'string', 'max:255'],
             ],
-            3 => [
+            3       => [
                 'batch_id'       => [
-                    'required', 
+                    'required',
                     'exists:batches,id',
                     function ($attribute, $value, $fail) {
                         if ($this->phone && $value) {
@@ -230,13 +229,13 @@ class Create extends Component
                                     ->where('batch_id', $value)
                                     ->where('status', '!=', 'cancelled')
                                     ->first();
-                                
+
                                 if ($existingAdmission) {
                                     $fail('This student is already admitted to this batch.');
                                 }
                             }
                         }
-                    }
+                    },
                 ],
                 'admission_date' => ['required', 'date'],
                 'discount'       => ['nullable', 'numeric', 'min:0'],
@@ -310,24 +309,22 @@ class Create extends Component
         }
     }
 
-
-
     /**
      * Generate unique enrollment ID based on stream (F25APU0001, E25APU0001, M25APU0001, O25APU0001)
      */
     private function generateEnrollmentId(): string
     {
-        if (!$this->stream) {
+        if (! $this->stream) {
             throw new \Exception('Stream is required to generate enrollment ID');
         }
 
-        $year = date('y'); // 2-digit year (25 for 2025)
-        $streamPrefix = match($this->stream) {
-            'Foundation' => 'F',
-            'Engineering' => 'E', 
-            'Medical' => 'M',
-            'Other' => 'O',
-            default => 'O'
+        $year         = date('y'); // 2-digit year (25 for 2025)
+        $streamPrefix = match ($this->stream) {
+            'Foundation'  => 'F',
+            'Engineering' => 'E',
+            'Medical'     => 'M',
+            'Other'       => 'O',
+            default       => 'O'
         };
 
         // Find the last enrollment ID for this stream and year
@@ -335,7 +332,7 @@ class Create extends Component
             ->where('enrollment_id', 'like', $streamPrefix . $year . 'APU%')
             ->orderBy('enrollment_id', 'desc')
             ->first();
-        
+
         if ($lastStudent && $lastStudent->enrollment_id) {
             // Extract the number from the last enrollment ID
             $lastNumber = (int) substr($lastStudent->enrollment_id, -4);
@@ -343,7 +340,7 @@ class Create extends Component
         } else {
             $nextNumber = 1;
         }
-        
+
         return $streamPrefix . $year . 'APU' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
     }
 
@@ -352,11 +349,11 @@ class Create extends Component
      */
     private function generateStudentUid(): string
     {
-        $year = date('Y');
+        $year        = date('Y');
         $lastStudent = Student::whereYear('created_at', $year)
             ->orderBy('id', 'desc')
             ->first();
-        
+
         if ($lastStudent && $lastStudent->student_uid) {
             // Extract the number from the last student UID
             $lastNumber = (int) substr($lastStudent->student_uid, -5);
@@ -364,7 +361,7 @@ class Create extends Component
         } else {
             $nextNumber = 1;
         }
-        
+
         return 'STU' . $year . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
     }
 
@@ -374,7 +371,7 @@ class Create extends Component
     private function generateRollNumber(): string
     {
         $lastStudent = Student::orderBy('id', 'desc')->first();
-        
+
         if ($lastStudent && $lastStudent->roll_no) {
             // Extract the number from the last roll number
             $lastNumber = (int) substr($lastStudent->roll_no, 1);
@@ -382,7 +379,7 @@ class Create extends Component
         } else {
             $nextNumber = 1;
         }
-        
+
         return 'A' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
     }
 
@@ -393,8 +390,6 @@ class Create extends Component
     {
         return $this->generateRollNumber();
     }
-
-
 
     /**
      * Get next student UID for display (without creating)
@@ -409,7 +404,7 @@ class Create extends Component
      */
     public function getNextEnrollmentId(): string
     {
-        if (!$this->stream) {
+        if (! $this->stream) {
             return 'Select stream first';
         }
         return $this->generateEnrollmentId();
@@ -422,7 +417,7 @@ class Create extends Component
     {
         if (isset($this->plan[$index])) {
             $this->plan[$index]['amount'] = (float) $amount;
-            $this->custom_installments = true;
+            $this->custom_installments    = true;
             $this->validateInstallmentTotal();
         }
     }
@@ -434,7 +429,7 @@ class Create extends Component
     {
         if (isset($this->plan[$index])) {
             $this->plan[$index]['due_on'] = $date;
-            $this->custom_installments = true;
+            $this->custom_installments    = true;
         }
     }
 
@@ -443,7 +438,7 @@ class Create extends Component
      */
     public function validateInstallmentTotal()
     {
-        if ($this->mode === 'installment' && !empty($this->plan)) {
+        if ($this->mode === 'installment' && ! empty($this->plan)) {
             $total = array_sum(array_column($this->plan, 'amount'));
             if (abs($total - $this->fee_total) > 0.01) {
                 $this->addError('plan', 'Installment amounts must equal the total fee amount.');
@@ -468,48 +463,48 @@ class Create extends Component
         $data = $this->validate();
 
         $admission = null;
-        
+
         try {
             DB::transaction(function () use ($data, &$admission) {
                 // Find or create student
                 $student = Student::where('phone', $this->phone)->first();
 
-                if (!$student) {
+                if (! $student) {
                     $student = Student::create([
-                        'name' => $this->name,
-                        'email' => $this->email,
-                        'phone' => $this->phone,
-                        'roll_no' => $this->generateRollNumber(),
-                        'student_uid' => $this->generateStudentUid(),
-                        'enrollment_id' => $this->generateEnrollmentId(),
-                        'father_name' => $this->father_name,
-                        'mother_name' => $this->mother_name,
-                        'address' => $this->address,
-                        'gender' => $this->gender,
-                        'category' => $this->category,
-                        'alt_phone' => $this->alt_phone,
+                        'name'              => $this->name,
+                        'email'             => $this->email,
+                        'phone'             => $this->phone,
+                        'roll_no'           => $this->generateRollNumber(),
+                        'student_uid'       => $this->generateStudentUid(),
+                        'enrollment_id'     => $this->generateEnrollmentId(),
+                        'father_name'       => $this->father_name,
+                        'mother_name'       => $this->mother_name,
+                        'address'           => $this->address,
+                        'gender'            => $this->gender,
+                        'category'          => $this->category,
+                        'alt_phone'         => $this->alt_phone,
                         'mother_occupation' => $this->mother_occupation,
                         'father_occupation' => $this->father_occupation,
-                        'school_name' => $this->school_name,
-                        'school_address' => $this->school_address,
-                        'board' => $this->board,
-                        'class' => $this->class,
-                        'stream' => $this->stream,
-                        'status' => $this->student_status,
-                        'admission_date' => $this->admission_date,
+                        'school_name'       => $this->school_name,
+                        'school_address'    => $this->school_address,
+                        'board'             => $this->board,
+                        'class'             => $this->class,
+                        'stream'            => $this->stream,
+                        'status'            => $this->student_status,
+                        'admission_date'    => $this->admission_date,
                     ]);
                 }
 
                 // Create admission
                 $admission = Admission::create([
-                    'student_id' => $student->id,
-                    'batch_id' => $this->batch_id,
+                    'student_id'     => $student->id,
+                    'batch_id'       => $this->batch_id,
                     'admission_date' => $this->admission_date,
-                    'mode' => $this->mode,
-                    'discount' => $this->discount,
-                    'fee_total' => $this->fee_total,
-                    'fee_due' => $this->fee_total,
-                    'status' => 'active',
+                    'mode'           => $this->mode,
+                    'discount'       => $this->discount,
+                    'fee_total'      => $this->fee_total,
+                    'fee_due'        => $this->fee_total,
+                    'status'         => 'active',
                 ]);
 
                 // 3) Create payment schedule
@@ -533,7 +528,7 @@ class Create extends Component
                     ]);
                 }
             });
-        
+
         } catch (\Illuminate\Database\QueryException $e) {
             // Check if it's a duplicate admission error
             if ($e->getCode() == 23000 && str_contains($e->getMessage(), 'Duplicate entry')) {
@@ -562,7 +557,7 @@ class Create extends Component
         return view('livewire.admin.admissions.create', [
             'batches'  => Batch::with('course')->latest()->get(),
             'progress' => match ($this->step) {
-                1 => 25, 2 => 50, 3 => 75, default => 100,
+                1 => 25, 2 => 50, 3 => 75,     default => 100,
             },
         ]);
     }
