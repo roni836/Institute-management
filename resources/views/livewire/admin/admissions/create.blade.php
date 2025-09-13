@@ -275,7 +275,7 @@
                                 @foreach ($batches as $b)
                                     <option value="{{ $b->id }}">
                                         {{ $b->batch_name }} — {{ $b->course->name }}
-                                        (₹{{ number_format($b->course->gross_fee, 2) }})
+                                        (₹{{ number_format($b->course->net_fee, 2) }})
                                     </option>
                                 @endforeach
                             </select>
@@ -306,7 +306,7 @@
                         <div>
                             <label class="text-xs">Discount (in Rs.)</label>
                             <input type="number" step="0.01" min="0" class="w-full border rounded p-2"
-                                wire:model.live="discount">
+                                wire:model.live="discount" >
                             @error('discount')
                                 <p class="text-xs text-red-600">{{ $message }}</p>
                             @enderror
@@ -365,14 +365,14 @@
                                         <div class="flex justify-between text-sm">
                                             <span class="text-gray-600">Course Fee</span>
                                             <span
-                                                class="font-medium">₹{{ number_format($b->course->gross_fee, 2) }}</span>
+                                                class="font-medium">₹{{ number_format($b->course->net_fee, 2) }}</span>
                                         </div>
                                     @endif
 
                                     <div class="flex justify-between text-sm">
                                         <span class="text-gray-600">Discount Applied</span>
                                         <span class="text-green-600 font-medium">-
-                                            ₹{{ number_format($discount, 2) }}</span>
+                                            ₹{{ $discount }}.00</span>
                                     </div>
 
                                     <div class="pt-2 border-t flex justify-between">
