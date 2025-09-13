@@ -106,9 +106,9 @@
                                 <p class="text-xs text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
-                        <div hidden>
+                        <div>
                             <label class="text-xs">Status</label>
-                            <select class="w-full border rounded p-2" wire:model="student_status">
+                            <select class="w-full border rounded p-2" wire:model.live="student_status">
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                                 <option value="alumni">Alumni</option>
