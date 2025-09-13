@@ -209,7 +209,7 @@ class Create extends Component
                 'name'   => ['required', 'string', 'max:255'],
                 'email'  => ['nullable', 'email', 'max:255'],
                 'phone'  => ['nullable', 'string', 'max:20'],
-                'stream' => ['required', 'string', 'in:Engineering,Foundation,Medical,Other'],
+                'stream' => ['nullable', 'string', 'in:Engineering,Foundation,Medical,Other'],
             ],
             2       => [
                 'school_name'    => ['nullable', 'string', 'max:255'],
@@ -277,7 +277,7 @@ class Create extends Component
     public function recalculate(): void
     {
         $batch     = $this->batch_id ? Batch::with('course')->find($this->batch_id) : null;
-        $courseFee = $batch?->course?->gross_fee ?? 0.00;
+        $courseFee = $batch?->course?->net_fee ?? 0.00;
         $discount  = max(0.00, (float) $this->discount);
 
         $total           = max(0.00, round(((float) $courseFee) - $discount, 2));
