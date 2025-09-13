@@ -112,6 +112,7 @@
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                                 <option value="alumni">Alumni</option>
+                                <option value="cancel">Cancel</option>
                             </select>
                         </div>
                     </div>
