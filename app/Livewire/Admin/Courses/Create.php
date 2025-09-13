@@ -5,7 +5,7 @@ namespace App\Livewire\Admin\Courses;
 use App\Models\Course;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-
+ 
 #[Layout('components.layouts.admin')]
 class Create extends Component
 {
@@ -28,6 +28,29 @@ class Create extends Component
             'tech_fee'         => 'nullable|numeric|min:0',
             'other_fee'        => 'nullable|numeric|min:0',
         ];
+    }
+
+    public function updated($propertyName)
+    {
+        // Recalculate gross fee whenever a fee-related property changes
+        if (in_array($propertyName, [
+            'tution_fee', 'admission_fee', 'exam_fee',
+            'infra_fee', 'SM_fee', 'tech_fee', 'other_fee'
+        ])) {
+            $this->gross_fee = 
+                (float) $this->tution_fee +
+                (float) $this->admission_fee +
+                (float) $this->exam_fee +
+                (float) $this->infra_fee +
+                (float) $this->SM_fee +
+                (float) $this->tech_fee +
+                (float) $this->other_fee;
+        }
+    }
+
+    public function getNetFeeProperty()
+    {
+        return max(0, (float) $this->gross_fee - (float) $this->discount);
     }
 
     public function save()

@@ -8,7 +8,7 @@
             @enderror
         </div>
 
-        <div class="grid md:grid-cols-3 gap-3">
+        <div class="grid md:grid-cols-3 gap-3"> 
             <div>
                 <label class="text-xs">Code</label>
                 <input type="text" class="w-full border rounded p-2" wire:model="batch_code">
