@@ -209,7 +209,7 @@ class Create extends Component
                 'name'   => ['required', 'string', 'max:255'],
                 'email'  => ['nullable', 'email', 'max:255'],
                 'phone'  => ['nullable', 'string', 'max:20'],
-                'stream' => ['required', 'string', 'in:Engineering,Foundation,Medical,Other'],
+                'stream' => ['nullable', 'string', 'in:Engineering,Foundation,Medical,Other'],
             ],
             2       => [
                 'school_name'    => ['nullable', 'string', 'max:255'],
