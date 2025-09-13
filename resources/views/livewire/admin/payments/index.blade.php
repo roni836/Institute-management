@@ -4,10 +4,18 @@
             <h1 class="text-2xl font-bold">Payments</h1>
             <p class="text-gray-600">Track and manage student fee payments</p>
         </div>
-        <a href="{{ route('admin.payments.create') }}"
-            class="px-4 py-2 bg-orange-500 text-white rounded-lg flex items-center gap-2">
-            <span>+</span> Record Payment
-        </a>
+        <div class="flex gap-3">
+            <a href="{{ route('admin.due-payments.index') }}"
+                class="px-4 py-2 bg-red-500 text-white rounded-lg flex items-center gap-2">
+                Due Payment
+            </a>
+            <a href="{{ route('admin.payments.create') }}"
+                class="px-4 py-2 bg-orange-500 text-white rounded-lg flex items-center gap-2">
+                <span>+</span> Record Payment
+            </a>
+
+        </div>
+
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -17,8 +25,9 @@
                 <div>
                     <p class="text-gray-600 text-sm">Monthly Revenue</p>
                     <p class="text-2xl font-semibold">₹{{ number_format($stats['monthlyRevenue']['amount'], 2) }}</p>
-                    <p class="text-xs {{ $stats['monthlyRevenue']['percentChange'] >= 0 ? 'text-green-600' : 'text-red-600' }}">
-                        {{ $stats['monthlyRevenue']['percentChange'] >= 0 ? '↑' : '↓' }} 
+                    <p
+                        class="text-xs {{ $stats['monthlyRevenue']['percentChange'] >= 0 ? 'text-green-600' : 'text-red-600' }}">
+                        {{ $stats['monthlyRevenue']['percentChange'] >= 0 ? '↑' : '↓' }}
                         {{ abs($stats['monthlyRevenue']['percentChange']) }}% from last month
                     </p>
                 </div>
@@ -31,7 +40,8 @@
             <div class="flex justify-between items-center">
                 <div>
                     <p class="text-gray-600 text-sm">Pending Payments</p>
-                    <p class="text-2xl font-semibold text-yellow-600">₹{{ number_format($stats['pendingPayments'], 2) }}</p>
+                    <p class="text-2xl font-semibold text-yellow-600">₹{{ number_format($stats['pendingPayments'], 2) }}
+                    </p>
                 </div>
                 <div class="p-2 bg-yellow-100 text-yellow-600 rounded-lg">₹</div>
             </div>
@@ -42,7 +52,8 @@
             <div class="flex justify-between items-center">
                 <div>
                     <p class="text-gray-600 text-sm">Completed</p>
-                    <p class="text-2xl font-semibold text-green-600">₹{{ number_format($stats['completedPayments'], 2) }}</p>
+                    <p class="text-2xl font-semibold text-green-600">
+                        ₹{{ number_format($stats['completedPayments'], 2) }}</p>
                 </div>
                 <div class="p-2 bg-green-100 text-green-500 rounded-lg">₹</div>
             </div>
@@ -53,7 +64,8 @@
             <div class="flex justify-between items-center">
                 <div>
                     <p class="text-gray-600 text-sm">Overdue</p>
-                    <p class="text-2xl font-semibold text-red-600">₹{{ number_format($stats['overduePayments'], 2) }}</p>
+                    <p class="text-2xl font-semibold text-red-600">₹{{ number_format($stats['overduePayments'], 2) }}
+                    </p>
                 </div>
                 <div class="p-2 bg-red-100 text-red-500 rounded-lg">₹</div>
             </div>
@@ -63,15 +75,14 @@
     <div class="bg-white p-6 rounded-xl border mb-6">
         <h2 class="text-xl font-semibold mb-4">Payment Management</h2>
         <p class="text-gray-600 mb-6">Comprehensive payment tracking and fee management system</p>
-        
+
         <div class="flex flex-col sm:flex-row gap-4">
             <div class="relative flex-1">
-                <input type="text" wire:model.debounce.400ms="search" 
-                       class="w-full pl-10 pr-4 py-2 border rounded-lg" 
-                       placeholder="Search Payments">
+                <input type="text" wire:model.debounce.400ms="search"
+                    class="w-full pl-10 pr-4 py-2 border rounded-lg" placeholder="Search Payments">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3">
                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                 </span>
             </div>
@@ -109,7 +120,7 @@
                         <td class="p-3">{{ $t->admission?->batch?->batch_name }}</td>
                         <td class="p-3 font-medium">₹ {{ number_format($t->amount, 2) }}</td>
                         <td class="p-3">
-                            @if($t->gst > 0)
+                            @if ($t->gst > 0)
                                 <span class="text-blue-600 font-medium">₹ {{ number_format($t->gst, 2) }}</span>
                             @else
                                 <span class="text-gray-400">—</span>
