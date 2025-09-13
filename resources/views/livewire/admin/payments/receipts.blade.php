@@ -11,28 +11,17 @@
         $beforeDue = $afterDue + $paid;
     @endphp
 
-    <div class="max-w-4xl mx-auto p-4 bg-white text-gray-800 receipt-printable" style="font-family: Arial, Helvetica, sans-serif;">
-        <!-- Selection Controls -->
-        <div class="mb-4 no-print" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <div style="font-weight:600">Include Sections:</div>
-            <label style="font-size:13px"><input type="checkbox" wire:model.live="show_account" class="mr-1" /> Account Details</label>
-            <label style="font-size:13px"><input type="checkbox" wire:model.live="show_fee" class="mr-1" /> Fee Details</label>
-            <label style="font-size:13px"><input type="checkbox" wire:model.live="show_breakdown" class="mr-1" /> Payment Breakdown</label>
-            <label style="font-size:13px"><input type="checkbox" wire:model.live="show_installments" class="mr-1" /> Installments</label>
-            <label style="font-size:13px"><input type="checkbox" wire:model.live="show_transactions" class="mr-1" /> Transactions</label>
-            <label style="font-size:13px"><input type="checkbox" wire:model.live="show_other" class="mr-1" /> Other Transactions</label>
-            <label style="font-size:13px"><input type="checkbox" wire:model.live="show_terms" class="mr-1" /> Terms & Conditions</label>
-            <button wire:click="selectAll" style="margin-left:auto;padding:6px 10px;background:#111;color:#fff;border:none;cursor:pointer">Select All</button>
-            <button wire:click="selectNone" style="padding:6px 10px;background:#666;color:#fff;border:none;cursor:pointer">Select None</button>
-        </div>
+    <div class="max-w-5xl mx-auto p-4 bg-white text-gray-800 receipt-printable" style="font-family: Arial, Helvetica, sans-serif;">
+       
         <!-- Header -->
         <div style="border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:8px;display:flex;align-items:flex-start;justify-content:space-between;">
             <div style="display:flex;gap:12px;align-items:center;">
-                <img src="{{ asset('logo.png') }}" alt="logo" style="height:48px;object-fit:contain" />
+                <img src="{{ asset('logo.png') }}" alt="logo" style="height:150px;object-fit:contain" />
                 <div>
                     <div style="font-size:18px;font-weight:700;">{{ env("APP_NAME") }}</div>
                     <div style="font-size:12px;color:#333;margin-top:2px;">JEE | AIIMS | NEET | NTSE | KVPY | OLYMPIADS</div>
                     <div style="font-size:11px;color:#333;margin-top:6px;line-height:1.2">
+                        <strong>Unit of Mentors Eduserv</strong><br />
                         GST Regn No.: 10ADFPJ1214M1Z3<br />
                         Service Type: Commercial coaching & Training<br />
                         Contact No.: 8709833138<br />
@@ -51,139 +40,91 @@
         </div>
 
         <!-- Account Overview -->
-        @if($show_account)
         <div style="margin-bottom:12px">
             <div style="font-size:13px;font-weight:700;border-bottom:1px solid #333;padding-bottom:6px;margin-bottom:8px">ACCOUNT OVERVIEW</div>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;font-size:12px;">
-                <div style="flex:1 1 45%;border:1px solid #000;padding:6px;"> <strong>Name:</strong> {{ $student->name ?? '—' }}</div>
-                <div style="flex:1 1 45%;border:1px solid #000;padding:6px;"> <strong>Father's Name:</strong> {{ $student->father_name ?? '—' }}</div>
-                <div style="flex:1 1 30%;border:1px solid #000;padding:6px;"> <strong>Roll No:</strong> {{ $student->roll_no ?? '—' }}</div>
-                <div style="flex:1 1 30%;border:1px solid #000;padding:6px;"> <strong>UID:</strong> {{ $student->student_uid ?? '—' }}</div>
-                <div style="flex:1 1 30%;border:1px solid #000;padding:6px;"> <strong>Plan:</strong> PLAN 1</div>
-                <div style="flex:1 1 60%;border:1px solid #000;padding:6px;"> <strong>Address:</strong> {{ $student->address ?? '—' }}</div>
-                <div style="flex:1 1 30%;border:1px solid #000;padding:6px;"> <strong>Admission Date:</strong> {{ $admission->created_at?->format('d-M-Y') ?? '—' }}</div>
-                <div style="flex:1 1 30%;border:1px solid #000;padding:6px;"> <strong>Mother's Name:</strong> {{ $student->mother_name ?? '—' }}</div>
-                <div style="flex:1 1 100%;border:1px solid #000;padding:6px;"> <strong>Course:</strong> {{ $course->name ?? '—' }} # {{ $batch->batch_name ?? '—' }} ({{ date('Y') }}-{{ date('Y') + 1 }})</div>
-                <div style="flex:1 1 30%;border:1px solid #000;padding:6px;"> <strong>Batch:</strong> {{ $batch->batch_name ?? '—' }}</div>
-                <div style="flex:1 1 30%;border:1px solid #000;padding:6px;"> <strong>Status:</strong> {{ $admission->status ?? 'active' }}</div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;font-size:12px; border:2px solid #000;padding-left:8px">
+            <div style="padding:8px">
+                <div style="flex:1"> <strong>Name:</strong> {{ $student->name ?? '—' }}</div>
+                <div style="flex:1"> <strong>Father's Name:</strong> {{ $student->father_name ?? '—' }}</div>
+                <div style="flex:1"> <strong>Roll No:</strong> {{ $student->roll_no ?? '—' }}</div>
+                <div style="flex:1"> <strong>UID:</strong> {{ $student->student_uid ?? '—' }}</div>
+                <div style="flex:1"> <strong>Plan:</strong> PLAN 1</div>
+                <div style="flex:1"> <strong>Address:</strong> {{ $student->address ?? '—' }}</div>
+            </div>
+            <div style="border-left:2px solid #000;padding:8px">
+                <div style="flex:1"> <strong>Admission Date:</strong> {{ $admission->created_at?->format('d-M-Y') ?? '—' }}</div>
+                <div style="flex:1"> <strong>Mother's Name:</strong> {{ $student->mother_name ?? '—' }}</div>
+                <div style="flex:1 "> <strong>Course:</strong> {{ $course->name ?? '—' }} # {{ $batch->batch_name ?? '—' }} ({{ date('Y') }}-{{ date('Y') + 1 }})</div>
+                <div style="flex:1"> <strong>Batch:</strong> {{ $batch->batch_name ?? '—' }}</div>
+                <div style="flex:1"> <strong>Status:</strong> {{ $admission->status ?? 'active' }}</div>
+            </div>
             </div>
     </div>
-    @endif
 
         <!-- Fee Details -->
-    @if($show_fee)
     <div style="margin-bottom:12px">
             <div style="font-size:13px;font-weight:700;border-bottom:1px solid #333;padding-bottom:6px;margin-bottom:8px">FEE DETAILS</div>
             <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #000;">
-                <thead>
+                @php
+                    // Calculate fee components
+                    $grossFee = $course->gross_fee ?? 0;
+                    $discount = $admission->discount ?? 0;
+                    $feeAfterDiscount = $grossFee - $discount;
+                    
+                    $tutionFee = $course->tution_fee ?? 0;
+                    $admissionFee = $course->admission_fee ?? 0;
+                    $examFee = $course->exam_fee ?? 0;
+                    $infraFee = $course->infra_fee ?? 0;
+                    $smFee = $course->SM_fee ?? 0;
+                    $techFee = $course->tech_fee ?? 0;
+                    $otherFee = $course->other_fee ?? 0;
+                    
+                    // Sum of all component fees
+                    $totalComponentFees = $tutionFee + $admissionFee + $examFee + $infraFee + $smFee + $techFee + $otherFee + $feeAfterDiscount;
+                    
+                    // Calculate GST (10%)
+                    $taxableAmount = $totalComponentFees;
+                    $gstAmount = $taxableAmount * 0.10;
+                    
+                    // Total payable
+                    $totalPayable = $taxableAmount + $gstAmount;
+                @endphp
                     <tr>
-                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Description</th>
-                        <th style="border:1px solid #000;padding:6px;text-align:right;background:#f5f5f5">Amount (₹)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="border:1px solid #000;padding:6px">Gross Fee</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($course->gross_fee ?? 0, 2) }}</td>
-                    </tr>
-                    <tr>
-                        <td style="border:1px solid #000;padding:6px">Total Discount</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right;color:#dc2626">-{{ number_format($admission->discount ?? 0, 2) }}</td>
-                    </tr>
-                    <tr style="font-weight:700;background:#f5f5f5">
-                        <td style="border:1px solid #000;padding:6px">Fee after Discount</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format(($course->gross_fee ?? 0) - ($admission->discount ?? 0), 2) }}</td>
+                        <td style="border:1px solid #000;padding:6px;background:#f5f5f5;font-weight:bold">Gross Fee</td>
+                        <td style="border:1px solid #000;padding:6px;background:#f5f5f5;font-weight:bold">Discount</td>
+                        <td style="border:1px solid #000;padding:6px;background:#f5f5f5;font-weight:bold">Fee After Discount</td>
+                        <td style="border:1px solid #000;padding:6px;background:#f5f5f5;font-weight:bold">Tuition Fee</td>
+                        <td style="border:1px solid #000;padding:6px;background:#f5f5f5;font-weight:bold">Admission Fee</td>
+                        <td style="border:1px solid #000;padding:6px;background:#f5f5f5;font-weight:bold">Exam Fee</td>
+                        <td style="border:1px solid #000;padding:6px;background:#f5f5f5;font-weight:bold">Infra Fee</td>
+                        <td style="border:1px solid #000;padding:6px;background:#f5f5f5;font-weight:bold">SM Fee</td>
+                        <td style="border:1px solid #000;padding:6px;background:#f5f5f5;font-weight:bold">Tech Fee</td>
+                        <td style="border:1px solid #000;padding:6px;background:#f5f5f5;font-weight:bold">Others Fee</td>
+                        <td style="border:1px solid #000;padding:6px;background:#f5f5f5;font-weight:bold">Total Fees</td>
+                        <td style="border:1px solid #000;padding:6px;background:#f5f5f5;font-weight:bold">GST (10%)</td>
+                        <td style="border:1px solid #000;padding:6px;background:#f5f5f5;font-weight:bold">Total Payable</td>
                     </tr>
                     <tr>
-                        <td style="border:1px solid #000;padding:6px">Taxable Fee</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format(($course->gross_fee ?? 0) - ($admission->discount ?? 0), 2) }}</td>
-                    </tr>
-                    <tr>
-                        <td style="border:1px solid #000;padding:6px">Tax* (18%)</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right;color:#2563eb">{{ number_format($tx->gst ?? 0, 2) }}</td>
-                    </tr>
-                    <tr style="font-weight:700;background:#f5f5f5">
-                        <td style="border:1px solid #000;padding:6px">Total Payable Fee With Tax</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format(($course->gross_fee ?? 0) - ($admission->discount ?? 0) + ($tx->gst ?? 0), 2) }}</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($grossFee, 2) }}</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right;color:#dc2626">-{{ number_format($discount, 2) }}</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right;font-weight:bold">{{ number_format($feeAfterDiscount, 2) }}</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($tutionFee, 2) }}</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($admissionFee, 2) }}</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($examFee, 2) }}</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($infraFee, 2) }}</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($smFee, 2) }}</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($techFee, 2) }}</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($otherFee, 2) }}</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right;font-weight:bold">{{ number_format($taxableAmount, 2) }}</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right;color:#2563eb">{{ number_format($gstAmount, 2) }}</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right;font-weight:bold">{{ number_format($totalPayable, 2) }}</td>
                     </tr>
                 </tbody>
             </table>
     </div>
-    @endif
 
-        <!-- Payment Breakdown -->
-    @if($show_breakdown)
-    <div style="margin-bottom:12px">
-            <div style="font-size:13px;font-weight:700;border-bottom:1px solid #333;padding-bottom:6px;margin-bottom:8px">PAYMENT BREAKDOWN</div>
-            <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #000;">
-                <thead>
-                    <tr>
-                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Fee Component</th>
-                        <th style="border:1px solid #000;padding:6px;text-align:right;background:#f5f5f5">Amount (₹)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if($course->tution_fee > 0)
-                    <tr>
-                        <td style="border:1px solid #000;padding:6px">Tuition Fee</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($course->tution_fee, 2) }}</td>
-                    </tr>
-                    @endif
-                    @if($course->admission_fee > 0)
-                    <tr>
-                        <td style="border:1px solid #000;padding:6px">Admission Fee</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($course->admission_fee, 2) }}</td>
-                    </tr>
-                    @endif
-                    @if($course->exam_fee > 0)
-                    <tr>
-                        <td style="border:1px solid #000;padding:6px">Exam Fee</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($course->exam_fee, 2) }}</td>
-                    </tr>
-                    @endif
-                    @if($course->infra_fee > 0)
-                    <tr>
-                        <td style="border:1px solid #000;padding:6px">Infrastructure Fee</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($course->infra_fee, 2) }}</td>
-                    </tr>
-                    @endif
-                    @if($course->SM_fee > 0)
-                    <tr>
-                        <td style="border:1px solid #000;padding:6px">Study Material Fee</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($course->SM_fee, 2) }}</td>
-                    </tr>
-                    @endif
-                    @if($course->tech_fee > 0)
-                    <tr>
-                        <td style="border:1px solid #000;padding:6px">Technology Fee</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($course->tech_fee, 2) }}</td>
-                    </tr>
-                    @endif
-                    @if($course->other_fee > 0)
-                    <tr>
-                        <td style="border:1px solid #000;padding:6px">Other Fee</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($course->other_fee, 2) }}</td>
-                    </tr>
-                    @endif
-                    <tr style="font-weight:700;background:#f5f5f5">
-                        <td style="border:1px solid #000;padding:6px">Subtotal</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format($course->gross_fee ?? 0, 2) }}</td>
-                    </tr>
-                    <tr>
-                        <td style="border:1px solid #000;padding:6px">Discount Applied</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right;color:#dc2626">-{{ number_format($admission->discount ?? 0, 2) }}</td>
-                    </tr>
-                    <tr style="font-weight:700;background:#f5f5f5">
-                        <td style="border:1px solid #000;padding:6px">Net Fee</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right">{{ number_format(($course->gross_fee ?? 0) - ($admission->discount ?? 0), 2) }}</td>
-                    </tr>
-                </tbody>
-            </table>
-    </div>
-    @endif
 
         <!-- Installment Details -->
-    @if($show_installments)
     <div style="margin-bottom:12px">
             <div style="font-size:13px;font-weight:700;border-bottom:1px solid #333;padding-bottom:6px;margin-bottom:8px">INSTALLMENT DETAILS</div>
             <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #000;">
@@ -227,10 +168,8 @@
                 </tbody>
             </table>
     </div>
-    @endif
 
         <!-- Transaction Details -->
-    @if($show_transactions)
     <div style="margin-bottom:12px">
             <div style="font-size:13px;font-weight:700;border-bottom:1px solid #333;padding-bottom:6px;margin-bottom:8px">TRANSACTION DETAILS</div>
             <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #000;">
@@ -279,10 +218,8 @@
                 </tbody>
             </table>
     </div>
-    @endif
 
         <!-- Other Transaction Details -->
-    @if($show_other)
     <div style="margin-bottom:12px">
             <div style="font-size:13px;font-weight:700;border-bottom:1px solid #333;padding-bottom:6px;margin-bottom:8px">OTHER TRANSACTION DETAILS</div>
             <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #000;">
@@ -304,10 +241,8 @@
                 </tbody>
             </table>
     </div>
-    @endif
 
         <!-- Terms & Conditions -->
-    @if($show_terms)
     <div style="margin-top:12px">
             <div style="font-size:13px;font-weight:700;margin-bottom:6px">TERMS & CONDITIONS:</div>
             <ol style="font-size:11px;color:#333;margin:0 0 8px 18px;line-height:1.3">
@@ -318,7 +253,6 @@
                 <li>Subject to Patna Jurisdiction.</li>
             </ol>
     </div>
-    @endif
 
         <!-- Print Button -->
         <div class="mt-8 text-center no-print" style="margin-top:12px;text-align:center">

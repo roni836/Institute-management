@@ -14,14 +14,6 @@ class Receipts extends Component
 {
      public Transaction $transaction;
 
-    // Section selection toggles (show/hide for print)
-    public bool $show_account = true;
-    public bool $show_fee = true;
-    public bool $show_breakdown = true;
-    public bool $show_installments = true;
-    public bool $show_transactions = true;
-    public bool $show_other = true;
-    public bool $show_terms = true;
 
     // Email modal state
     public bool $showEmailModal = false;
@@ -32,14 +24,7 @@ class Receipts extends Component
         // Eager load related data for the view
         $transaction->load(['admission.student', 'admission.batch.course', 'schedule']);
         $this->transaction = $transaction;
-        // Initialize section toggles (defaults can be adjusted)
-        $this->show_account = true;
-        $this->show_fee = true;
-        $this->show_breakdown = true;
-        $this->show_installments = true;
-        $this->show_transactions = true;
-        $this->show_other = true;
-        $this->show_terms = true;
+      
     }
 
     public function openEmailModal()
@@ -123,13 +108,7 @@ class Receipts extends Component
     }
 
     // Helper actions bound to UI buttons
-    public function selectAll()
-    {
-        $this->show_account = $this->show_fee = $this->show_breakdown = $this->show_installments = $this->show_transactions = $this->show_other = $this->show_terms = true;
-    }
+   
 
-    public function selectNone()
-    {
-        $this->show_account = $this->show_fee = $this->show_breakdown = $this->show_installments = $this->show_transactions = $this->show_other = $this->show_terms = false;
-    }
+ 
 }
