@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Admin\Admissions\Cancel;
 use App\Livewire\Admin\Admissions\Create as AdmissionsCreate;
 use App\Livewire\Admin\Admissions\Edit as AdmissionEdit;
 use App\Livewire\Admin\Admissions\Index as AdmissionsIndex;
@@ -41,6 +42,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admissions/create', AdmissionsCreate::class)->name('admin.admissions.create');
     Route::get('/admissions/{admission}/edit', AdmissionEdit::class)->name('admin.admissions.edit');
     Route::get('/admin/show-admissions/{admission}', AdmissionShow::class)->name('admin.admissions.show');
+    Route::get('/admin/cancel-admissions/{admission}', Cancel::class)->name('admin.admissions.cancel');
 
     // Payments
     Route::get('/payments', PaymentsIndex::class)->name('admin.payments.index');

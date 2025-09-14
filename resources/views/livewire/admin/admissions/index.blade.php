@@ -240,6 +240,7 @@
                     <th class="text-left p-3">Fee Details</th>
                     {{-- <th class="text-left p-3">Status</th> --}}
                     <th class=" p-3 ">Actions</th>
+                    <th class=" p-3 ">Other</th>
                 </tr>
             </thead>
             <tbody>
@@ -282,6 +283,18 @@
                             <a href="{{ route('admin.payments.create', ['admission_id' => $admission->id]) }}"
                                 class="px-2 py-1 rounded bg-green-50 hover:bg-green-100 text-green-700">Payment</a>
                         </td>
+                        <td class="p-3">
+                        @if($admission->status === 'cancelled')
+                            <span class="px-2 py-1 rounded bg-gray-100 text-gray-500">
+                                Cancelled
+                            </span>
+                        @else
+                            <a href="{{ route('admin.admissions.cancel', $admission) }}" 
+                            class="px-2 py-1 rounded bg-red-50 hover:bg-red-100 text-red-700">
+                                Cancel Admission
+                            </a>
+                        @endif
+                    </td>
                     </tr>
                 @empty
                     <tr>
