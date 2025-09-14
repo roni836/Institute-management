@@ -13,6 +13,7 @@ class Cancel extends Component
 {
     public $admission;
     public $student;
+    public $cancel_reason;
     public function mount($admission){
         $this->admission = Admission::find($admission);
 
@@ -22,6 +23,7 @@ class Cancel extends Component
         // dd($this->student_id);
     }
     public function save(){
+        $this->admission->cancellation_reason = $this->cancel_reason;
         $this->admission->status = 'cancelled';
         $this->admission->save();
 

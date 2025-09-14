@@ -16,7 +16,7 @@
                     <label for="reason" class="block text-sm font-medium text-gray-700 mb-2">
                         Reason for cancellation
                     </label>
-                    <textarea id="reason" name="reason" rows="4"
+                    <textarea  wire:model="cancel_reason" name="reason" rows="4"
                         class="w-full border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
                         placeholder="Type your reason here..." required></textarea>
                     @error('reason')
