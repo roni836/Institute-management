@@ -81,6 +81,13 @@
                         <p class="text-xs text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
+                <div class="flex items-center space-x-3">
+                <input type="checkbox" id="applyGst" wire:model.live="applyGst"
+                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label for="applyGst" class="text-sm font-medium text-gray-700">
+                    Apply 18% GST
+                </label>
+            </div>
             </div>
         </div>
 

@@ -32,6 +32,7 @@ class Edit extends Component
     public $batch_id, $admission_date, $discount = 0.00, $mode = 'full';
     public $fee_total = 0.00, $installments = 2, $plan = [];
     public $status = 'active', $reason = '';
+    public $applyGst = false;
 
     public function mount(Admission $admission)
     {
@@ -64,6 +65,7 @@ class Edit extends Component
         $this->fee_total = $this->admission->fee_total;
         $this->status = $this->admission->status;
         $this->reason = $this->admission->reason ?? '';
+        $this->applyGst = $this->admission->apply_gst ?? false;
         
         // Load payment schedule data
         $schedules = $this->admission->schedules;
@@ -77,7 +79,7 @@ class Edit extends Component
 
     public function updated($name, $value)
     {
-        if (in_array($name, ['batch_id', 'discount', 'mode', 'installments', 'admission_date'], true)) {
+        if (in_array($name, ['batch_id', 'discount', 'mode', 'installments', 'admission_date', 'applyGst'], true)) {
             $this->recalculate();
         }
     }
@@ -89,6 +91,13 @@ class Edit extends Component
         $discount = max(0.00, (float) $this->discount);
 
         $total = max(0.00, round(((float) $courseFee) - $discount, 2));
+        
+        // Apply GST if enabled
+        if ($this->applyGst) {
+            $gst = $total * 0.18; // 18% GST
+            $total += $gst;
+        }
+        
         $this->fee_total = $total;
 
         $this->plan = [];
@@ -250,6 +259,7 @@ class Edit extends Component
                     'fee_due' => $this->fee_total, // Recalculate due amount
                     'status' => $this->status,
                     'reason' => $this->reason,
+                    'is_gst' => $this->applyGst ?? false,
                 ]);
 
                 // Update payment schedules

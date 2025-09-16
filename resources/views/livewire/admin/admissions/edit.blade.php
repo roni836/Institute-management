@@ -302,6 +302,13 @@
                     @endif
 
                     <div class="grid md:grid-cols-3 gap-3 items-end">
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="applyGst" wire:model.live="applyGst"
+                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <label for="applyGst" class="text-sm font-medium text-gray-700">
+                                Apply 18% GST
+                            </label>
+                        </div>
                         <div>
                             <label class="text-xs">Discount (in Rs.)</label>
                             <input type="number" step="0.01" min="0" class="w-full border rounded p-2"
@@ -314,6 +321,11 @@
                             <label class="text-xs">Total Payable</label>
                             <input type="text" readonly class="w-full border rounded p-2 bg-gray-50"
                                 value="₹{{ number_format($fee_total, 2) }}">
+                            @if ($applyGst)
+                                <p class="text-xs text-gray-600 mt-1">
+                                    (Includes GST: ₹{{ number_format((float)$fee_total * 0.18, 2) }})
+                                </p>
+                            @endif
                             @error('fee_total')
                                 <p class="text-xs text-red-600">{{ $message }}</p>
                             @enderror
@@ -371,8 +383,15 @@
                                     <div class="flex justify-between text-sm">
                                         <span class="text-gray-600">Discount Applied</span>
                                         <span class="text-green-600 font-medium">-
-                                            ₹{{ number_format($discount, 2) }}</span>
+                                            ₹{{ number_format((float)$discount, 2) }}</span>
                                     </div>
+
+                                    @if ($applyGst)
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600">GST (18%)</span>
+                                        <span class="font-medium">₹{{ number_format($fee_total * 0.18, 2) }}</span>
+                                    </div>
+                                    @endif
 
                                     <div class="pt-2 border-t flex justify-between">
                                         <span class="font-medium">Total Payable</span>
@@ -607,8 +626,15 @@
 
                                     <div class="flex justify-between text-sm">
                                         <span class="text-gray-600">Discount Applied</span>
-                                        <span class="text-green-600">-₹{{ number_format($discount, 2) }}</span>
+                                        <span class="text-green-600">-₹{{ number_format((float)$discount, 2) }}</span>
                                     </div>
+
+                                    @if ($applyGst)
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600">GST (18%)</span>
+                                        <span class="font-medium">₹{{ number_format($fee_total * 0.18, 2) }}</span>
+                                    </div>
+                                    @endif
 
                                     <div class="pt-2 border-t flex justify-between items-center">
                                         <span class="font-medium">Final Amount</span>

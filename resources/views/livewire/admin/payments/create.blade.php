@@ -290,7 +290,7 @@
         </div>
 
         <!-- GST Section -->
-        <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+        {{-- <div class="bg-gray-50 rounded-lg p-4 space-y-3">
             <div class="flex items-center space-x-3">
                 <input type="checkbox" id="applyGst" wire:model.live="applyGst"
                     class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
@@ -317,7 +317,7 @@
                     </div>
                 </div>
             @endif
-        </div>
+        </div> --}}
 
         <!-- Receipt Number Display -->
         {{-- <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
