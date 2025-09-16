@@ -304,16 +304,16 @@
                     <div class="bg-white rounded-lg p-3 border">
                         <span class="text-gray-600">Base Amount:</span>
                         <span
-                            class="font-medium ml-2">₹{{ number_format($flexiblePayment ? $flexibleAmount : $amount, 2) }}</span>
+                            class="font-medium ml-2">₹{{ number_format((float) ($flexiblePayment ? $flexibleAmount : $amount), 2) }}</span>
                     </div>
                     <div class="bg-white rounded-lg p-3 border">
                         <span class="text-gray-600">GST (18%):</span>
-                        <span class="font-medium ml-2 text-blue-600">₹{{ number_format($gstAmount, 2) }}</span>
+                        <span class="font-medium ml-2 text-blue-600">₹{{ number_format((float)$gstAmount, 2) }}</span>
                     </div>
                     <div class="bg-white rounded-lg p-3 border">
                         <span class="text-gray-600">Total Amount:</span>
                         <span
-                            class="font-medium ml-2 text-green-600">₹{{ number_format(($flexiblePayment ? $flexibleAmount : $amount) + $gstAmount, 2) }}</span>
+                            class="font-medium ml-2 text-green-600">₹{{ number_format((float)($flexiblePayment ? $flexibleAmount : $amount) + $gstAmount, 2) }}</span>
                     </div>
                 </div>
             @endif
