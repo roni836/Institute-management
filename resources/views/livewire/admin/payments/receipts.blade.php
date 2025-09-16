@@ -23,7 +23,9 @@
                     {{-- <div style="font-size:18px;font-weight:700;">{{ env('APP_NAME') }}</div>
                     <div style="font-size:12px;color:#333;margin-top:2px;">JEE | AIIMS | NEET | NTSE | KVPY | OLYMPIADS</div> --}}
                     <div style="font-size:16px;color:#333;margin-top:6px;line-height:1.2">
-                        <strong>GST Regn No. </strong>: 10ABBCA8020F1ZG<br />
+                        @if ($admission->is_gst)
+                            <strong>GST Regn No. </strong>: 10ABBCA8020F1ZG<br />
+                        @endif
                         <strong>Service Type </strong>: Commercial coaching & Training<br />
                         <strong>Contact No. </strong>: 9155588414, 9798986029<br />
                         <strong>Address </strong>: PURNIA, BIHAR<br />
