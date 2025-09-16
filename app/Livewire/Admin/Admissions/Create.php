@@ -28,8 +28,13 @@ class Create extends Component
 
     // Admission fields
     public $batch_id, $admission_date, $discount = 0.00, $mode = 'full';
-    public $fee_total                            = 0.00, $installments                            = 2, $plan                            = [];
-    public $custom_installments                  = false; // Flag to track if user has customized installments
+    public $fee_total = 0.00, $installments = 2, $plan = [];
+    public $custom_installments = false; // Flag to track if user has customized installments
+    public $applyGst = false; // Flag to track if GST should be applied
+    public $gstAmount = 0.00; // Amount of GST
+    public $gstRate = 18.00; // GST rate in percentage
+    public $flexiblePayment = false; // Flag to track if flexible payment is enabled
+    public $flexibleAmount = 0.00; // Custom amount for flexible payment
 
     public ?string $searchPhone    = '';
     public bool $isExistingStudent = false;
@@ -37,12 +42,13 @@ class Create extends Component
     public function mount()
     {
         $this->admission_date = now()->toDateString();
+        $this->applyGst = false;
         $this->recalculate();
     }
 
     public function updated($name, $value)
     {
-        if (in_array($name, ['batch_id', 'discount', 'mode', 'installments', 'admission_date'], true)) {
+        if (in_array($name, ['batch_id', 'discount', 'mode', 'installments', 'admission_date', 'applyGst', 'gstRate', 'flexiblePayment', 'flexibleAmount'], true)) {
             $this->recalculate();
         }
 
@@ -174,6 +180,11 @@ class Create extends Component
             'discount'          => ['nullable', 'numeric', 'min:0'],
             'mode'              => ['required', 'in:full,installment'],
             'fee_total'         => ['required', 'numeric', 'min:0'],
+            'applyGst'          => ['boolean'],
+            'gstRate'           => ['required_if:applyGst,true', 'numeric', 'min:0', 'max:100'],
+            'gstAmount'         => ['required_if:applyGst,true', 'numeric', 'min:0'],
+            'flexiblePayment'   => ['boolean'],
+            'flexibleAmount'    => ['required_if:flexiblePayment,true', 'numeric', 'min:0'],
             'installments'      => [
                 Rule::requiredIf(fn() => $this->mode === 'installment'),
                 'integer', 'min:2',
@@ -280,7 +291,22 @@ class Create extends Component
         $courseFee = $batch?->course?->net_fee ?? 0.00;
         $discount  = max(0.00, (float) $this->discount);
 
-        $total           = max(0.00, round(((float) $courseFee) - $discount, 2));
+        // Use flexible amount if flexible payment is enabled
+        if ($this->flexiblePayment) {
+            $subtotal = max(0.00, round((float) $this->flexibleAmount, 2));
+        } else {
+            $subtotal = max(0.00, round(((float) $courseFee) - $discount, 2));
+        }
+        
+        // Calculate GST if applicable
+        if ($this->applyGst) {
+            $this->gstAmount = round(($subtotal * $this->gstRate) / 100, 2);
+            $total = $subtotal + $this->gstAmount;
+        } else {
+            $this->gstAmount = 0.00;
+            $total = $subtotal;
+        }
+        
         $this->fee_total = $total;
 
         // Don't recalculate if user has customized installments
@@ -505,6 +531,7 @@ class Create extends Component
                     'fee_total'      => $this->fee_total,
                     'fee_due'        => $this->fee_total,
                     'status'         => 'active',
+                    'is_gst'       => $this->applyGst ?? false,
                 ]);
 
                 // 3) Create payment schedule

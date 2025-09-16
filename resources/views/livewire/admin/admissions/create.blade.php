@@ -227,12 +227,12 @@
                         <div>
                             <label class="text-xs">Board </label>
                             <select class="w-full border rounded p-2 bg-white" wire:model="board">
-                                    <option value="">Select Board</option>
-                                    <option value="cbse">CBSE</option>
-                                    <option value="icse">ICSE</option>
-                                    <option value="bseb">BSEB</option>
-                                    <option value="other">Other</option>
-                                </select>
+                                <option value="">Select Board</option>
+                                <option value="cbse">CBSE</option>
+                                <option value="icse">ICSE</option>
+                                <option value="bseb">BSEB</option>
+                                <option value="other">Other</option>
+                            </select>
                             @error('board')
                                 <p class="text-xs text-red-600">{{ $message }}</p>
                             @enderror
@@ -311,8 +311,7 @@
                     <div class="grid md:grid-cols-3 gap-3 items-end">
                         <div>
                             <label class="text-xs">Discount (in Rs.)</label>
-                            <input type="number" step="0.01" min="0" class="w-full border rounded p-2"
-                                wire:model.live="discount" >
+                            <input type="number" step="0.01" min="0" class="w-full border rounded p-2" wire:model.live="discount">
                             @error('discount')
                                 <p class="text-xs text-red-600">{{ $message }}</p>
                             @enderror
@@ -454,14 +453,16 @@
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2">
                                     <span class="text-sm font-medium">Installment Plan</span>
-                                    @if($custom_installments)
-                                        <span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">Custom</span>
+                                    @if ($custom_installments)
+                                        <span
+                                            class="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">Custom</span>
                                     @else
-                                        <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Auto</span>
+                                        <span
+                                            class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Auto</span>
                                     @endif
                                 </div>
-                                @if($custom_installments)
-                                    <button type="button" wire:click="resetInstallments" 
+                                @if ($custom_installments)
+                                    <button type="button" wire:click="resetInstallments"
                                         class="text-xs text-blue-600 hover:text-blue-800 underline">
                                         Reset to Auto
                                     </button>
@@ -475,21 +476,18 @@
                                         <div class="flex items-center justify-between mb-3">
                                             <span class="font-medium text-sm">Installment #{{ $row['no'] }}</span>
                                         </div>
-                                        
+
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                             <div>
                                                 <label class="text-xs text-gray-600">Amount (₹)</label>
-                                                <input type="number" 
-                                                    step="0.01" 
-                                                    min="0"
+                                                <input type="number" step="0.01" min="0"
                                                     class="w-full border rounded p-2 text-sm"
                                                     value="{{ $row['amount'] }}"
                                                     wire:change="updateInstallmentAmount({{ $index }}, $event.target.value)">
                                             </div>
                                             <div>
                                                 <label class="text-xs text-gray-600">Due Date</label>
-                                                <input type="date" 
-                                                    class="w-full border rounded p-2 text-sm"
+                                                <input type="date" class="w-full border rounded p-2 text-sm"
                                                     value="{{ $row['due_on'] }}"
                                                     wire:change="updateInstallmentDate({{ $index }}, $event.target.value)">
                                             </div>
@@ -503,7 +501,7 @@
                                 $installmentTotal = array_sum(array_column($plan, 'amount'));
                                 $difference = abs($installmentTotal - $fee_total);
                             @endphp
-                            
+
                             <div class="bg-gray-100 rounded-lg p-3">
                                 <div class="flex justify-between text-sm">
                                     <span>Installment Total:</span>
@@ -513,7 +511,7 @@
                                     <span>Course Total:</span>
                                     <span class="font-medium">₹{{ number_format($fee_total, 2) }}</span>
                                 </div>
-                                @if($difference > 0.01)
+                                @if ($difference > 0.01)
                                     <div class="flex justify-between text-sm text-red-600 mt-1">
                                         <span>Difference:</span>
                                         <span class="font-medium">₹{{ number_format($difference, 2) }}</span>
@@ -528,7 +526,8 @@
                     @else
                         <div class="bg-gray-50 rounded-lg p-4">
                             <p class="text-sm text-gray-600">Full payment of ₹{{ number_format($fee_total, 2) }}</p>
-                            <p class="text-xs text-gray-500 mt-1">Collect on admission date or via Payments section.</p>
+                            <p class="text-xs text-gray-500 mt-1">Collect on admission date or via Payments section.
+                            </p>
                         </div>
                     @endif
 
