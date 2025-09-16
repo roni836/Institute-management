@@ -21,20 +21,20 @@ class Create extends Component
 
     // Student fields (new student at admission time)
     public $name, $father_name, $mother_name, $email, $phone, $address, $admission;
-    public $gender, $category, $alt_phone, $mother_occupation, $father_occupation;
+    public $gender, $category, $alt_phone, $dob, $session, $mother_occupation, $father_occupation;
     public $school_name, $school_address, $board, $class;
     public $stream;
     public string $student_status = 'active';
 
     // Admission fields
     public $batch_id, $admission_date, $discount = 0.00, $mode = 'full';
-    public $fee_total = 0.00, $installments = 2, $plan = [];
-    public $custom_installments = false; // Flag to track if user has customized installments
-    public $applyGst = false; // Flag to track if GST should be applied
-    public $gstAmount = 0.00; // Amount of GST
-    public $gstRate = 18.00; // GST rate in percentage
-    public $flexiblePayment = false; // Flag to track if flexible payment is enabled
-    public $flexibleAmount = 0.00; // Custom amount for flexible payment
+    public $fee_total                            = 0.00, $installments                            = 2, $plan                            = [];
+    public $custom_installments                  = false; // Flag to track if user has customized installments
+    public $applyGst                             = false; // Flag to track if GST should be applied
+    public $gstAmount                            = 0.00;  // Amount of GST
+    public $gstRate                              = 18.00; // GST rate in percentage
+    public $flexiblePayment                      = false; // Flag to track if flexible payment is enabled
+    public $flexibleAmount                       = 0.00;  // Custom amount for flexible payment
 
     public ?string $searchPhone    = '';
     public bool $isExistingStudent = false;
@@ -42,7 +42,7 @@ class Create extends Component
     public function mount()
     {
         $this->admission_date = now()->toDateString();
-        $this->applyGst = false;
+        $this->applyGst       = false;
         $this->recalculate();
     }
 
@@ -81,6 +81,8 @@ class Create extends Component
             $this->father_name       = $student->father_name;
             $this->mother_name       = $student->mother_name;
             $this->address           = $student->address;
+            $this->dob               = $student->dob;
+            $this->session           = $student->session;
             $this->gender            = $student->gender;
             $this->category          = $student->category;
             $this->alt_phone         = $student->alt_phone;
@@ -94,7 +96,7 @@ class Create extends Component
             $this->student_status    = $student->status;
         } else {
             $this->isExistingStudent = false;
-            $this->reset(['name', 'email', 'father_name', 'mother_name', 'address', 'gender', 'category', 'alt_phone', 'mother_occupation', 'father_occupation', 'school_name', 'school_address', 'board', 'class', 'stream']);
+            $this->reset(['name', 'email', 'father_name', 'mother_name', 'address', 'gender', 'category', 'dob', 'session', 'alt_phone', 'mother_occupation', 'father_occupation', 'school_name', 'school_address', 'board', 'class', 'stream']);
             // Clear any batch-related errors when switching to new student
             $this->resetErrorBag('batch_id');
         }
@@ -142,6 +144,8 @@ class Create extends Component
             'email'             => ['nullable', 'email', 'max:255'],
             'phone'             => ['nullable', 'string', 'max:20'],
             'address'           => ['nullable', 'string'],
+            'dob'               => ['nullable'],
+            'session'           => ['nullable'],
             'gender'            => ['nullable', 'string', 'in:male,female,others'],
             'category'          => ['nullable', 'string', 'in:sc,st,obc,general,other'],
             'alt_phone'         => ['nullable', 'string', 'max:20'],
@@ -297,16 +301,16 @@ class Create extends Component
         } else {
             $subtotal = max(0.00, round(((float) $courseFee) - $discount, 2));
         }
-        
+
         // Calculate GST if applicable
         if ($this->applyGst) {
             $this->gstAmount = round(($subtotal * $this->gstRate) / 100, 2);
-            $total = $subtotal + $this->gstAmount;
+            $total           = $subtotal + $this->gstAmount;
         } else {
             $this->gstAmount = 0.00;
-            $total = $subtotal;
+            $total           = $subtotal;
         }
-        
+
         $this->fee_total = $total;
 
         // Don't recalculate if user has customized installments
@@ -500,6 +504,7 @@ class Create extends Component
                         'name'              => $this->name,
                         'email'             => $this->email,
                         'phone'             => $this->phone,
+                        'dob'               => $this->dob,
                         'roll_no'           => $this->generateRollNumber(),
                         'student_uid'       => $this->generateStudentUid(),
                         'enrollment_id'     => $this->generateEnrollmentId(),
@@ -531,7 +536,8 @@ class Create extends Component
                     'fee_total'      => $this->fee_total,
                     'fee_due'        => $this->fee_total,
                     'status'         => 'active',
-                    'is_gst'       => $this->applyGst ?? false,
+                    'session'        => $this->session,
+                    'is_gst'         => $this->applyGst ?? false,
                 ]);
 
                 // 3) Create payment schedule

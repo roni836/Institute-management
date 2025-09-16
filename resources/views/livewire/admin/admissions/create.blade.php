@@ -137,6 +137,25 @@
 
                     <div class="grid md:grid-cols-2 gap-3">
                         <div>
+                            <label class="text-xs">Date of Birth</label>
+                            <input type="date" class="w-full border rounded p-2" wire:model="dob">
+                        </div>
+                        <div>
+                            <label class="text-xs">Session</label>
+                            <select class="w-full border rounded p-2 bg-white" wire:model="session">
+                                <option value="">Select</option>
+                                <option value="2023-24">2023-24</option>
+                                <option value="2024-25">2024-25</option>
+                                <option value="2025-26">2025-26</option>
+                                <option value="2026-27">2026-27</option>
+                                <option value="2027-28">2027-28</option>
+                                <option value="2028-29">2028-29</option>
+                                <option value="2029-30">2029-30</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-3">
+                        <div>
                             <label class="text-xs">Gender</label>
                             <select class="w-full border rounded p-2 bg-white" wire:model="gender">
                                 <option value="">Select</option>
@@ -327,10 +346,10 @@
                         <div>
                             <label class="text-xs">Total Payable</label>
                             <input type="text" readonly class="w-full border rounded p-2 bg-gray-50"
-                                value="₹{{ number_format((float)$fee_total, 2) }}">
+                                value="₹{{ number_format((float) $fee_total, 2) }}">
                             @if ($applyGst)
                                 <p class="text-xs text-gray-600 mt-1">
-                                    (Includes GST: ₹{{ number_format((float)$fee_total * 0.18, 2) }})
+                                    (Includes GST: ₹{{ number_format((float) $fee_total * 0.18, 2) }})
                                 </p>
                             @endif
                             @error('fee_total')
@@ -394,10 +413,11 @@
                                     </div>
 
                                     @if ($applyGst)
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-gray-600">GST (18%)</span>
-                                        <span class="font-medium">₹{{ number_format($fee_total * 0.18, 2) }}</span>
-                                    </div>
+                                        <div class="flex justify-between text-sm">
+                                            <span class="text-gray-600">GST (18%)</span>
+                                            <span
+                                                class="font-medium">₹{{ number_format($fee_total * 0.18, 2) }}</span>
+                                        </div>
                                     @endif
 
                                     <div class="pt-2 border-t flex justify-between">
@@ -699,7 +719,7 @@
 
                                     <div class="flex justify-between text-sm">
                                         <span class="text-gray-600">Discount Applied</span>
-                                        <span class="text-green-600">-₹{{ number_format((float)$discount, 2) }}</span>
+                                        <span class="text-green-600">-₹{{ number_format((float) $discount, 2) }}</span>
                                     </div>
 
                                     <div class="pt-2 border-t flex justify-between items-center">
