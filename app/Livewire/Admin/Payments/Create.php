@@ -147,22 +147,21 @@ class Create extends Component
     {
         $prefix = 'RCP';
         $year = date('Y');
-        $month = date('m');
         
         // Get the last receipt number for this month
-        $lastReceipt = Transaction::where('receipt_number', 'like', $prefix . $year . $month . '%')
+        $lastReceipt = Transaction::where('receipt_number', 'like', $prefix . $year . '%')
             ->orderBy('receipt_number', 'desc')
             ->first();
         
         if ($lastReceipt) {
             // Extract the sequence number and increment
-            $lastSequence = (int) substr($lastReceipt->receipt_number, -4);
+            $lastSequence = (int) substr($lastReceipt->receipt_number, -3);
             $newSequence = $lastSequence + 1;
         } else {
             $newSequence = 1;
         }
         
-        return $prefix . $year . $month . str_pad($newSequence, 4, '0', STR_PAD_LEFT);
+        return $prefix . $year . str_pad($newSequence, 3, '0', STR_PAD_LEFT);
     }
 
     private function onModeChanged(): void
