@@ -86,7 +86,7 @@ class Create extends Component
             return;
         }
 
-        $this->admission_fee_due = number_format($admission->fee_due, 2, '.', '');
+        $this->admission_fee_due = number_format((float)$admission->fee_due, 2, '.', '');
 
         // Keep numeric fields to compute totals in Blade/Component
         $this->schedules = $admission->schedules()
@@ -100,10 +100,11 @@ class Create extends Component
                 'paid'           => (float) $s->paid_amount,
                 'left'           => max(0.0, (float) $s->amount - (float) $s->paid_amount),
                 // label kept if you need elsewhere
-                'label'          => "Inst #{$s->installment_no} — Due {$s->due_date?->format('d-M-Y')} — Amount ₹"
-                . number_format($s->amount, 2)
-                . " — Paid ₹" . number_format($s->paid_amount, 2)
-                . " — Left ₹" . number_format(max(0, $s->amount - $s->paid_amount), 2),
+                'label'          => "Inst #{$s->installment_no} — Due " . 
+                    (is_object($s->due_date) && method_exists($s->due_date, 'format') ? $s->due_date->format('d-M-Y') : 'N/A') . 
+                    " — Amount ₹" . number_format((float)$s->amount, 2)
+                . " — Paid ₹" . number_format((float)$s->paid_amount, 2)
+                . " — Left ₹" . number_format(max(0, (float)$s->amount - (float)$s->paid_amount), 2),
             ])
             ->toArray();
     }
@@ -136,7 +137,7 @@ class Create extends Component
     private function updateGstAmount(): void
     {
         $baseAmount = $this->flexiblePayment ? $this->flexibleAmount : $this->amount;
-        if ($this->applyGst && $baseAmount) {
+        if ($this->applyGst && $baseAmount && (float)$baseAmount > 0) {
             $this->gstAmount = round((float) $baseAmount * 0.18, 2);
         } else {
             $this->gstAmount = 0.00;
@@ -255,8 +256,8 @@ class Create extends Component
             ->get()
             ->map(fn($a) => [
                 'id'    => $a->id,
-                'label' => "{$a->batch->batch_name} — Due ₹" . number_format($a->fee_due, 2),
-                'due'   => number_format($a->fee_due, 2, '.', ''),
+                'label' => "{$a->batch->batch_name} — Due ₹" . number_format((float)$a->fee_due, 2),
+                'due'   => number_format((float)$a->fee_due, 2, '.', ''),
             ])
             ->toArray();
     }
@@ -266,14 +267,23 @@ class Create extends Component
         if ($this->flexiblePayment) {
             // Clear selected installments when switching to flexible mode
             $this->selectedScheduleIds = [];
-            $this->flexibleAmount = 0.00;
+            
+            // Initialize with a minimum valid amount or copy from existing amount if available
+            if (!empty($this->amount) && (float)$this->amount > 0) {
+                $this->flexibleAmount = (float)$this->amount;
+            } else {
+                $this->flexibleAmount = 0.01;
+            }
+            
+            // Sync the main amount field
+            $this->amount = $this->flexibleAmount;
         }
     }
 
     private function onFlexibleAmountChanged(): void
     {
         // Auto-update the main amount field when flexible amount changes
-        $this->amount = $this->flexibleAmount;
+        $this->amount = $this->flexibleAmount ? (float)$this->flexibleAmount : 0;
     }
 
     /**
@@ -331,11 +341,11 @@ class Create extends Component
      */
     public function getSmartAllocationPreview(): array
     {
-        if (!$this->flexiblePayment || !$this->flexibleAmount || $this->flexibleAmount <= 0) {
+        if (!$this->flexiblePayment || !$this->flexibleAmount || (float)$this->flexibleAmount < 0.01) {
             return [];
         }
 
-        return $this->getSmartAllocation($this->flexibleAmount);
+        return $this->getSmartAllocation((float)$this->flexibleAmount);
     }
 
     public function save()
@@ -351,7 +361,7 @@ class Create extends Component
             'amount'                => ['required', 'numeric', 'min:0.01'],
             'applyGst'              => ['boolean'],
             'flexiblePayment'       => ['boolean'],
-            'flexibleAmount'        => ['nullable', 'numeric', 'min:0.01'],
+            'flexibleAmount'        => $this->flexiblePayment ? ['required', 'numeric', 'min:0.01'] : ['nullable', 'numeric'],
         ]);
 
         // Auto-set status to success and generate receipt number
@@ -371,7 +381,14 @@ class Create extends Component
 
         // Handle flexible payment mode
         if ($this->flexiblePayment) {
-            $smartAllocation = $this->getSmartAllocation($this->amount);
+            // Ensure we're using flexibleAmount in flexible payment mode
+            $flexAmount = (float)$this->flexibleAmount;
+            if ($flexAmount < 0.01) {
+                $this->addError('flexibleAmount', 'Payment amount must be at least ₹0.01.');
+                return;
+            }
+            
+            $smartAllocation = $this->getSmartAllocation($flexAmount);
             if (empty($smartAllocation['allocation'])) {
                 $this->addError('flexibleAmount', 'No pending installments found to allocate payment to.');
                 return;
@@ -431,7 +448,8 @@ class Create extends Component
         DB::transaction(function () use ($data, $scheduleIds) {
             $admission = Admission::lockForUpdate()->findOrFail($data['admission_id']);
 
-            $incoming = (float) $this->amount;
+            // Use the appropriate amount based on payment mode
+            $incoming = $this->flexiblePayment ? (float) $this->flexibleAmount : (float) $this->amount;
             $allocatedTotal = 0.0;
             $lastTransaction = null;
 

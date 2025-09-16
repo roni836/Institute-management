@@ -338,10 +338,10 @@
                                         </div>
                                         <input type="number" 
                                             step="0.01" 
-                                            min="0.01" 
+                                            min="0" 
                                             wire:model.live="flexibleAmount"
                                             class="w-full pl-8 px-3 py-3 border border-primary-200 rounded-lg shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 @error('flexibleAmount') border-red-500 @enderror"
-                                            placeholder="Enter payment amount (min ₹0.01)">
+                                            placeholder="Enter payment amount">
                                     </div>
                                     @error('flexibleAmount')
                                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -539,14 +539,12 @@
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <span class="text-gray-500">₹</span>
                                 </div>
-                                <input type="number" step="0.01" min="0.01"
-                                    @if ($flexiblePayment) 
-                                        wire:model.live="flexibleAmount"
+                                <input type="number" step="0.01"
+                                    @if ($flexiblePayment) wire:model.live="flexibleAmount" 
+                                        value="{{ $flexibleAmount }}"
                                     @else 
-                                        wire:model.live="amount" 
-                                    @endif
-                                    class="border rounded-lg pl-8 px-3 py-3 w-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 shadow-sm @error('amount') border-red-500 @enderror @error('flexibleAmount') border-red-500 @enderror"
-                                    placeholder="Enter amount (min ₹0.01)">
+                                        wire:model.live="amount" @endif
+                                    class="border rounded-lg pl-8 px-3 py-3 w-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 shadow-sm @error('amount') border-red-500 @enderror @error('flexibleAmount') border-red-500 @enderror">
                             </div>
                             @error('amount')
                                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>

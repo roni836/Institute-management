@@ -129,10 +129,7 @@
                 </div>
 
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div>
-                        <p class="text-gray-600">Instructor</p>
-                        <p class="font-medium">{{ $c->instructor_name ?? 'Prof. Rahul Kumar' }}</p>
-                    </div>
+                   
                     <div>
                         <p class="text-gray-600">Course Fee</p>
                         <p class="font-medium text-orange-500">₹{{ number_format($c->net_fee) }}</p>
