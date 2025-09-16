@@ -16,7 +16,7 @@
                 <!-- Course Selection -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Course</label>
-                    <select class="w-full border-gray-300 rounded-lg shadow-sm focus:border-primary-500 focus:ring-primary-500" 
+                    <select class="px-3 py-2 border  w-full border-gray-300 rounded-lg shadow-sm focus:border-primary-500 focus:ring-primary-500" 
                             wire:model.live="course_id">
                         <option value="">Select a course</option>
                         @foreach($courses as $course)
@@ -34,7 +34,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Batch Name</label>
                     <input type="text" wire:model="batch_name" 
-                           class="w-full border-gray-300 rounded-lg shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                           class="px-3 py-2 border  w-full border-gray-300 rounded-lg shadow-sm focus:border-primary-500 focus:ring-primary-500"
                            placeholder="Enter batch name">
                     @error('batch_name')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -47,7 +47,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
                     <input type="date" wire:model.live="start_date"
-                           class="w-full border-gray-300 rounded-lg shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                           class="px-3 py-2 border  w-full border-gray-300 rounded-lg shadow-sm focus:border-primary-500 focus:ring-primary-500">
                     @error('start_date')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -61,7 +61,7 @@
                         @endif
                     </label>
                     <input type="date" wire:model="end_date" readonly
-                           class="w-full bg-gray-50 border-gray-300 rounded-lg shadow-sm cursor-not-allowed">
+                           class="px-3 py-2 border w-full bg-gray-50 border-gray-300 rounded-lg shadow-sm cursor-not-allowed">
                     @error('end_date')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
