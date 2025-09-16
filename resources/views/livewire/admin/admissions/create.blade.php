@@ -226,7 +226,13 @@
                         </div>
                         <div>
                             <label class="text-xs">Board </label>
-                            <input type="text" class="w-full border rounded p-2" wire:model="board">
+                            <select class="w-full border rounded p-2 bg-white" wire:model="board">
+                                    <option value="">Select Board</option>
+                                    <option value="cbse">CBSE</option>
+                                    <option value="icse">ICSE</option>
+                                    <option value="bseb">BSEB</option>
+                                    <option value="other">Other</option>
+                                </select>
                             @error('board')
                                 <p class="text-xs text-red-600">{{ $message }}</p>
                             @enderror
