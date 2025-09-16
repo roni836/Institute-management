@@ -43,22 +43,6 @@ class Admission extends Model
         'admission_date' => 'date',
     ];
 
-    protected $fillable = [
-        'student_id',
-        'batch_id',
-        'admission_date',
-        'mode',
-        'discount',
-        'fee_total',
-        'fee_due',
-        'status',
-        'reason',
-        'review_status',
-        'review_notes',
-        'reviewed_at',
-        'reviewed_by',
-    ];
-
     public function attendanceRecords()
     {
         return $this->hasMany(\App\Models\StudentAttendance::class);
