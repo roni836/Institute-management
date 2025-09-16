@@ -16,17 +16,17 @@
 
         <!-- Header -->
         <div
-            style="padding-bottom:8px;margin-bottom:8px;display:flex;align-items:flex-start;justify-content:space-between;">
+            style="padding-bottom:8px;margin-bottom:4px;display:flex;align-items:flex-start;justify-content:space-between;">
             <div style="display:flex;gap:12px;align-items:center;">
                 {{-- <img src="{{ asset('logo.png') }}" alt="logo" style="height:150px;object-fit:contain" /> --}}
                 <div>
                     {{-- <div style="font-size:18px;font-weight:700;">{{ env('APP_NAME') }}</div>
                     <div style="font-size:12px;color:#333;margin-top:2px;">JEE | AIIMS | NEET | NTSE | KVPY | OLYMPIADS</div> --}}
                     <div style="font-size:16px;color:#333;margin-top:6px;line-height:1.2">
-                        <strong>GST Regn No. </strong>: 10ADFPJ1214M1Z3<br />
+                        <strong>GST Regn No. </strong>: 10ABBCA8020F1ZG<br />
                         <strong>Service Type </strong>: Commercial coaching & Training<br />
-                        <strong>Contact No. </strong>: 8709833138<br />
-                        <strong>Address </strong>: PURNIA, <br />
+                        <strong>Contact No. </strong>: 9155588414, 9798986029<br />
+                        <strong>Address </strong>: PURNIA, BIHAR<br />
                         <strong>State Code </strong>: 10<br />
                         <strong>Place of Supply </strong>: Bihar<br />
                     </div>
@@ -35,7 +35,7 @@
             <div style="text-align:right">
                 <div style="font-size:14px;font-weight:600;margin-bottom:6px">Ahantra Edu Ventures Private Limited<br>
                     (A franchisee of Mentors Eduserv)</div>
-                <div style="font-size:16px;font-weight:600;color:#000;margin-bottom:6px;">
+                <div style="font-size:14px;font-weight:600;color:#000;margin-bottom:6px;">
                     # {{ $tx->receipt_number ?? 'TX-' . $tx->id }}</div>
                 <div style="font-size:13px;color:#333;">
                     <div>Date: {{ $tx->date?->format('d-M-Y') }}</div>
@@ -45,8 +45,7 @@
 
         <!-- Account Overview -->
         <div style="margin-bottom:12px">
-            <div class="bg-gray-200 px-2 py-2  text-center"
-                style="font-size:13px;font-weight:700;padding-bottom:6px;">
+            <div class="bg-gray-200 px-2 py-2  text-center" style="font-size:13px;font-weight:700;padding-bottom:6px;">
                 ACCOUNT OVERVIEW</div>
             <div
                 style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;font-size:12px; border:2px solid #000;padding-left:8px">
@@ -72,8 +71,8 @@
 
         <!-- Fee Details -->
         <div style="margin-bottom:12px">
-<div class="bg-gray-200 px-2 py-2  text-center"
-                style="font-size:13px;font-weight:700;padding-bottom:6px;"> FEE DETAILS</div>
+            <div class="bg-gray-200 px-2 py-2  text-center" style="font-size:13px;font-weight:700;padding-bottom:6px;">
+                FEE DETAILS</div>
             <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #000;">
                 @php
                     // Calculate fee components
@@ -157,8 +156,8 @@
 
         <!-- Installment Details -->
         <div style="margin-bottom:12px">
-<div class="bg-gray-200 px-2 py-2  text-center"
-                style="font-size:13px;font-weight:700;padding-bottom:6px;">INSTALLMENT DETAILS</div>
+            <div class="bg-gray-200 px-2 py-2  text-center" style="font-size:13px;font-weight:700;padding-bottom:6px;">
+                INSTALLMENT DETAILS</div>
             <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #000;">
                 <thead>
                     <tr>
@@ -213,8 +212,8 @@
 
         <!-- Transaction Details -->
         <div style="margin-bottom:12px">
-<div class="bg-gray-200 px-2 py-2  text-center"
-                style="font-size:13px;font-weight:700;padding-bottom:6px;">TRANSACTION DETAILS</div>
+            <div class="bg-gray-200 px-2 py-2  text-center" style="font-size:13px;font-weight:700;padding-bottom:6px;">
+                TRANSACTION DETAILS</div>
             <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #000;">
                 <thead>
                     <tr>
@@ -275,8 +274,8 @@
 
         <!-- Other Transaction Details -->
         <div style="margin-bottom:12px">
-<div class="bg-gray-200 px-2 py-2  text-center"
-                style="font-size:13px;font-weight:700;padding-bottom:6px;">OTHER TRANSACTION DETAILS</div>
+            <div class="bg-gray-200 px-2 py-2  text-center" style="font-size:13px;font-weight:700;padding-bottom:6px;">
+                OTHER TRANSACTION DETAILS</div>
             <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #000;">
                 <thead>
                     <tr>
