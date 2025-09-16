@@ -20,6 +20,27 @@ class Course extends Model
     {
         return $this->hasMany(PaymentSchedule::class);
     }
+    
+    public function admissions()
+    {
+        return $this->hasManyThrough(Admission::class, Batch::class);
+    }
+    
+    public function students()
+    {
+        // Get unique students through all batches via admissions
+        return $this->hasManyThrough(Student::class, Batch::class, 'course_id', 'id', 'id', 'id')
+            ->distinct();
+    }
+    
+    public function getStudentsCountAttribute()
+    {
+        // Return the count of students in all batches of this course
+        return $this->batches()
+            ->withCount('admissions')
+            ->get()
+            ->sum('admissions_count');
+    }
 
      protected $casts = [
         'gross_fee' => 'decimal:2',
