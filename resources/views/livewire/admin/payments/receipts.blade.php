@@ -52,9 +52,9 @@
                 <div style="padding:8px">
                     <div style="flex:1"> <strong>Name:</strong> {{ $student->name ?? '—' }}</div>
                     <div style="flex:1"> <strong>Father's Name:</strong> {{ $student->father_name ?? '—' }}</div>
-                    <div style="flex:1"> <strong>Roll No:</strong> {{ $student->roll_no ?? '—' }}</div>
+                    <div style="flex:1"> <strong>Roll No:</strong> {{ $student->enrollment_id ?? '—' }}</div>
                     <div style="flex:1"> <strong>UID:</strong> {{ $student->student_uid ?? '—' }}</div>
-                    <div style="flex:1"> <strong>Plan:</strong> PLAN 1</div>
+                    {{-- <div style="flex:1"> <strong>Plan:</strong> PLAN 1</div> --}}
                     <div style="flex:1"> <strong>Address:</strong> {{ $student->address ?? '—' }}</div>
                 </div>
                 <div style="border-left:2px solid #000;padding:8px">
@@ -309,7 +309,6 @@
                 <li>In case of cheque dishonor, bank charges of Rs. 500 and late fine (upto Rs. 50/day) will be charged.
                 </li>
                 <li>Fee once paid will not be refunded/adjusted at any stage, under any circumstance.</li>
-                <li>Subject to Patna Jurisdiction.</li>
             </ol>
         </div>
 
