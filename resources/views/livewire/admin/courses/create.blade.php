@@ -8,7 +8,7 @@
             @enderror
         </div>
 
-        <div class="grid md:grid-cols-3 gap-3"> 
+        <div class="grid md:grid-cols-3 gap-3">
             <div>
                 <label class="text-xs">Code</label>
                 <input type="text" class="w-full border rounded p-2" wire:model="batch_code">
@@ -81,13 +81,6 @@
                         <p class="text-xs text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
-                <div class="flex items-center space-x-3">
-                <input type="checkbox" id="applyGst" wire:model.live="applyGst"
-                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                <label for="applyGst" class="text-sm font-medium text-gray-700">
-                    Apply 18% GST
-                </label>
-            </div>
             </div>
         </div>
 
@@ -111,7 +104,10 @@
             <div>
                 <label class="text-xs">Net Fee</label>
                 <input type="text" readonly class="w-full border rounded p-2 bg-gray-50"
-                    value="₹{{ number_format((float) ($gross_fee ?? 0) - (float) ($discount ?? 0), 2) }}">
+                    value="₹{{ number_format(((float) ($gross_fee ?? 0) - (float) ($discount ?? 0)) * 1.18, 2) }}">
+                <p class="text-xs text-gray-600 ">
+                    (Includes 18% GST: ₹{{ number_format((float) $gross_fee * 0.18, 2) }})
+                </p>
             </div>
         </div>
 
