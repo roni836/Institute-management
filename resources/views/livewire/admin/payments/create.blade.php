@@ -320,7 +320,7 @@
         </div>
 
         <!-- Receipt Number Display -->
-        <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+        {{-- <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
             <div class="flex items-center justify-between">
                 <div>
                     <label class="block text-sm font-medium text-blue-800 mb-1">Receipt Number</label>
@@ -333,7 +333,7 @@
                     </span>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         <!-- Mode / Reference -->
         <div class="grid grid-cols-1 md:grid-cols-{{ $mode === 'cash' ? '2' : '3' }} gap-4">

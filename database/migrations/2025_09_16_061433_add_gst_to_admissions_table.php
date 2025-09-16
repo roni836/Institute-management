@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::table('admissions', function (Blueprint $table) {
             $table->boolean('is_gst')->default(false)->after('reviewed_by');
+            $table->string('session')->nullable()->after('is_gst');
         });
     }
 
