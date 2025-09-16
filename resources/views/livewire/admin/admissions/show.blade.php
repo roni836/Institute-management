@@ -29,6 +29,17 @@
                     </div>
                 </div>
             </div>
+            @if($admission->status !== 'cancelled' )
+            <div class="p-6 bg-gray-50 border-t md:border-t-0 md:border-l flex items-center gap-4">
+                <a href="{{ route('admin.admissions.cancel', $admission->id) }}"
+                   class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 inline-flex items-center gap-2">
+                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Cancel Admission
+                </a>
+            </div>
+            @endif
 
             {{-- Quick Actions --}}
             <div class="p-6 bg-gray-50 border-t md:border-t-0 md:border-l flex items-center gap-4">
