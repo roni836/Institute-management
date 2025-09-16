@@ -379,20 +379,28 @@ class Create extends Component
      */
     private function generateStudentUid(): string
     {
-        $year        = date('Y');
+        $year = date('Y');
+
+        // Get the last student created this year
         $lastStudent = Student::whereYear('created_at', $year)
             ->orderBy('id', 'desc')
             ->first();
 
         if ($lastStudent && $lastStudent->student_uid) {
-            // Extract the number from the last student UID
-            $lastNumber = (int) substr($lastStudent->student_uid, -5);
+            // Extract the last 4 digits (serial number part)
+            $lastNumber = (int) substr($lastStudent->student_uid, -4);
             $nextNumber = $lastNumber + 1;
         } else {
             $nextNumber = 1;
         }
 
-        return 'STU' . $year . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
+        $thisYear   = date('y');       // e.g., '25'
+        $comingYear = (date('y') + 1); // e.g., '26'
+
+        // Build the UID
+        $id = $thisYear . $comingYear . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+
+        return $id;
     }
 
     /**
