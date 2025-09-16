@@ -254,7 +254,7 @@
                             <div class="text-xs text-gray-500">{{ $admission->student->phone }}</div>
                         </td>
                         <td class="p-3">
-                            <div class="font-medium">{{ $admission->student->student_uid }}</div>
+                            <div class="font-medium">{{ $admission->student->enrollment_id }}</div>
                         </td>
                         <td class="p-3">
                             <div>{{ $admission->batch->batch_name }}</div>

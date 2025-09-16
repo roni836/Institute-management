@@ -187,12 +187,12 @@ class Create extends Component
                         }
 
                         // Validate dates are not in the past
-                        foreach ($this->plan as $installment) {
-                            if (Carbon::parse($installment['due_on'])->isPast()) {
-                                $fail('Installment due dates cannot be in the past.');
-                                break;
-                            }
-                        }
+                        // foreach ($this->plan as $installment) {
+                        //     if (Carbon::parse($installment['due_on'])->isPast()) {
+                        //         $fail('Installment due dates cannot be in the past.');
+                        //         break;
+                        //     }
+                        // }
                     }
                 },
             ],
