@@ -275,7 +275,7 @@
         </div>
 
         <!-- Other Transaction Details -->
-        <div>
+        {{-- <div>
             <div class="bg-gray-200 px-2 py-2  text-center" style="font-size:13px;font-weight:700;padding-bottom:6px;">
                 OTHER TRANSACTION DETAILS</div>
             <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #000;">
@@ -300,7 +300,7 @@
                     </tr>
                 </tbody>
             </table>
-        </div>
+        </div> --}}
 
         <!-- Terms & Conditions -->
         <div style="margin-top:12px">
