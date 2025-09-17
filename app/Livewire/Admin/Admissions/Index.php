@@ -63,19 +63,61 @@ class Index extends Component
 
         $name = 'admissions_' . now()->format('Ymd_His') . '.xlsx';
 
-        // Pass filters (including current screen filters) into export
-        $export = new AdmissionsExport(
-            fromDate: $this->fromDate,
-            toDate: $this->toDate,
-            status: $this->status,
-            batchId: $this->batchId,
-            q: $this->q,
-        );
+        // Query admissions with filters
+        $admissions = $this->getAdmissionsQuery()
+            ->when($this->fromDate, fn($q) => $q->whereDate('admission_date', '>=', $this->fromDate))
+            ->when($this->toDate, fn($q) => $q->whereDate('admission_date', '<=', $this->toDate))
+            ->get();
 
-        // Hide modal before returning response
+        // Company details (customize as needed)
+        $company = [
+            ['Institute Name', 'Ahantra Edu Ventures Private Limited ((A franchisee of Mentors Eduserv)'],
+            ['Address', "Purnea Bihar-854301"],
+            ['Phone', '   9155588414, 9798986029'],
+            ['Email', 'info@myinstitute.com'],
+            [],
+        ];
+
+        $header = [
+            'S.no', 'Name', 'Mobile', 'Enrollment Id', 'Batch', 'Course', 'Admission Date', 'Fee Total', 'Fee Due', 'Status'
+        ];
+
+        $rows = $admissions->map(function($a, $i) {
+            return [
+                $i+1,
+                optional($a->student)->name,
+                optional($a->student)->phone,
+                optional($a->student)->enrollment_id,
+                optional($a->batch)->batch_name,
+                optional($a->batch?->course)->name,
+                optional($a->admission_date)->format('d-M-Y'),
+                $a->fee_total,
+                $a->fee_due,
+                $a->status,
+            ];
+        })->toArray();
+
+        $data = array_merge($company, [$header], $rows);
+
+        // Use PhpSpreadsheet to generate Excel
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        foreach ($data as $rowIdx => $row) {
+            foreach ($row as $colIdx => $value) {
+                $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIdx + 1);
+                $sheet->setCellValue($colLetter . ($rowIdx + 1), $value);
+            }
+        }
+
         $this->showExportModal = false;
 
-        return Excel::download($export, $name);
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        return response()->streamDownload(function() use ($writer) {
+            $writer->save('php://output');
+        }, $name, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0',
+        ]);
     }
 
     public function import()

@@ -72,9 +72,9 @@ class Index extends Component
 
         // Company details (customize as needed)
         $company = [
-            ['Institute Name', 'My Institute'],
-            ['Address', '123 Main Street, City, State'],
-            ['Phone', '+91-1234567890'],
+            ['Institute Name', 'Ahantra Edu Ventures Private Limited ((A franchisee of Mentors Eduserv)'],
+            ['Address', "Purnea Bihar-854301"],
+            ['Phone', '   9155588414, 9798986029'],
             ['Email', 'info@myinstitute.com'],
             [],
         ];
