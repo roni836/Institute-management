@@ -11,7 +11,7 @@
         $beforeDue = $afterDue + $paid;
     @endphp
 
-    <div class="max-w-5xl mx-auto p-4 bg-white text-gray-800 receipt-printable"
+    <div class="max-w-5xl border-2 border-[#333]  mx-auto p-4 bg-white text-gray-800 receipt-printable"
         style="font-family: Arial, Helvetica, sans-serif;">
 
         <!-- Header -->
@@ -46,8 +46,8 @@
         </div>
 
         <!-- Account Overview -->
-        <div style="margin-bottom:12px">
-            <div class="bg-gray-200 px-2 py-2  text-center" style="font-size:13px;font-weight:700;padding-bottom:6px;">
+        <div>
+            <div class="bg-gray-200 px-2 py-2  text-center" style="font-size:13px;font-weight:700;padding-bottom:4px;">
                 ACCOUNT OVERVIEW</div>
             <div
                 style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;font-size:12px; border:2px solid #000;padding-left:8px">
@@ -72,7 +72,7 @@
         </div>
 
         <!-- Fee Details -->
-        <div style="margin-bottom:12px">
+        <div>
             <div class="bg-gray-200 px-2 py-2  text-center" style="font-size:13px;font-weight:700;padding-bottom:6px;">
                 FEE DETAILS</div>
             <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #000;">
@@ -157,7 +157,7 @@
 
 
         <!-- Installment Details -->
-        <div style="margin-bottom:12px">
+        <div>
             <div class="bg-gray-200 px-2 py-2  text-center" style="font-size:13px;font-weight:700;padding-bottom:6px;">
                 INSTALLMENT DETAILS</div>
             <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #000;">
@@ -213,7 +213,7 @@
         </div>
 
         <!-- Transaction Details -->
-        <div style="margin-bottom:12px">
+        <div>
             <div class="bg-gray-200 px-2 py-2  text-center" style="font-size:13px;font-weight:700;padding-bottom:6px;">
                 TRANSACTION DETAILS</div>
             <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #000;">
@@ -275,7 +275,7 @@
         </div>
 
         <!-- Other Transaction Details -->
-        {{-- <div style="margin-bottom:12px">
+        <div>
             <div class="bg-gray-200 px-2 py-2  text-center" style="font-size:13px;font-weight:700;padding-bottom:6px;">
                 OTHER TRANSACTION DETAILS</div>
             <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #000;">
@@ -300,7 +300,7 @@
                     </tr>
                 </tbody>
             </table>
-        </div> --}}
+        </div>
 
         <!-- Terms & Conditions -->
         <div style="margin-top:12px">
@@ -344,6 +344,10 @@
             a {
                 color: #000;
                 text-decoration: none;
+            }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
         }
 
