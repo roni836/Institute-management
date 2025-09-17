@@ -236,7 +236,7 @@
                                 @foreach ($batches as $b)
                                     <option value="{{ $b->id }}">
                                         {{ $b->batch_name }} — {{ $b->course->name }}
-                                        (₹{{ number_format($b->course->gross_fee, 2) }})
+                                        (₹{{ number_format((float)$b->course->gross_fee, 2) }})
                                     </option>
                                 @endforeach
                             </select>
@@ -320,7 +320,7 @@
                         <div>
                             <label class="text-xs">Total Payable</label>
                             <input type="text" readonly class="w-full border rounded p-2 bg-gray-50"
-                                value="₹{{ number_format($fee_total, 2) }}">
+                                value="₹{{ number_format((float)$fee_total, 2) }}">
                             @if ($applyGst)
                                 <p class="text-xs text-gray-600 mt-1">
                                     (Includes GST: ₹{{ number_format((float)$fee_total * 0.18, 2) }})
@@ -376,7 +376,7 @@
                                         <div class="flex justify-between text-sm">
                                             <span class="text-gray-600">Course Fee</span>
                                             <span
-                                                class="font-medium">₹{{ number_format($b->course->gross_fee, 2) }}</span>
+                                                class="font-medium">₹{{ number_format((float)$b->course->gross_fee, 2) }}</span>
                                         </div>
                                     @endif
 
@@ -389,14 +389,14 @@
                                     @if ($applyGst)
                                     <div class="flex justify-between text-sm">
                                         <span class="text-gray-600">GST (18%)</span>
-                                        <span class="font-medium">₹{{ number_format($fee_total * 0.18, 2) }}</span>
+                                        <span class="font-medium">₹{{ number_format((float)$fee_total * 0.18, 2) }}</span>
                                     </div>
                                     @endif
 
                                     <div class="pt-2 border-t flex justify-between">
                                         <span class="font-medium">Total Payable</span>
                                         <span
-                                            class="text-lg font-bold text-orange-600">₹{{ number_format($fee_total, 2) }}</span>
+                                            class="text-lg font-bold text-orange-600">₹{{ number_format((float)$fee_total, 2) }}</span>
                                     </div>
                                 </div>
 
@@ -632,14 +632,14 @@
                                     @if ($applyGst)
                                     <div class="flex justify-between text-sm">
                                         <span class="text-gray-600">GST (18%)</span>
-                                        <span class="font-medium">₹{{ number_format($fee_total * 0.18, 2) }}</span>
+                                        <span class="font-medium">₹{{ number_format((float)$fee_total * 0.18, 2) }}</span>
                                     </div>
                                     @endif
 
                                     <div class="pt-2 border-t flex justify-between items-center">
                                         <span class="font-medium">Final Amount</span>
                                         <span
-                                            class="text-lg font-bold text-orange-600">₹{{ number_format($fee_total, 2) }}</span>
+                                            class="text-lg font-bold text-orange-600">₹{{ number_format((float)$fee_total, 2) }}</span>
                                     </div>
                                 </div>
                             </div>

@@ -402,7 +402,7 @@
                                         <div class="flex justify-between text-sm">
                                             <span class="text-gray-600">Course Fee</span>
                                             <span
-                                                class="font-medium">₹{{ number_format($b->course->net_fee, 2) }}</span>
+                                                class="font-medium">₹{{ number_format((float)$b->course->net_fee, 2) }}</span>
                                         </div>
                                     @endif
 
@@ -416,14 +416,14 @@
                                         <div class="flex justify-between text-sm">
                                             <span class="text-gray-600">GST (18%)</span>
                                             <span
-                                                class="font-medium">₹{{ number_format($fee_total * 0.18, 2) }}</span>
+                                                class="font-medium">₹{{ number_format((float)$fee_total * 0.18, 2) }}</span>
                                         </div>
                                     @endif
 
                                     <div class="pt-2 border-t flex justify-between">
                                         <span class="font-medium">Total Payable</span>
                                         <span
-                                            class="text-lg font-bold text-orange-600">₹{{ number_format($fee_total, 2) }}</span>
+                                            class="text-lg font-bold text-orange-600">₹{{ number_format((float)$fee_total, 2) }}</span>
                                     </div>
                                 </div>
 
@@ -545,16 +545,16 @@
                             <div class="bg-gray-100 rounded-lg p-3">
                                 <div class="flex justify-between text-sm">
                                     <span>Installment Total:</span>
-                                    <span class="font-medium">₹{{ number_format($installmentTotal, 2) }}</span>
+                                    <span class="font-medium">₹{{ number_format((float)$installmentTotal, 2) }}</span>
                                 </div>
                                 <div class="flex justify-between text-sm">
                                     <span>Course Total:</span>
-                                    <span class="font-medium">₹{{ number_format($fee_total, 2) }}</span>
+                                    <span class="font-medium">₹{{ number_format((float)$fee_total, 2) }}</span>
                                 </div>
                                 @if ($difference > 0.01)
                                     <div class="flex justify-between text-sm text-red-600 mt-1">
                                         <span>Difference:</span>
-                                        <span class="font-medium">₹{{ number_format($difference, 2) }}</span>
+                                        <span class="font-medium">₹{{ number_format((float)$difference, 2) }}</span>
                                     </div>
                                 @endif
                             </div>
@@ -565,7 +565,7 @@
                         </div>
                     @else
                         <div class="bg-gray-50 rounded-lg p-4">
-                            <p class="text-sm text-gray-600">Full payment of ₹{{ number_format($fee_total, 2) }}</p>
+                            <p class="text-sm text-gray-600">Full payment of ₹{{ number_format((float)$fee_total, 2) }}</p>
                             <p class="text-xs text-gray-500 mt-1">Collect on admission date or via Payments section.
                             </p>
                         </div>
@@ -725,7 +725,7 @@
                                     <div class="pt-2 border-t flex justify-between items-center">
                                         <span class="font-medium">Final Amount</span>
                                         <span
-                                            class="text-lg font-bold text-orange-600">₹{{ number_format($fee_total, 2) }}</span>
+                                            class="text-lg font-bold text-orange-600">₹{{ number_format((float)$fee_total, 2) }}</span>
                                     </div>
                                 </div>
                             </div>
