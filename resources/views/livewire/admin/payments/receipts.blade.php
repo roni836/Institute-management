@@ -305,7 +305,7 @@
         <!-- Terms & Conditions -->
         <div style="margin-top:12px">
             <div style="font-size:13px;font-weight:700;margin-bottom:6px">TERMS & CONDITIONS:</div>
-            <ol style="font-size:11px;color:#333;margin:0 0 8px 18px;line-height:1.3">
+            <ol style="font-size:11px;color:#333;margin:0 0 8px 18px;line-height:1.3; list-style-type: decimal;">
                 <li>Tax will be charged as per applicable rate of payment date.</li>
                 <li>Cheque/Draft is subject to Realization.</li>
                 <li>In case of cheque dishonor, bank charges of Rs. 500 and late fine (upto Rs. 50/day) will be charged.
@@ -345,6 +345,7 @@
                 color: #000;
                 text-decoration: none;
             }
+
             * {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
