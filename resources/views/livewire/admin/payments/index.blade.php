@@ -94,6 +94,25 @@
                     <option value="failed">Failed</option>
                 </select>
             </div>
+            <div class="flex-shrink-0">
+                <select wire:model="quickRange" class="border rounded-lg px-4 py-2">
+                    <option value="">Date Range</option>
+                    <option value="this_week">This Week</option>
+                    <option value="this_month">This Month</option>
+                    <option value="this_year">This Year</option>
+                </select>
+            </div>
+            <div class="flex-shrink-0">
+                <input type="date" wire:model="fromDate" class="border rounded-lg px-4 py-2" placeholder="From date">
+            </div>
+            <div class="flex-shrink-0">
+                <input type="date" wire:model="toDate" class="border rounded-lg px-4 py-2" placeholder="To date">
+            </div>
+            <div class="flex-shrink-0">
+                <button wire:click="exportExcel" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                    Export Excel
+                </button>
+            </div>
         </div>
     </div>
 

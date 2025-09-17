@@ -28,13 +28,97 @@ class Index extends Component
     #[Validate('integer|min:5|max:50')]
     public int $perPage = 15;
 
-    protected $queryString = ['search', 'status', 'mode', 'perPage', 'page'];
+    // Date range and quick range
+    public ?string $fromDate = null;
+    public ?string $toDate = null;
+    public ?string $quickRange = null;
+
+    protected $queryString = ['search', 'status', 'mode', 'perPage', 'page', 'fromDate', 'toDate', 'quickRange'];
 
     public function updating($name)
     {
-        if (in_array($name, ['search', 'status', 'mode', 'perPage'])) {
+        if (in_array($name, ['search', 'status', 'mode', 'perPage', 'fromDate', 'toDate', 'quickRange'])) {
             $this->resetPage();
         }
+    }
+
+    public function updatedQuickRange($value)
+    {
+        if ($value) {
+            $today = Carbon::today();
+            switch ($value) {
+                case 'this_week':
+                    $this->fromDate = $today->copy()->startOfWeek()->format('Y-m-d');
+                    $this->toDate = $today->copy()->endOfWeek()->format('Y-m-d');
+                    break;
+                case 'this_month':
+                    $this->fromDate = $today->copy()->startOfMonth()->format('Y-m-d');
+                    $this->toDate = $today->copy()->endOfMonth()->format('Y-m-d');
+                    break;
+                case 'this_year':
+                    $this->fromDate = $today->copy()->startOfYear()->format('Y-m-d');
+                    $this->toDate = $today->copy()->endOfYear()->format('Y-m-d');
+                    break;
+                default:
+                    $this->fromDate = null;
+                    $this->toDate = null;
+            }
+        }
+    }
+
+    public function exportExcel()
+    {
+        $transactions = $this->getTransactionsQuery()->get();
+
+        // Company details (customize as needed)
+        $company = [
+            ['Institute Name', 'My Institute'],
+            ['Address', '123 Main Street, City, State'],
+            ['Phone', '+91-1234567890'],
+            ['Email', 'info@myinstitute.com'],
+            [],
+        ];
+
+        $header = [
+            'Date', 'Student', 'Batch', 'Amount', 'GST', 'Mode', 'Ref', 'Receipt No', 'Status'
+        ];
+
+        $rows = $transactions->map(function($t) {
+            return [
+                optional($t->date)->format('d-M-Y'),
+                optional($t->admission?->student)->name,
+                optional($t->admission?->batch)->batch_name,
+                $t->amount,
+                $t->gst,
+                $t->mode,
+                $t->reference_no,
+                $t->receipt_number,
+                $t->status,
+            ];
+        })->toArray();
+
+        $data = array_merge($company, [$header], $rows);
+
+        // Use PhpSpreadsheet to generate Excel
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        foreach ($data as $rowIdx => $row) {
+            foreach ($row as $colIdx => $value) {
+                $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIdx + 1);
+                $sheet->setCellValue($colLetter . ($rowIdx + 1), $value);
+            }
+        }
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $filename = 'payments.xlsx';
+
+        // Output to browser
+        return response()->streamDownload(function() use ($writer) {
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0',
+        ]);
     }
 
     private function getTransactionsQuery()
@@ -52,6 +136,8 @@ class Index extends Component
             }))
             ->when($this->status, fn($q) => $q->where('status', $this->status))
             ->when($this->mode, fn($q) => $q->where('mode', $this->mode))
+            ->when($this->fromDate, fn($q) => $q->whereDate('date', '>=', $this->fromDate))
+            ->when($this->toDate, fn($q) => $q->whereDate('date', '<=', $this->toDate))
             ->latest('date');
     }
 

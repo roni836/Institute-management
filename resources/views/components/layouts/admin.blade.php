@@ -118,7 +118,7 @@
                     </div>
                     @if (Auth::user()->isAdmin())
                         <a href="{{ route('admin.dashboard') }}"
-                            class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
+                            class="nav-item flex items-center px-4 py-1 rounded-xl text-sm font-medium">
                             <div class="w-5 h-5 mr-3">
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -130,7 +130,7 @@
                             Dashboard
                         </a>
                         <a href="{{ route('admin.admissions.index') }}"
-                            class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
+                            class="nav-item flex items-center px-4 py-1 rounded-xl text-sm font-medium">
                             <div class="w-5 h-5 mr-3">
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -140,7 +140,7 @@
                             Admissions
                         </a>
                         <a href="{{ route('admin.payments.index') }}"
-                            class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
+                            class="nav-item flex items-center px-4 py-1 rounded-xl text-sm font-medium">
                             <div class="w-5 h-5 mr-3">
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -151,7 +151,7 @@
                         </a>
                     @endif
                     <a href="{{ route('admin.attendance.index') }}"
-                        class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
+                        class="nav-item flex items-center px-4 py-1 rounded-xl text-sm font-medium">
                         <div class="w-5 h-5 mr-3">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -162,7 +162,7 @@
                     </a>
                     @if (Auth::user()->isAdmin())
                         <a href="{{ route('admin.students.index') }}"
-                            class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
+                            class="nav-item flex items-center px-4 py-1 rounded-xl text-sm font-medium">
                             <div class="w-5 h-5 mr-3">
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -179,7 +179,7 @@
                     <a href="{{ route('admin.exams.index') }}" @click="currentPage = 'admin.exams.index'"
                         :class="currentPage === 'admin.exams.index' || currentPage === 'admin.courses.create' ||
                             currentPage === 'admin.courses.edit' ? 'active' : ''"
-                        class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
+                        class="nav-item flex items-center px-4 py-1 rounded-xl text-sm font-medium">
                         <div class="w-5 h-5 mr-3">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -192,7 +192,7 @@
                         <a href="{{ route('admin.courses.index') }}" @click="currentPage = 'admin.courses.index'"
                             :class="currentPage === 'admin.courses.index' || currentPage === 'admin.courses.create' ||
                                 currentPage === 'admin.courses.edit' ? 'active' : ''"
-                            class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
+                            class="nav-item flex items-center px-4 py-1 rounded-xl text-sm font-medium">
                             <div class="w-5 h-5 mr-3">
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -205,7 +205,7 @@
                     <a href="{{ route('admin.subjects.index') }}" @click="currentPage = 'admin.subjects.index'"
                         :class="currentPage === 'admin.subjects.index' || currentPage === 'admin.subjects.create' ||
                             currentPage === 'admin.subjects.edit' ? 'active' : ''"
-                        class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
+                        class="nav-item flex items-center px-4 py-1 rounded-xl text-sm font-medium">
                         <div class="w-5 h-5 mr-3">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -216,7 +216,7 @@
                     </a>
                     @if (Auth::user()->isAdmin())
                         <a href="{{ route('admin.batches.index') }}"
-                            class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
+                            class="nav-item flex items-center px-4 py-1 rounded-xl text-sm font-medium">
                             <div class="w-5 h-5 mr-3">
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -227,7 +227,7 @@
                         </a>
 
                         <a href="{{ route('admin.teachers.index') }}"
-                            class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
+                            class="nav-item flex items-center px-4 py-1 rounded-xl text-sm font-medium">
                             <div class="w-5 h-5 mr-3">
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -243,7 +243,7 @@
                         Account
                     </div>
                     <a href="{{ route('admin.profile.edit') }}"
-                        class="nav-item flex items-center px-4 py-3 rounded-xl text-sm font-medium">
+                        class="nav-item flex items-center px-4 py-1 rounded-xl text-sm font-medium">
                         <div class="w-5 h-5 mr-3">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
