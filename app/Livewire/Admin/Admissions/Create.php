@@ -38,6 +38,9 @@ class Create extends Component
 
     public ?string $searchPhone    = '';
     public bool $isExistingStudent = false;
+    public $foundStudents = [];
+    public $selectedStudentId = null;
+    public bool $showStudentSelection = false;
 
     public function mount()
     {
@@ -53,9 +56,9 @@ class Create extends Component
         }
 
         // Check for duplicate admission when batch is selected
-        if ($name === 'batch_id' && $value && $this->phone) {
-            $this->checkDuplicateAdmission();
-        }
+        // if ($name === 'batch_id' && $value && $this->phone) {
+        //     $this->checkDuplicateAdmission();
+        // }
 
         // Reset custom installments flag when mode changes
         if ($name === 'mode') {
@@ -70,11 +73,42 @@ class Create extends Component
 
     public function updatedSearchPhone()
     {
-        $student = Student::where('phone', $this->searchPhone)->first();
-        if ($student) {
-            $this->isExistingStudent = true;
+        if (empty($this->searchPhone)) {
+            $this->resetStudentSearch();
+            return;
+        }
 
-            // Pre-fill form with existing student data
+        $students = Student::where('phone', $this->searchPhone)->get();
+        
+        if ($students->count() > 0) {
+            $this->foundStudents = $students;
+            $this->isExistingStudent = true;
+            
+            if ($students->count() === 1) {
+                // Only one student found, auto-select
+                $this->selectStudent($students->first()->id);
+                $this->showStudentSelection = false;
+            } else {
+                // Multiple students found, show selection
+                $this->showStudentSelection = true;
+                $this->resetStudentForm();
+            }
+        } else {
+            $this->resetStudentSearch();
+        }
+    }
+
+    /**
+     * Select a student from the found students list
+     */
+    public function selectStudent($studentId)
+    {
+        $student = Student::find($studentId);
+        if ($student) {
+            $this->selectedStudentId = $studentId;
+            $this->showStudentSelection = false;
+            
+            // Pre-fill form with selected student data
             $this->name              = $student->name;
             $this->email             = $student->email;
             $this->phone             = $student->phone;
@@ -94,43 +128,40 @@ class Create extends Component
             $this->class             = $student->class;
             $this->stream            = $student->stream;
             $this->student_status    = $student->status;
-        } else {
-            $this->isExistingStudent = false;
-            $this->reset(['name', 'email', 'father_name', 'mother_name', 'address', 'gender', 'category', 'dob', 'session', 'alt_phone', 'mother_occupation', 'father_occupation', 'school_name', 'school_address', 'board', 'class', 'stream']);
-            // Clear any batch-related errors when switching to new student
-            $this->resetErrorBag('batch_id');
-        }
-
-        // Check if student is already admitted to the selected batch
-        if ($this->batch_id) {
-            $this->checkDuplicateAdmission();
         }
     }
 
     /**
-     * Check if student is already admitted to the selected batch
+     * Reset student search and form
      */
-    public function checkDuplicateAdmission()
+    public function resetStudentSearch()
     {
-        if (! $this->batch_id || ! $this->phone) {
-            return;
-        }
+        $this->isExistingStudent = false;
+        $this->foundStudents = [];
+        $this->selectedStudentId = null;
+        $this->showStudentSelection = false;
+        $this->resetStudentForm();
+    }
 
-        $student = Student::where('phone', $this->phone)->first();
-        if ($student) {
-            $existingAdmission = Admission::where('student_id', $student->id)
-                ->where('batch_id', $this->batch_id)
-                ->where('status', '!=', 'cancelled')
-                ->first();
-
-            if ($existingAdmission) {
-                $this->addError('batch_id', 'This student is already admitted to this batch.');
-                return;
-            }
-        }
-
-        // Clear any previous errors
+    /**
+     * Reset student form fields
+     */
+    public function resetStudentForm()
+    {
+        $this->reset(['name', 'email', 'father_name', 'mother_name', 'address', 'gender', 'category', 'dob', 'session', 'alt_phone', 'mother_occupation', 'father_occupation', 'school_name', 'school_address', 'board', 'class', 'stream']);
         $this->resetErrorBag('batch_id');
+    }
+
+    /**
+     * Create new student option
+     */
+    public function createNewStudent()
+    {
+        $this->showStudentSelection = false;
+        $this->selectedStudentId = null;
+        $this->isExistingStudent = false;
+        $this->phone = $this->searchPhone; // Keep the searched phone number
+        $this->resetStudentForm();
     }
 
     /** Full rules (used on final save) */
@@ -164,21 +195,6 @@ class Create extends Component
             'batch_id'          => [
                 'required',
                 'exists:batches,id',
-                function ($attribute, $value, $fail) {
-                    if ($this->phone && $value) {
-                        $student = Student::where('phone', $this->phone)->first();
-                        if ($student) {
-                            $existingAdmission = Admission::where('student_id', $student->id)
-                                ->where('batch_id', $value)
-                                ->where('status', '!=', 'cancelled')
-                                ->first();
-
-                            if ($existingAdmission) {
-                                $fail('This student is already admitted to this batch.');
-                            }
-                        }
-                    }
-                },
             ],
             'admission_date'    => ['required', 'date'],
             'discount'          => ['nullable', 'numeric', 'min:0'],
@@ -236,21 +252,6 @@ class Create extends Component
                 'batch_id'       => [
                     'required',
                     'exists:batches,id',
-                    function ($attribute, $value, $fail) {
-                        if ($this->phone && $value) {
-                            $student = Student::where('phone', $this->phone)->first();
-                            if ($student) {
-                                $existingAdmission = Admission::where('student_id', $student->id)
-                                    ->where('batch_id', $value)
-                                    ->where('status', '!=', 'cancelled')
-                                    ->first();
-
-                                if ($existingAdmission) {
-                                    $fail('This student is already admitted to this batch.');
-                                }
-                            }
-                        }
-                    },
                 ],
                 'admission_date' => ['required', 'date'],
                 'discount'       => ['nullable', 'numeric', 'min:0'],
@@ -505,9 +506,11 @@ class Create extends Component
         try {
             DB::transaction(function () use ($data, &$admission) {
                 // Find or create student
-                $student = Student::where('phone', $this->phone)->first();
-
-                if (! $student) {
+                if ($this->selectedStudentId) {
+                    // Use selected existing student
+                    $student = Student::find($this->selectedStudentId);
+                } else {
+                    // Create new student
                     $student = Student::create([
                         'name'              => $this->name,
                         'email'             => $this->email,
@@ -570,13 +573,10 @@ class Create extends Component
                 }
             });
 
-        } catch (\Illuminate\Database\QueryException $e) {
-            // Check if it's a duplicate admission error
-            if ($e->getCode() == 23000 && str_contains($e->getMessage(), 'Duplicate entry')) {
-                $this->addError('batch_id', 'This student is already admitted to this batch.');
-                return;
-            }
-            throw $e; // Re-throw other database errors
+        } catch (\Exception $e) {
+            Log::error('Admission creation failed: ' . $e->getMessage());
+            $this->addError('general', 'Failed to create admission. Please try again.');
+            return;
         }
 
         // Send admission confirmation email if student has email

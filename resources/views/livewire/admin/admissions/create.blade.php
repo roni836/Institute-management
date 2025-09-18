@@ -71,6 +71,99 @@
                                 No student found with this phone number. Please fill in the details below.
                             </p>
                         @endif
+
+                        {{-- Student Selection Interface --}}
+                        @if ($showStudentSelection && count($foundStudents) > 0)
+                            <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <h4 class="text-sm font-semibold text-blue-800 mb-3">
+                                    Multiple students found with this phone number. Please select one:
+                                </h4>
+                                <div class="space-y-3">
+                                    @foreach ($foundStudents as $student)
+                                        <div class="bg-white border rounded-lg p-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                                             wire:click="selectStudent({{ $student->id }})">
+                                            <div class="flex justify-between items-start">
+                                                <div class="flex-1">
+                                                    <div class="flex items-center gap-2">
+                                                        <h5 class="font-medium text-gray-900">{{ $student->name }}</h5>
+                                                        @if ($student->student_uid)
+                                                            <span class="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
+                                                                {{ $student->student_uid }}
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                    <div class="mt-1 text-sm text-gray-600">
+                                                        <div class="flex flex-wrap gap-4">
+                                                            @if ($student->email)
+                                                                <span>📧 {{ $student->email }}</span>
+                                                            @endif
+                                                            @if ($student->father_name)
+                                                                <span>👨 {{ $student->father_name }}</span>
+                                                            @endif
+                                                            @if ($student->stream)
+                                                                <span class="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">
+                                                                    {{ $student->stream }}
+                                                                </span>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                    {{-- Show existing admissions --}}
+                                                    @php
+                                                        $admissions = $student->admissions()->with('batch.course')->where('status', '!=', 'cancelled')->get();
+                                                    @endphp
+                                                    @if ($admissions->count() > 0)
+                                                        <div class="mt-2">
+                                                            <p class="text-xs text-gray-500 mb-1">Current Admissions:</p>
+                                                            <div class="flex flex-wrap gap-1">
+                                                                @foreach ($admissions as $admission)
+                                                                    <span class="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">
+                                                                        {{ $admission->batch->batch_name }} - {{ $admission->batch->course->name }}
+                                                                    </span>
+                                                                @endforeach
+                                                            </div>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                                <button type="button" 
+                                                        class="ml-3 px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                                                        wire:click="selectStudent({{ $student->id }})">
+                                                    Select
+                                                </button>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <div class="mt-4 pt-3 border-t border-blue-200">
+                                    <button type="button" 
+                                            class="w-full px-4 py-2 text-sm bg-white border border-blue-300 text-blue-700 rounded hover:bg-blue-50 transition-colors"
+                                            wire:click="createNewStudent">
+                                        + Create New Student with this Phone Number
+                                    </button>
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- Selected Student Info --}}
+                        @if ($selectedStudentId && !$showStudentSelection)
+                            <div class="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-sm font-medium text-green-800">
+                                        Selected Student: {{ $name }}
+                                        @if ($foundStudents->where('id', $selectedStudentId)->first()?->student_uid)
+                                            ({{ $foundStudents->where('id', $selectedStudentId)->first()->student_uid }})
+                                        @endif
+                                    </span>
+                                    <button type="button" 
+                                            class="ml-auto text-xs text-green-600 hover:text-green-800 underline"
+                                            wire:click="resetStudentSearch">
+                                        Change Selection
+                                    </button>
+                                </div>
+                            </div>
+                        @endif
                     </div>
 
                     {{-- Auto-generation Notice --}}
@@ -93,6 +186,7 @@
                     </div>
 
                     {{-- Rest of Student Form --}}
+                    @if (!$showStudentSelection)
                     <div class="grid md:grid-cols-2 gap-3">
                         <div>
                             <label class="text-xs">Name</label>
@@ -207,8 +301,15 @@
 
                     <div class="flex items-center gap-3 pt-2">
                         <button type="button" wire:click="next"
-                            class="px-4 py-2 rounded-lg bg-primary-600 text-white">Next</button>
+                            class="px-4 py-2 rounded-lg bg-primary-600 text-white"
+                            @if($showStudentSelection) disabled @endif>
+                            Next
+                        </button>
+                        @if($showStudentSelection)
+                            <p class="text-sm text-gray-500">Please select a student first</p>
+                        @endif
                     </div>
+                    @endif
                 </div>
             </div>
         @endif
