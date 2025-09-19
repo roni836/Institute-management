@@ -10,7 +10,7 @@
         </a>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    {{-- <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div class="bg-white p-4 md:p-6 rounded-xl border">
             <div class="flex justify-between items-center">
                 <div>
@@ -56,7 +56,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> --}}
 
     <div class="flex flex-col sm:flex-row gap-4 mb-6">
         <div class="relative flex-1">
