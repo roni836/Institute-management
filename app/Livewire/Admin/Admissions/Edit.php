@@ -33,6 +33,7 @@ class Edit extends Component
     public $fee_total = 0.00, $installments = 2, $plan = [];
     public $status = 'active', $reason = '';
     public $applyGst = false;
+    public $editableInstallments = false;
 
     public function mount(Admission $admission)
     {
@@ -72,15 +73,30 @@ class Edit extends Component
         if ($schedules->count() > 1) {
             $this->installments = $schedules->count();
             $this->mode = 'installment';
+            
+            // Load existing installment data for editing
+            $this->plan = [];
+            foreach ($schedules as $schedule) {
+                $this->plan[] = [
+                    'no' => $schedule->installment_no,
+                    'amount' => $schedule->amount,
+                    'due_on' => $schedule->due_date->toDateString()
+                ];
+            }
+        } else {
+            $this->recalculate();
         }
-        
-        $this->recalculate();
     }
 
     public function updated($name, $value)
     {
         if (in_array($name, ['batch_id', 'discount', 'mode', 'installments', 'admission_date', 'applyGst'], true)) {
             $this->recalculate();
+        }
+        
+        // Handle individual installment updates
+        if (str_starts_with($name, 'plan.')) {
+            $this->validateInstallmentTotals();
         }
     }
 
@@ -118,6 +134,57 @@ class Edit extends Component
             $amt = $per + ($i === 1 ? $rem : 0.00);
             $due = $anchor->copy()->addMonths($i - 1)->toDateString();
             $this->plan[] = ['no' => $i, 'amount' => $amt, 'due_on' => $due];
+        }
+    }
+
+    public function toggleEditableInstallments()
+    {
+        $this->editableInstallments = !$this->editableInstallments;
+        
+        if (!$this->editableInstallments) {
+            // When disabling edit mode, recalculate to ensure consistency
+            $this->recalculate();
+        }
+    }
+
+    public function validateInstallmentTotals()
+    {
+        if ($this->mode === 'installment' && !empty($this->plan)) {
+            $totalInstallments = array_sum(array_column($this->plan, 'amount'));
+            $expectedTotal = $this->fee_total;
+            
+            if (abs($totalInstallments - $expectedTotal) > 0.01) {
+                session()->flash('warning', 'Installment amounts total (₹' . number_format($totalInstallments, 2) . ') does not match the expected total (₹' . number_format($expectedTotal, 2) . ')');
+            }
+        }
+    }
+
+    public function addInstallment()
+    {
+        if ($this->mode === 'installment') {
+            $nextNo = count($this->plan) + 1;
+            $this->plan[] = [
+                'no' => $nextNo,
+                'amount' => 0.00,
+                'due_on' => now()->addMonths($nextNo - 1)->toDateString()
+            ];
+            $this->installments = count($this->plan);
+        }
+    }
+
+    public function removeInstallment($index)
+    {
+        if ($this->mode === 'installment' && count($this->plan) > 2) {
+            unset($this->plan[$index]);
+            $this->plan = array_values($this->plan); // Re-index array
+            
+            // Update installment numbers
+            foreach ($this->plan as $i => $installment) {
+                $this->plan[$i]['no'] = $i + 1;
+            }
+            
+            $this->installments = count($this->plan);
+            $this->validateInstallmentTotals();
         }
     }
 

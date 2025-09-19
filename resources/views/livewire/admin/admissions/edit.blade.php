@@ -458,17 +458,91 @@
         @if ($step === 4)
             <div class="grid md:grid-cols-3 gap-4">
                 <div class="md:col-span-2 bg-white border rounded-xl p-4 space-y-4">
-                    <h3 class="font-semibold">Payment Plan</h3>
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-semibold">Payment Plan</h3>
+                        @if ($mode === 'installment')
+                            <div class="flex items-center gap-2">
+                                <button type="button" wire:click="toggleEditableInstallments" 
+                                    class="px-3 py-1 text-sm rounded-lg border {{ $editableInstallments ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-700 border-gray-200' }}">
+                                    {{ $editableInstallments ? 'Lock Amounts' : 'Edit Amounts' }}
+                                </button>
+                                @if ($editableInstallments)
+                                    <button type="button" wire:click="addInstallment" 
+                                        class="px-3 py-1 text-sm rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
+                                        + Add
+                                    </button>
+                                @endif
+                            </div>
+                        @endif
+                    </div>
 
                     @if ($mode === 'installment')
-                        <div class="space-y-2 max-h-80 overflow-auto">
-                            @foreach ($plan as $row)
-                                <div class="flex justify-between text-sm border rounded p-2">
-                                    <span>#{{ $row['no'] }}</span>
-                                    <span>₹{{ number_format($row['amount'], 2) }}</span>
-                                    <span>Due: {{ $row['due_on'] }}</span>
+                        <div class="space-y-3 max-h-80 overflow-auto">
+                            @foreach ($plan as $index => $row)
+                                <div class="border rounded-lg p-3 {{ $editableInstallments ? 'bg-blue-50' : 'bg-gray-50' }}">
+                                    @if ($editableInstallments)
+                                        <div class="grid grid-cols-12 gap-3 items-center">
+                                            <div class="col-span-2">
+                                                <label class="text-xs text-gray-600">Installment</label>
+                                                <div class="font-medium text-sm">#{{ $row['no'] }}</div>
+                                            </div>
+                                            <div class="col-span-4">
+                                                <label class="text-xs text-gray-600">Amount (₹)</label>
+                                                <input type="number" step="0.01" min="0" 
+                                                    class="w-full border rounded p-2 text-sm" 
+                                                    wire:model.live="plan.{{ $index }}.amount">
+                                            </div>
+                                            <div class="col-span-4">
+                                                <label class="text-xs text-gray-600">Due Date</label>
+                                                <input type="date" 
+                                                    class="w-full border rounded p-2 text-sm" 
+                                                    wire:model.live="plan.{{ $index }}.due_on">
+                                            </div>
+                                            <div class="col-span-2 flex justify-end">
+                                                @if (count($plan) > 2)
+                                                    <button type="button" wire:click="removeInstallment({{ $index }})" 
+                                                        class="text-red-600 hover:text-red-800 p-1">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                        </svg>
+                                                    </button>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div class="flex justify-between items-center text-sm">
+                                            <span class="font-medium">#{{ $row['no'] }}</span>
+                                            <span class="font-medium">₹{{ number_format($row['amount'], 2) }}</span>
+                                            <span class="text-gray-600">Due: {{ \Carbon\Carbon::parse($row['due_on'])->format('M d, Y') }}</span>
+                                        </div>
+                                    @endif
                                 </div>
                             @endforeach
+                            
+                            @if ($editableInstallments)
+                                <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                    <div class="flex items-center justify-between text-sm">
+                                        <span class="text-yellow-800 font-medium">Total Installments:</span>
+                                        <span class="text-yellow-800 font-bold">₹{{ number_format(array_sum(array_column($plan, 'amount')), 2) }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-sm mt-1">
+                                        <span class="text-yellow-700">Expected Total:</span>
+                                        <span class="text-yellow-700">₹{{ number_format($fee_total, 2) }}</span>
+                                    </div>
+                                    @php
+                                        $installmentTotal = array_sum(array_column($plan, 'amount'));
+                                        $difference = $installmentTotal - $fee_total;
+                                    @endphp
+                                    @if (abs($difference) > 0.01)
+                                        <div class="flex items-center justify-between text-sm mt-1">
+                                            <span class="text-red-700 font-medium">Difference:</span>
+                                            <span class="text-red-700 font-bold">
+                                                {{ $difference > 0 ? '+' : '' }}₹{{ number_format($difference, 2) }}
+                                            </span>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endif
                         </div>
                     @else
                         <p class="text-sm text-gray-600">Full payment. Collect on first day or via Payments.</p>
@@ -656,5 +730,9 @@
 
     @if (session('error'))
         <div class="p-3 rounded bg-red-100 text-red-800">{{ session('error') }}</div>
+    @endif
+
+    @if (session('warning'))
+        <div class="p-3 rounded bg-yellow-100 text-yellow-800">{{ session('warning') }}</div>
     @endif
 </div>
