@@ -512,7 +512,7 @@
                                     @else
                                         <div class="flex justify-between items-center text-sm">
                                             <span class="font-medium">#{{ $row['no'] }}</span>
-                                            <span class="font-medium">₹{{ number_format($row['amount'], 2) }}</span>
+                                            <span class="font-medium">₹{{ number_format((float)$row['amount'], 2) }}</span>
                                             <span class="text-gray-600">Due: {{ \Carbon\Carbon::parse($row['due_on'])->format('M d, Y') }}</span>
                                         </div>
                                     @endif
@@ -523,21 +523,21 @@
                                 <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                                     <div class="flex items-center justify-between text-sm">
                                         <span class="text-yellow-800 font-medium">Total Installments:</span>
-                                        <span class="text-yellow-800 font-bold">₹{{ number_format(array_sum(array_column($plan, 'amount')), 2) }}</span>
+                                        <span class="text-yellow-800 font-bold">₹{{ number_format((float)array_sum(array_map('floatval', array_column($plan, 'amount'))), 2) }}</span>
                                     </div>
                                     <div class="flex items-center justify-between text-sm mt-1">
                                         <span class="text-yellow-700">Expected Total:</span>
-                                        <span class="text-yellow-700">₹{{ number_format($fee_total, 2) }}</span>
+                                        <span class="text-yellow-700">₹{{ number_format((float)$fee_total, 2) }}</span>
                                     </div>
                                     @php
-                                        $installmentTotal = array_sum(array_column($plan, 'amount'));
-                                        $difference = $installmentTotal - $fee_total;
+                                        $installmentTotal = array_sum(array_map('floatval', array_column($plan, 'amount')));
+                                        $difference = $installmentTotal - (float) $fee_total;
                                     @endphp
                                     @if (abs($difference) > 0.01)
                                         <div class="flex items-center justify-between text-sm mt-1">
                                             <span class="text-red-700 font-medium">Difference:</span>
                                             <span class="text-red-700 font-bold">
-                                                {{ $difference > 0 ? '+' : '' }}₹{{ number_format($difference, 2) }}
+                                                {{ $difference > 0 ? '+' : '' }}₹{{ number_format((float)$difference, 2) }}
                                             </span>
                                         </div>
                                     @endif

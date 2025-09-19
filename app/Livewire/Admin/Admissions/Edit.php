@@ -150,8 +150,8 @@ class Edit extends Component
     public function validateInstallmentTotals()
     {
         if ($this->mode === 'installment' && !empty($this->plan)) {
-            $totalInstallments = array_sum(array_column($this->plan, 'amount'));
-            $expectedTotal = $this->fee_total;
+            $totalInstallments = array_sum(array_map('floatval', array_column($this->plan, 'amount')));
+            $expectedTotal = (float) $this->fee_total;
             
             if (abs($totalInstallments - $expectedTotal) > 0.01) {
                 session()->flash('warning', 'Installment amounts total (₹' . number_format($totalInstallments, 2) . ') does not match the expected total (₹' . number_format($expectedTotal, 2) . ')');
