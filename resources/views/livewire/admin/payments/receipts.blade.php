@@ -11,8 +11,19 @@
         $beforeDue = $afterDue + $paid;
     @endphp
 
-    <div class="max-w-5xl border-2 border-[#333]  mx-auto p-4 bg-white text-gray-800 receipt-printable"
-        style="font-family: Arial, Helvetica, sans-serif;">
+    <!-- Print Button -->
+    <div class="mb-4 text-center no-print" style="margin-bottom:12px;text-align:center">
+        <button onclick="window.print()"
+            style="padding:8px 14px;background:#000;color:#fff;border:none;cursor:pointer">Print Receipt</button>
+        <a href="{{ route('admin.payments.index') }}"
+            style="margin-left:8px;padding:8px 14px;background:#666;color:#fff;text-decoration:none;">Back to
+            Payments</a>
+    </div>
+
+    <div class="max-w-5xl border-2 border-[#333] mx-auto p-4 bg-white text-gray-800 receipt-printable"
+        style="font-family: Arial, Helvetica, sans-serif; max-height: 100vh; overflow: hidden;">
+      
+
 
         <!-- Header -->
         <div
@@ -314,14 +325,6 @@
             </ol>
         </div>
 
-        <!-- Print Button -->
-        <div class="mt-8 text-center no-print" style="margin-top:12px;text-align:center">
-            <button onclick="window.print()"
-                style="padding:8px 14px;background:#000;color:#fff;border:none;cursor:pointer">Print Receipt</button>
-            <a href="{{ route('admin.payments.index') }}"
-                style="margin-left:8px;padding:8px 14px;background:#666;color:#fff;text-decoration:none;">Back to
-                Payments</a>
-        </div>
     </div>
 
     <style>
@@ -329,16 +332,36 @@
         @media print {
             .no-print {
                 display: none !important;
-                height: 0px !important;
+                height: 0 !important;
             }
 
             body {
                 margin: 0;
+                padding: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .receipt-printable {
+                margin: 0;
                 padding: 10px;
+                max-width: 100%;
+                page-break-after: avoid;
+                page-break-inside: avoid;
+            }
+
+            table {
+                page-break-inside: avoid;
+                font-size: 11px !important;
+            }
+
+            td, th {
+                padding: 4px !important;
             }
 
             img {
                 max-width: 100%;
+                max-height: 120px;
             }
 
             a {
@@ -349,6 +372,11 @@
             * {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+            }
+
+            @page {
+                size: A4;
+                margin: 0.5cm;
             }
         }
 
