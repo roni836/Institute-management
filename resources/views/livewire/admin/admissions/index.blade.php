@@ -282,6 +282,8 @@
                                 class="px-2 py-1 rounded bg-orange-50 hover:bg-orange-100 text-orange-700">Edit</a>
                             <a href="{{ route('admin.payments.create', ['admission_id' => $admission->id]) }}"
                                 class="px-2 py-1 rounded bg-green-50 hover:bg-green-100 text-green-700">Payment</a>
+                            <a href="{{ route('admin.payments.edit', $admission) }}"
+                                class="px-2 py-1 rounded bg-purple-50 hover:bg-purple-100 text-purple-700">Edit Payments</a>
                         </td>
                 {{--        <td class="p-3">
                         @if($admission->status === 'cancelled')

@@ -17,6 +17,7 @@ use App\Livewire\Admin\Exams\Student\MarksDetail;
 use App\Livewire\Admin\Exams\Student\MarksForm;
 use App\Livewire\Admin\Payments\Create as PaymentsCreate;
 use App\Livewire\Admin\Payments\DuePayments;
+use App\Livewire\Admin\Payments\Edit as PaymentEdit;
 use App\Livewire\Admin\Payments\Index as PaymentsIndex;
 use App\Livewire\Admin\Payments\Receipts as PaymentReceipt;
 use App\Livewire\Admin\Profile\Edit as ProfileEdit;
@@ -47,6 +48,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     // Payments
     Route::get('/payments', PaymentsIndex::class)->name('admin.payments.index');
     Route::get('/payments/create/{id?}', PaymentsCreate::class)->name('admin.payments.create');
+    Route::get('/payments/{admission}/edit', PaymentEdit::class)->name('admin.payments.edit');
     Route::get('/due-payments', DuePayments::class)->name('admin.due-payments.index');
     Route::get('/payments/{transaction}/receipt', PaymentReceipt::class)->name('admin.payments.receipt');
 
