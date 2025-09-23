@@ -120,22 +120,25 @@
         <table class="min-w-full border rounded">
             <thead class="bg-gray-50">
                 <tr>
+                    <th class="text-left p-3">S.no</th>
                     <th class="text-left p-3">Date</th>
                     <th class="text-left p-3">Student</th>
+                    <th class="text-left p-3">Enrollment Id</th>
                     <th class="text-left p-3">Batch</th>
                     <th class="text-left p-3">Amount</th>
                     <th class="text-left p-3">GST</th>
                     <th class="text-left p-3">Mode</th>
-                    <th class="text-left p-3">Ref</th>
                     <th class="text-left p-3">Receipt No</th>
                     <th class="text-left p-3">Action</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse($transactions as $t)
+                @forelse($transactions as $i=>$t)
                     <tr class="border-t">
+                        <td class="p-3">{{ $i+1 }}.</td>
                         <td class="p-3">{{ $t->date?->format('d-M-Y') }}</td>
                         <td class="p-3">{{ $t->admission?->student?->name }}</td>
+                        <td class="p-3">{{ $t->admission?->student?->enrollment_id}}</td>
                         <td class="p-3">{{ $t->admission?->batch?->batch_name }}</td>
                         <td class="p-3 font-medium">₹ {{ number_format($t->amount, 2) }}</td>
                         <td class="p-3">
@@ -146,7 +149,6 @@
                             @endif
                         </td>
                         <td class="p-3 capitalize">{{ $t->mode }}</td>
-                        <td class="p-3">{{ $t->reference_no ?? '—' }}</td>
                         <td class="p-3">
                             <span class="font-mono text-sm text-blue-600">{{ $t->receipt_number ?? '—' }}</span>
                         </td>

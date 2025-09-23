@@ -226,13 +226,13 @@ class Create extends Component
         $this->students = Student::query()
             ->where(fn($q2) =>
                 $q2->where('name', 'like', "%{$q}%")
-                    ->orWhere('roll_no', 'like', "%{$q}%")
+                    ->orWhere('enrollment_id', 'like', "%{$q}%")
             )
             ->limit(10)
             ->get()
             ->map(fn($s) => [
                 'id'    => $s->id,
-                'label' => "{$s->name} ({$s->roll_no})",
+                'label' => "{$s->name} ({$s->enrollment_id})",
             ])
             ->toArray();
     }

@@ -32,7 +32,7 @@ class Admission extends Model
     public function refreshDue(): void
     {
         $paid          = $this->transactions()->where('status', 'success')->sum('amount');
-        $this->fee_due = max(0, bcsub($this->fee_total, $paid, 2));
+        $this->fee_due = max(0, round((float)$this->fee_total - (float)$paid, 2));
         $this->save();
     }
 

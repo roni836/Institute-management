@@ -329,28 +329,87 @@ class Edit extends Component
                     'is_gst' => $this->applyGst ?? false,
                 ]);
 
-                // Update payment schedules
-                $this->admission->schedules()->delete(); // Remove old schedules
+                // Update payment schedules intelligently to preserve existing payment data
+                $existingSchedules = $this->admission->schedules()->with('transactions')->get();
+                $existingSchedulesByNo = $existingSchedules->keyBy('installment_no');
                 
                 if ($this->mode === 'installment') {
-                    // Create multiple installments
+                    // Handle multiple installments
+                    $plannedInstallmentNos = collect($this->plan)->pluck('no')->toArray();
+                    
+                    // Update or create installments from the plan
                     foreach ($this->plan as $p) {
+                        $existingSchedule = $existingSchedulesByNo->get($p['no']);
+                        
+                        if ($existingSchedule && $existingSchedule->transactions->count() > 0) {
+                            // Preserve existing schedule with transactions, only update safe fields
+                            $existingSchedule->update([
+                                'due_date' => $p['due_on'],
+                                'amount' => $p['amount'],
+                            ]);
+                        } elseif ($existingSchedule) {
+                            // Update existing schedule without transactions
+                            $existingSchedule->update([
+                                'installment_no' => $p['no'],
+                                'due_date' => $p['due_on'],
+                                'amount' => $p['amount'],
+                                'status' => 'pending',
+                            ]);
+                        } else {
+                            // Create new schedule
+                            $this->admission->schedules()->create([
+                                'installment_no' => $p['no'],
+                                'due_date' => $p['due_on'],
+                                'amount' => $p['amount'],
+                                'status' => 'pending',
+                            ]);
+                        }
+                    }
+                    
+                    // Remove schedules that are no longer in the plan (only if they have no transactions)
+                    foreach ($existingSchedules as $schedule) {
+                        if (!in_array($schedule->installment_no, $plannedInstallmentNos) && $schedule->transactions->count() === 0) {
+                            $schedule->delete();
+                        }
+                    }
+                } else {
+                    // Handle single full payment
+                    $existingSchedule = $existingSchedulesByNo->get(1);
+                    
+                    if ($existingSchedule && $existingSchedule->transactions->count() > 0) {
+                        // Preserve existing schedule with transactions
+                        $existingSchedule->update([
+                            'due_date' => $this->admission_date,
+                            'amount' => $this->fee_total,
+                        ]);
+                    } elseif ($existingSchedule) {
+                        // Update existing schedule without transactions
+                        $existingSchedule->update([
+                            'installment_no' => 1,
+                            'due_date' => $this->admission_date,
+                            'amount' => $this->fee_total,
+                            'status' => 'pending',
+                        ]);
+                    } else {
+                        // Create new single schedule
                         $this->admission->schedules()->create([
-                            'installment_no' => $p['no'],
-                            'due_date' => $p['due_on'],
-                            'amount' => $p['amount'],
+                            'installment_no' => 1,
+                            'due_date' => $this->admission_date,
+                            'amount' => $this->fee_total,
                             'status' => 'pending',
                         ]);
                     }
-                } else {
-                    // Create single payment schedule for full payment
-                    $this->admission->schedules()->create([
-                        'installment_no' => 1,
-                        'due_date' => $this->admission_date,
-                        'amount' => $this->fee_total,
-                        'status' => 'pending',
-                    ]);
+                    
+                    // Remove any additional schedules that have no transactions
+                    foreach ($existingSchedules as $schedule) {
+                        if ($schedule->installment_no > 1 && $schedule->transactions->count() === 0) {
+                            $schedule->delete();
+                        }
+                    }
                 }
+                
+                // Recalculate the admission's due amount after updating schedules
+                $this->admission->refreshDue();
             });
 
         } catch (\Exception $e) {
