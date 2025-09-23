@@ -558,7 +558,7 @@
                     </div>
                     
                     <!-- GST Section (Uncommented and Styled) -->
-                    <div class="bg-gray-50 rounded-lg p-4 border">
+                    {{-- <div class="bg-gray-50 rounded-lg p-4 border">
                         <div class="flex items-center space-x-3 mb-3">
                             <input type="checkbox" id="applyGst" wire:model.live="applyGst"
                                 class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
@@ -583,7 +583,7 @@
                                 </div>
                             </div>
                         @endif
-                    </div>
+                    </div> --}}
 
                     <!-- Payment Method with Cards -->
                     <div>

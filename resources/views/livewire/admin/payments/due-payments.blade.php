@@ -42,6 +42,7 @@
         <table class="min-w-full text-sm">
             <thead class="bg-gray-100 text-left">
                 <tr>
+                    <th class="px-3 py-2">S.no</th>
                     <th class="px-3 py-2">Student</th>
                     <th class="px-3 py-2">Phone</th>
                     <th class="px-3 py-2">Course / Batch</th>
@@ -55,11 +56,12 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse ($dues as $row)
+                @forelse ($dues as $i=>$row)
                     @php
                         $overdue = $row->next_due_date && \Carbon\Carbon::parse($row->next_due_date)->isPast();
                     @endphp
                     <tr class="border-t">
+                        <td class="px-3 py-2 font-medium">{{ $i+1 }}.</td>
                         <td class="px-3 py-2 font-medium">{{ $row->student_name }}</td>
                         <td class="px-3 py-2">{{ $row->student_phone }}</td>
                         <td class="px-3 py-2">
