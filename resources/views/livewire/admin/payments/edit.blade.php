@@ -101,7 +101,7 @@
                         @if ($selectedScheduleId == $schedule['id'])
                             {{-- Edit Form --}}
                             <form wire:submit.prevent="updateSchedule" class="space-y-4">
-                                <div class="grid grid-cols-4 gap-4">
+                                <div class="grid grid-cols-3 gap-4">
                                     <div>
                                         <label class="text-xs text-gray-600">Installment #</label>
                                         <input type="number" step="1" min="1" 
@@ -129,22 +129,92 @@
                                             <p class="text-xs text-red-600">{{ $message }}</p>
                                         @enderror
                                     </div>
-                                    <div class="flex items-end gap-2">
-                                        <button type="submit" 
-                                            class="px-3 py-2 text-sm bg-green-600 text-white rounded-lg">
-                                            Save
-                                        </button>
-                                        <button type="button" wire:click="resetEditingForms" 
-                                            class="px-3 py-2 text-sm border rounded-lg">
-                                            Cancel
-                                        </button>
+                                    <div>
+                                        <label class="text-xs text-gray-600">Paid Amount (₹)</label>
+                                        <input type="number" step="0.01" min="0" 
+                                            class="w-full border rounded p-2 text-sm" 
+                                            wire:model="editingSchedule.paid_amount">
+                                        @error('editingSchedule.paid_amount')
+                                            <p class="text-xs text-red-600">{{ $message }}</p>
+                                        @enderror
                                     </div>
+                                    <div>
+                                        <label class="text-xs text-gray-600">Paid Date</label>
+                                        <input type="date" 
+                                            class="w-full border rounded p-2 text-sm" 
+                                            wire:model="editingSchedule.paid_date">
+                                        @error('editingSchedule.paid_date')
+                                            <p class="text-xs text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-gray-600">Payment Mode</label>
+                                        <select class="w-full border rounded p-2 text-sm" 
+                                            wire:model="editingSchedule.payment_mode">
+                                            <option value="">Select Mode</option>
+                                            <option value="cash">Cash</option>
+                                            <option value="card">Card</option>
+                                            <option value="upi">UPI</option>
+                                            <option value="bank_transfer">Bank Transfer</option>
+                                            <option value="cheque">Cheque</option>
+                                            <option value="head_office">Head Office</option>
+                                        </select>
+                                        @error('editingSchedule.payment_mode')
+                                            <p class="text-xs text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-gray-600">Transaction Reference</label>
+                                        <input type="text" 
+                                            class="w-full border rounded p-2 text-sm" 
+                                            wire:model="editingSchedule.transaction_reference">
+                                        @error('editingSchedule.transaction_reference')
+                                            <p class="text-xs text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-gray-600">Receipt No</label>
+                                        <input type="text" 
+                                            class="w-full border rounded p-2 text-sm" 
+                                            wire:model="editingSchedule.receipt_no">
+                                        @error('editingSchedule.receipt_no')
+                                            <p class="text-xs text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-gray-600">Status</label>
+                                        <select class="w-full border rounded p-2 text-sm" 
+                                            wire:model="editingSchedule.status">
+                                            <option value="pending">Pending</option>
+                                            <option value="partial">Partial</option>
+                                            <option value="paid">Paid</option>
+                                        </select>
+                                        @error('editingSchedule.status')
+                                            <p class="text-xs text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-600">Remarks</label>
+                                    <textarea rows="2" 
+                                        class="w-full border rounded p-2 text-sm" 
+                                        wire:model="editingSchedule.remarks"></textarea>
+                                </div>
+                                <div class="flex items-center gap-2 mt-3">
+                                    <button type="submit" 
+                                        class="px-3 py-2 text-sm bg-green-600 text-white rounded-lg">
+                                        Save
+                                    </button>
+                                    <button type="button" wire:click="resetEditingForms" 
+                                        class="px-3 py-2 text-sm border rounded-lg">
+                                        Cancel
+                                    </button>
                                 </div>
                             </form>
                         @else
                             {{-- Display Mode --}}
-                            <div class="flex items-center justify-between">
-                                <div class="grid grid-cols-4 gap-4 flex-1">
+                            <div class="flex items-start justify-between">
+                                <div class="grid grid-cols-3 gap-4 flex-1">
                                     <div>
                                         <p class="text-xs text-gray-600">Installment</p>
                                         <p class="font-medium">#{{ $schedule['installment_no'] }}</p>
@@ -158,12 +228,32 @@
                                         <p class="font-medium">{{ \Carbon\Carbon::parse($schedule['due_date'])->format('M d, Y') }}</p>
                                     </div>
                                     <div>
+                                        <p class="text-xs text-gray-600">Paid Amount</p>
+                                        <p class="font-medium">₹{{ number_format($schedule['paid_amount'], 2) }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-600">Paid Date</p>
+                                        <p class="font-medium">{{ $schedule['paid_date'] ? \Carbon\Carbon::parse($schedule['paid_date'])->format('M d, Y') : '—' }}</p>
+                                    </div>
+                                    <div>
                                         <p class="text-xs text-gray-600">Status</p>
                                         <span class="px-2 py-1 text-xs rounded-full 
                                             {{ $schedule['status'] === 'paid' ? 'bg-green-100 text-green-800' : 
                                                ($schedule['status'] === 'partial' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
                                             {{ ucfirst($schedule['status']) }}
                                         </span>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-600">Payment Mode</p>
+                                        <p class="font-medium">{{ $schedule['payment_mode'] ? ucfirst($schedule['payment_mode']) : '—' }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-600">Transaction Reference</p>
+                                        <p class="font-medium">{{ $schedule['transaction_reference'] ?: '—' }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-600">Receipt No</p>
+                                        <p class="font-medium">{{ $schedule['receipt_no'] ?: '—' }}</p>
                                     </div>
                                 </div>
                                 
@@ -260,7 +350,7 @@
                     <div class="border rounded-lg p-4 bg-blue-50 border-blue-200">
                         <form wire:submit.prevent="createSchedule" class="space-y-4">
                             <h4 class="font-medium text-blue-900">Add New Payment Schedule</h4>
-                            <div class="grid grid-cols-4 gap-4">
+                            <div class="grid grid-cols-3 gap-4">
                                 <div>
                                     <label class="text-xs text-gray-600">Installment #</label>
                                     <input type="number" step="1" min="1" 
@@ -288,16 +378,86 @@
                                         <p class="text-xs text-red-600">{{ $message }}</p>
                                     @enderror
                                 </div>
-                                <div class="flex items-end gap-2">
-                                    <button type="submit" 
-                                        class="px-3 py-2 text-sm bg-green-600 text-white rounded-lg">
-                                        Create
-                                    </button>
-                                    <button type="button" wire:click="resetEditingForms" 
-                                        class="px-3 py-2 text-sm border rounded-lg">
-                                        Cancel
-                                    </button>
+                                <div>
+                                    <label class="text-xs text-gray-600">Paid Amount (₹)</label>
+                                    <input type="number" step="0.01" min="0" 
+                                        class="w-full border rounded p-2 text-sm" 
+                                        wire:model="editingSchedule.paid_amount">
+                                    @error('editingSchedule.paid_amount')
+                                        <p class="text-xs text-red-600">{{ $message }}</p>
+                                    @enderror
                                 </div>
+                                <div>
+                                    <label class="text-xs text-gray-600">Paid Date</label>
+                                    <input type="date" 
+                                        class="w-full border rounded p-2 text-sm" 
+                                        wire:model="editingSchedule.paid_date">
+                                    @error('editingSchedule.paid_date')
+                                        <p class="text-xs text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-600">Payment Mode</label>
+                                    <select class="w-full border rounded p-2 text-sm" 
+                                        wire:model="editingSchedule.payment_mode">
+                                        <option value="">Select Mode</option>
+                                        <option value="cash">Cash</option>
+                                        <option value="card">Card</option>
+                                        <option value="upi">UPI</option>
+                                        <option value="bank_transfer">Bank Transfer</option>
+                                        <option value="cheque">Cheque</option>
+                                        <option value="head_office">Head Office</option>
+                                    </select>
+                                    @error('editingSchedule.payment_mode')
+                                        <p class="text-xs text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-600">Transaction Reference</label>
+                                    <input type="text" 
+                                        class="w-full border rounded p-2 text-sm" 
+                                        wire:model="editingSchedule.transaction_reference">
+                                    @error('editingSchedule.transaction_reference')
+                                        <p class="text-xs text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-600">Receipt No</label>
+                                    <input type="text" 
+                                        class="w-full border rounded p-2 text-sm" 
+                                        wire:model="editingSchedule.receipt_no">
+                                    @error('editingSchedule.receipt_no')
+                                        <p class="text-xs text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-600">Status</label>
+                                    <select class="w-full border rounded p-2 text-sm" 
+                                        wire:model="editingSchedule.status">
+                                        <option value="pending">Pending</option>
+                                        <option value="partial">Partial</option>
+                                        <option value="paid">Paid</option>
+                                    </select>
+                                    @error('editingSchedule.status')
+                                        <p class="text-xs text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-600">Remarks</label>
+                                <textarea rows="2" 
+                                    class="w-full border rounded p-2 text-sm" 
+                                    wire:model="editingSchedule.remarks"></textarea>
+                            </div>
+                            <div class="flex items-center gap-2 mt-3">
+                                <button type="submit" 
+                                    class="px-3 py-2 text-sm bg-green-600 text-white rounded-lg">
+                                    Create
+                                </button>
+                                <button type="button" wire:click="resetEditingForms" 
+                                    class="px-3 py-2 text-sm border rounded-lg">
+                                    Cancel
+                                </button>
                             </div>
                         </form>
                     </div>
