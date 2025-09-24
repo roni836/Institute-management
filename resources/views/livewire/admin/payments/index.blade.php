@@ -152,10 +152,14 @@
                         <td class="p-3">
                             <span class="font-mono text-sm text-blue-600">{{ $t->receipt_number ?? '—' }}</span>
                         </td>
-                        <td class="p-3 no-print">
+                        <td class="p-3 no-print gap-2">
                             <a href="{{ route('admin.payments.receipt', $t->id) }}"
                                 class="px-3 py-1 text-sm rounded bg-indigo-600 text-white hover:bg-indigo-700">
                                 Receipt
+                            </a>
+                            <a href="{{ route('admin.payments.edit', $t->id) }}"
+                                class="px-3 py-1 text-sm rounded bg-indigo-600 text-white hover:bg-indigo-700">
+                                Edit
                             </a>
                         </td>
                     </tr>

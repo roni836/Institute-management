@@ -20,6 +20,7 @@ use App\Livewire\Admin\Payments\DuePayments;
 use App\Livewire\Admin\Payments\Edit as PaymentEdit;
 use App\Livewire\Admin\Payments\Index as PaymentsIndex;
 use App\Livewire\Admin\Payments\Receipts as PaymentReceipt;
+use App\Livewire\Admin\Payments\Edit as PaymentsEdit;
 use App\Livewire\Admin\Profile\Edit as ProfileEdit;
 use App\Livewire\Admin\Students\Edit as StudentEdit;
 use App\Livewire\Admin\Students\Index as StudentsIndex;

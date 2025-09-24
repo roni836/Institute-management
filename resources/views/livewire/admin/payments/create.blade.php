@@ -588,7 +588,7 @@
                     <!-- Payment Method with Cards -->
                     <div>
                         <label class="block text-sm font-medium mb-3 text-gray-700">Payment Method</label>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                             <label class="cursor-pointer">
                                 <input type="radio" name="paymentMode" value="cash" wire:model.live="mode" class="sr-only">
                                 <div class="border rounded-lg p-4 flex items-center {{ $mode === 'cash' ? 'bg-primary-50 border-primary-500 ring-2 ring-primary-500' : 'hover:bg-gray-50' }}">
@@ -631,6 +631,21 @@
                                     <div>
                                         <p class="font-medium {{ $mode === 'online' ? 'text-primary-700' : 'text-gray-700' }}">Online</p>
                                         <p class="text-xs {{ $mode === 'online' ? 'text-primary-600' : 'text-gray-500' }}">Bank/UPI transfer</p>
+                                    </div>
+                                </div>
+                            </label>
+
+                            <label class="cursor-pointer">
+                                <input type="radio" name="paymentMode" value="head_office" wire:model.live="mode" class="sr-only">
+                                <div class="border rounded-lg p-4 flex items-center {{ $mode === 'head_office' ? 'bg-primary-50 border-primary-500 ring-2 ring-primary-500' : 'hover:bg-gray-50' }}">
+                                    <div class="bg-{{ $mode === 'head_office' ? 'primary' : 'gray' }}-100 rounded-full p-2 mr-3">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 {{ $mode === 'head_office' ? 'text-primary-600' : 'text-gray-500' }}" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-6a1 1 0 00-1-1H9a1 1 0 00-1 1v6a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 8a1 1 0 011-1h4a1 1 0 011 1v4H7v-4z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium {{ $mode === 'head_office' ? 'text-primary-700' : 'text-gray-700' }}">Head Office</p>
+                                        <p class="text-xs {{ $mode === 'head_office' ? 'text-primary-600' : 'text-gray-500' }}">Head office payment</p>
                                     </div>
                                 </div>
                             </label>
