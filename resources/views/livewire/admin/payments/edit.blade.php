@@ -104,7 +104,7 @@
                                 <div class="grid grid-cols-4 gap-4">
                                     <div>
                                         <label class="text-xs text-gray-600">Installment #</label>
-                                        <input type="number" min="1" 
+                                        <input type="number" step="1" min="1" 
                                             class="w-full border rounded p-2 text-sm" 
                                             wire:model="editingSchedule.installment_no">
                                         @error('editingSchedule.installment_no')
@@ -113,7 +113,7 @@
                                     </div>
                                     <div>
                                         <label class="text-xs text-gray-600">Amount (₹)</label>
-                                        <input type="number" step="0.01" min="0" 
+                                        <input type="number" step="0.01" min="0.01" 
                                             class="w-full border rounded p-2 text-sm" 
                                             wire:model="editingSchedule.amount">
                                         @error('editingSchedule.amount')
@@ -263,7 +263,7 @@
                             <div class="grid grid-cols-4 gap-4">
                                 <div>
                                     <label class="text-xs text-gray-600">Installment #</label>
-                                    <input type="number" min="1" 
+                                    <input type="number" step="1" min="1" 
                                         class="w-full border rounded p-2 text-sm" 
                                         wire:model="editingSchedule.installment_no">
                                     @error('editingSchedule.installment_no')
@@ -344,6 +344,7 @@
                             <option value="upi">UPI</option>
                             <option value="bank_transfer">Bank Transfer</option>
                             <option value="cheque">Cheque</option>
+                            <option value="head_office">Head Office</option>
                         </select>
                         @error('editingTransaction.mode')
                             <p class="text-xs text-red-600">{{ $message }}</p>
