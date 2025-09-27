@@ -317,6 +317,6 @@ class Edit extends Component
 
     public function render()
     {
-        return view('livewire.admin.payments.edit');
+        return view(view: 'livewire.admin.payments.edit');
     }
 }

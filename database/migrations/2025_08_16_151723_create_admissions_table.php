@@ -20,6 +20,10 @@ return new class extends Migration
             $table->decimal('discount', 10, 2)->default(0);
             $table->decimal('fee_total', 10, 2); // final payable after discount
             $table->decimal('fee_due', 10, 2)->default(0);
+            $table->boolean('is_gst')->default(false); // Whether GST was applied
+            $table->decimal('gst_amount', 10, 2)->default(0); // Amount of GST applied
+            $table->decimal('gst_rate', 5, 2)->default(0); // GST rate used
+            $table->string('session')->nullable(); // Academic session
             $table->enum('status', ['active', 'completed', 'cancelled'])->default('active');
             $table->enum('review_status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->text('review_notes')->nullable();

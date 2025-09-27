@@ -6,6 +6,40 @@ use Illuminate\Database\Eloquent\Model;
 class Student extends Model
 {
     protected $guarded = [];
+    
+    protected $fillable = [
+        'name',
+        'email',
+        'phone',
+        'whatsapp_no',
+        'dob',
+        'father_name',
+        'mother_name',
+        'father_occupation',
+        'mother_occupation',
+        'gender',
+        'category',
+        'alt_phone',
+        'stream',
+        'academic_session',
+        'roll_no',
+        'student_uid',
+        'admission_date',
+        'address',
+        'status',
+        'attendance_percentage',
+        'total_courses_enrolled',
+        'courses_completed',
+        'photo',
+    ];
+
+    /**
+     * Get addresses for the student.
+     */
+    public function addresses()
+    {
+        return $this->morphMany(Address::class, 'addressable');
+    }
 
     public function batch()
     {
