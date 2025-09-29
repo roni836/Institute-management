@@ -554,155 +554,113 @@
                                             </div>
                                         </div>
                                         
-                                        <!-- Installment options - only visible when installment mode is selected -->
-                                        <div class="space-y-2">
-                                            <!-- Show installment settings when installment mode is selected -->
-                                            <div class="p-3 border rounded-lg" x-show="mode === 'installment'">
-                                                <div class="mb-2">
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Number of Installments</label>
-                                                    <div class="flex items-center">
-                                                        <input wire:model="installments" type="number" min="2" class="w-20 px-2 py-1 border rounded" placeholder="2">
-                                                        <button type="button" wire:click="recalculate" class="ml-2 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600">
-                                                            Generate Plan
-                                                        </button>
-                                                        <button type="button" wire:click="resetInstallments" class="ml-2 px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600">
-                                                            Reset
+                                        <!-- Installment Section - only visible when installment mode is selected -->
+                                        <div x-show="mode === 'installment'" class="bg-white border rounded-lg p-4">
+                                            <div class="bg-blue-600 text-white p-3 rounded-t-lg -m-4 mb-4">
+                                                <h4 class="font-semibold text-lg">Add Installment</h4>
+                                            </div>
+                                            
+                                            <div class="space-y-3">
+                                                <div class="flex items-center justify-between">
+                                                    <label class="text-sm font-medium text-gray-700">Select No. Installment</label>
+                                                    <div class="flex items-center space-x-2">
+                                                        <input wire:model="installments" type="number" min="2" max="12" class="w-16 px-2 py-1 border border-gray-300 rounded text-center" placeholder="3">
+                                                        <button type="button" wire:click="recalculate" class="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600">
+                                                            Generate
                                                         </button>
                                                     </div>
                                                 </div>
-                                            </div>
 
-                                            <!-- Additional Fees -->
-                                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
-                                                <span class="text-sm">SRC-01</span>
-                                                <span class="text-sm">Others</span>
-                                                <input type="number" name="src01" placeholder="0" class="w-20 px-2 py-1 text-right border rounded">
-                                            </div>
-                                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
-                                                <span class="text-sm">ABC-01</span>
-                                                <span class="text-sm">Others</span>
-                                                <input type="number" name="abc01" placeholder="0" class="w-20 px-2 py-1 text-right border rounded">
-                                            </div>
-                                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
-                                                <span class="text-sm">ABC-02</span>
-                                                <span class="text-sm">Others</span>
-                                                <input type="number" name="abc02" placeholder="0" class="w-20 px-2 py-1 text-right border rounded">
+                                                <!-- Installment Plan Table -->
+                                                @if($mode == 'installment' && !empty($plan))
+                                                <div class="mt-4">
+                                                    <div class="bg-gray-50 rounded-lg p-3">
+                                                        @foreach($plan as $index => $p)
+                                                        <div class="flex items-center justify-between py-2 {{ $index > 0 ? 'border-t border-gray-200' : '' }}">
+                                                            <span class="text-sm font-medium">{{ $p['no'] }}</span>
+                                                            <div class="flex items-center space-x-2">
+                                                                <input 
+                                                                    type="date" 
+                                                                    value="{{ $p['due_on'] }}" 
+                                                                    wire:change="updateInstallmentDate({{ $index }}, $event.target.value)"
+                                                                    class="px-2 py-1 border border-gray-300 rounded text-xs"
+                                                                >
+                                                                <input 
+                                                                    type="number" 
+                                                                    value="{{ $p['amount'] }}" 
+                                                                    wire:change="updateInstallmentAmount({{ $index }}, $event.target.value)"
+                                                                    class="w-20 px-2 py-1 border border-gray-300 rounded text-right text-xs" 
+                                                                    step="0.01"
+                                                                >
+                                                            </div>
+                                                        </div>
+                                                        @endforeach
+                                                    </div>
+                                                    
+                                                    @error('plan')
+                                                    <div class="text-red-500 text-xs mt-1">{{ $message }}</div>
+                                                    @enderror
+                                                </div>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
                                     
-                                    <!-- Right side - Fee calculations -->
-                                    <div class="bg-gray-50 p-4 rounded-lg">
-                                        <h4 class="font-semibold text-gray-700 mb-4">Fee Calculation</h4>
-                                        <div class="space-y-3">
-                                            <!-- Course details when available -->
+                                    <!-- Right side - Fee Structure -->
+                                    <div class="bg-white border rounded-lg">
+                                        <div class="bg-blue-600 text-white p-3 rounded-t-lg">
+                                            <h4 class="font-semibold text-lg">Fee Structure</h4>
+                                        </div>
+                                        
+                                        <div class="p-4 space-y-3">
+                                            <!-- Fee breakdown -->
                                             @if($selected_course)
-                                                <div class="bg-blue-50 p-3 rounded-lg mb-3">
-                                                    <h5 class="font-medium text-blue-800 text-sm mb-2">Course: {{ $selected_course->name }}</h5>
-                                                    <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                                                        <div class="flex justify-between">
-                                                            <span class="text-gray-600">Gross Fee:</span>
-                                                            <span class="font-medium">₹{{ number_format($selected_course->gross_fee, 2) }}</span>
-                                                        </div>
-                                                        <div class="flex justify-between">
-                                                            <span class="text-gray-600">Course Discount:</span>
-                                                            <span class="font-medium text-red-600">-₹{{ number_format($selected_course->discount, 2) }}</span>
-                                                        </div>
-                                                        <div class="flex justify-between col-span-2 pt-1 border-t border-blue-200 mt-1">
-                                                            <span class="text-gray-700 font-medium">Net Course Fee:</span>
-                                                            <span class="font-medium">₹{{ number_format($selected_course->net_fee, 2) }}</span>
-                                                        </div>
+                                                <div class="space-y-2">
+                                                    <div class="flex justify-between py-2">
+                                                        <span class="text-sm text-gray-700">Tuition Fee</span>
+                                                        <span class="font-medium">{{ number_format($selected_course->tution_fee ?? 18000, 0) }}</span>
                                                     </div>
-                                                </div>
-
-                                                <div class="flex justify-between">
-                                                    <span class="text-sm">Course Fee</span>
-                                                    <span class="font-medium">₹{{ number_format($selected_course->net_fee, 2) }}</span>
-                                                </div>
-
-                                                @if($selected_course->tution_fee ?? 0)
-                                                <div class="flex justify-between text-xs text-gray-600 pl-2">
-                                                    <span>- Tuition Fee</span>
-                                                    <span>₹{{ number_format($selected_course->tution_fee, 2) }}</span>
-                                                </div>
-                                                @endif
-                                                
-                                                @if($selected_course->admission_fee ?? 0)
-                                                <div class="flex justify-between text-xs text-gray-600 pl-2">
-                                                    <span>- Admission Fee</span>
-                                                    <span>₹{{ number_format($selected_course->admission_fee, 2) }}</span>
-                                                </div>
-                                                @endif
-                                                
-                                                @if($selected_course->exam_fee ?? 0)
-                                                <div class="flex justify-between text-xs text-gray-600 pl-2">
-                                                    <span>- Exam Fee</span>
-                                                    <span>₹{{ number_format($selected_course->exam_fee, 2) }}</span>
-                                                </div>
-                                                @endif
-                                                
-                                                @if($selected_course->other_fee ?? 0)
-                                                <div class="flex justify-between text-xs text-gray-600 pl-2">
-                                                    <span>- Other Fees</span>
-                                                    <span>₹{{ number_format($selected_course->other_fee, 2) }}</span>
-                                                </div>
-                                                @endif
-                                            @else
-                                                <div class="p-3 border border-gray-200 rounded-lg text-center">
-                                                    <p class="text-gray-500 text-sm">Please select a course to view fee details</p>
-                                                </div>
-                                            @endif
-
-                                            <!-- Additional Discount -->
-                                            <div class="flex justify-between">
-                                                <span class="text-sm">Additional Discount 
-                                                    @if($discount_type == 'percentage' && $discount_value > 0)
-                                                        ({{ $discount_value }}%)
+                                                    
+                                                    <div class="flex justify-between py-2">
+                                                        <span class="text-sm text-gray-700">Other Fee</span>
+                                                        <span class="font-medium">{{ number_format($selected_course->other_fee ?? 17000, 0) }}</span>
+                                                    </div>
+                                                    
+                                                    <div class="flex justify-between py-2">
+                                                        <span class="text-sm text-gray-700">Discount</span>
+                                                        <span class="font-medium text-red-600">{{ number_format($discount ?? 0, 2) }}</span>
+                                                    </div>
+                                                    
+                                                    <div class="flex justify-between py-2">
+                                                        <span class="text-sm text-gray-700">Late Fine + Pre charge</span>
+                                                        <span class="font-medium">{{ number_format($lateFee ?? 0, 2) }}</span>
+                                                    </div>
+                                                    
+                                                    <hr class="border-gray-200 my-2">
+                                                    
+                                                    <div class="flex justify-between py-2">
+                                                        <span class="text-sm font-medium text-gray-700">Taxable Amt.</span>
+                                                        <span class="font-semibold">{{ number_format($subtotal ?? 35000, 2) }}</span>
+                                                    </div>
+                                                    
+                                                    @if($applyGst)
+                                                    <div class="flex justify-between py-2">
+                                                        <span class="text-sm text-gray-700">Total Tax</span>
+                                                        <span class="font-medium">{{ number_format($gstAmount ?? 6300, 0) }}</span>
+                                                    </div>
                                                     @endif
-                                                </span>
-                                                <span class="font-medium text-red-600">-₹{{ number_format($discount ?? 0, 2) }}</span>
-                                            </div>
-                                            
-                                            <div class="flex justify-between">
-                                                <span class="text-sm">Late Fine + Pre charge</span>
-                                                <span class="font-medium">₹{{ number_format($lateFee ?? 0, 2) }}</span>
-                                            </div>
-                                            
-                                            <hr class="border-gray-300">
-                                            
-                                            <div class="flex justify-between">
-                                                <span class="text-sm">Subtotal</span>
-                                                <span class="font-medium">₹{{ number_format($subtotal ?? 0, 2) }}</span>
-                                            </div>
-                                            
-                                            <!-- Show GST only if it's applied -->
-                                            @if($applyGst)
-                                            <div class="flex justify-between">
-                                                <span class="text-sm">GST ({{ $gstRate }}%)</span>
-                                                <span class="font-medium">₹{{ number_format($gstAmount ?? 0, 2) }}</span>
-                                            </div>
-                                            @endif
-                                            
-                                            <hr class="border-gray-300">
-                                            
-                                            <div class="flex justify-between text-lg font-bold text-blue-600">
-                                                <span>Total</span>
-                                                <span>₹{{ number_format($fee_total ?? 0, 2) }}</span>
-                                            </div>
-                                            
-                                            <!-- Payment Plan Summary (only show if installment mode is selected) -->
-                                            @if($mode == 'installment' && !empty($plan))
-                                            <div class="mt-4 pt-4 border-t border-gray-300">
-                                                <h5 class="font-medium text-gray-700 mb-2">Installment Plan</h5>
-                                                <div class="space-y-1 text-xs">
-                                                    @foreach($plan as $p)
-                                                    <div class="flex justify-between">
-                                                        <span>Installment #{{ $p['no'] }} ({{ \Carbon\Carbon::parse($p['due_on'])->format('d M Y') }})</span>
-                                                        <span>₹{{ number_format($p['amount'], 2) }}</span>
+                                                    
+                                                    <hr class="border-gray-200 my-2">
+                                                    
+                                                    <div class="flex justify-between py-3 bg-blue-50 px-3 rounded">
+                                                        <span class="text-lg font-bold text-gray-800">Total</span>
+                                                        <span class="text-lg font-bold text-blue-600">{{ number_format($fee_total ?? 41300, 0) }}</span>
                                                     </div>
-                                                    @endforeach
                                                 </div>
-                                            </div>
+                                            @else
+                                                <div class="text-center py-8">
+                                                    <p class="text-gray-500">Please select a course to view fee details</p>
+                                                </div>
                                             @endif
                                         </div>
                                     </div>

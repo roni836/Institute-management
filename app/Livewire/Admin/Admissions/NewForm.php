@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -307,7 +308,7 @@ class NewForm extends Component
             'country' => ['nullable', 'string', 'max:100'],
             
             'same_as_permanent' => ['boolean'],
-            'corr_address_line1' => ['required_if:same_as_permanent,false', 'string', 'max:255'],
+            'corr_address_line1' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'string', 'max:255'],
             'corr_address_line2' => ['nullable', 'string', 'max:255'],
             'corr_city' => ['nullable', 'string', 'max:100'],
             'corr_state' => ['nullable', 'string', 'max:100'],
@@ -331,8 +332,8 @@ class NewForm extends Component
             'mode' => ['required', 'in:full,installment'],
             'fee_total' => ['required', 'numeric', 'min:0'],
             'applyGst' => ['boolean'],
-            'gstRate' => ['required_if:applyGst,true', 'numeric', 'min:0', 'max:100'],
-            'gstAmount' => ['required_if:applyGst,true', 'numeric', 'min:0'],
+            'gstRate' => [Rule::requiredIf(fn() => $this->applyGst), 'numeric', 'min:0', 'max:100'],
+            'gstAmount' => [Rule::requiredIf(fn() => $this->applyGst), 'numeric', 'min:0'],
             'installments' => [
                 Rule::requiredIf(fn() => $this->mode === 'installment'),
                 'integer', 'min:2',
@@ -636,7 +637,28 @@ class NewForm extends Component
 
     public function save()
     {
-        $data = $this->validate();
+        try {
+            $data = $this->validate();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Log validation errors for server-side debugging
+            Log::warning('Admission save validation failed', [
+                'errors' => $e->errors(),
+                'input' => request()->all(),
+            ]);
+
+            // Dispatch a client event so frontend can show debug info
+            try {
+                $this->dispatch('validationFailed', errors: $e->errors());
+            } catch (\Throwable $ex) {
+                Log::debug('Failed to dispatch validationFailed event: ' . $ex->getMessage());
+            }
+
+            // Re-throw so Livewire shows validation errors in the UI as well
+            throw $e;
+        }
+
+        // If validation passes, reach this dd for quick debugging
+        // dd("tst");
 
         $admission = null;
 
@@ -751,6 +773,8 @@ class NewForm extends Component
                     'batch_id' => $this->batch_id,
                     'admission_date' => $this->admission_date,
                     'mode' => $this->mode,
+                    // Store the student's enrollment id on the admission record for quick reference
+                    'enrollment_id' => $student->enrollment_id ?? null,
                     'discount' => $this->discount,
                     'discount_type' => $this->discount_type,
                     'discount_value' => $this->discount_value,
