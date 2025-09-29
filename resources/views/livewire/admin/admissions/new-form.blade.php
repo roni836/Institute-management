@@ -287,7 +287,7 @@
                             <!-- Correspondence Address -->
                             <div class="mb-4">
                                 <div class="flex items-center mb-3">
-                                    <input wire:model="same_as_permanent" type="checkbox" id="sameAddress" class="mr-2">
+                                    <input wire:model.live="same_as_permanent" type="checkbox" id="sameAddress" class="mr-2">
                                     <label for="sameAddress" class="text-sm font-medium text-gray-700">Correspondence Address same as Permanent Address</label>
                                 </div>
                                 
@@ -483,11 +483,11 @@
                                 <h4 class="font-bold text-lg mb-2">GST Application</h4>
                                 <div class="flex items-center space-x-4 mt-2">
                                     <label class="inline-flex items-center">
-                                        <input wire:model="applyGst" type="radio" name="gstOption" value="1" class="form-radio h-5 w-5 text-white border-white">
+                                        <input wire:model.live="applyGst" type="radio" name="gstOption" value="1" class="form-radio h-5 w-5 text-white border-white">
                                         <span class="ml-2 text-white">Apply 18% GST</span>
                                     </label>
                                     <label class="inline-flex items-center">
-                                        <input wire:model="applyGst" type="radio" name="gstOption" value="0" class="form-radio h-5 w-5 text-white border-white" checked>
+                                        <input wire:model.live="applyGst" type="radio" name="gstOption" value="0" class="form-radio h-5 w-5 text-white border-white" checked>
                                         <span class="ml-2 text-white">No GST</span>
                                     </label>
                                 </div>
@@ -515,11 +515,11 @@
                                             <span class="text-sm font-medium text-gray-700">Payment Mode</span>
                                             <div class="flex space-x-4">
                                                 <label class="inline-flex items-center">
-                                                    <input wire:model="mode" type="radio" name="paymentMode" value="full" class="form-radio h-4 w-4 text-blue-600" checked>
+                                                    <input wire:model.live="mode" type="radio" name="paymentMode" value="full" class="form-radio h-4 w-4 text-blue-600" checked>
                                                     <span class="ml-2 text-sm">Full</span>
                                                 </label>
                                                 <label class="inline-flex items-center">
-                                                    <input wire:model="mode" type="radio" name="paymentMode" value="installment" class="form-radio h-4 w-4 text-blue-600">
+                                                    <input wire:model.live="mode" type="radio" name="paymentMode" value="installment" class="form-radio h-4 w-4 text-blue-600">
                                                     <span class="ml-2 text-sm">Installment</span>
                                                 </label>
                                             </div>
