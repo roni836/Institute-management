@@ -710,11 +710,11 @@ class NewForm extends Component
                         'father_occupation' => $this->father_occupation,
                         'stream' => $this->stream,
                         'academic_session' => $this->academic_session,
-                        'status' => $this->student_status,
                         'admission_date' => $this->admission_date,
-                        'enrollment_id' => $enrollmentId,
                         'roll_no' => $this->generateRollNumber(),
                         'student_uid' => $this->generateStudentUid(),
+                            "enrollment_id" => $this->getNextEnrollmentId(),
+
                     ]);
                 }
                 
@@ -773,9 +773,6 @@ class NewForm extends Component
                     'batch_id' => $this->batch_id,
                     'admission_date' => $this->admission_date,
                     'mode' => $this->mode,
-                    // Store the student's enrollment id on the admission record for quick reference
-                    'enrollment_id' => $student->enrollment_id ?? null,
-                    'discount' => $this->discount,
                     'discount_type' => $this->discount_type,
                     'discount_value' => $this->discount_value,
                     'fee_total' => $this->fee_total,
@@ -785,6 +782,8 @@ class NewForm extends Component
                     'is_gst' => $this->applyGst ?? false,
                     'gst_amount' => $this->gstAmount ?? 0,
                     'gst_rate' => $this->gstRate ?? 0,
+                    'stream' => $this->stream, 
+                    // Add student's stream to admission record
                 ]);
 
                 // Create payment schedule

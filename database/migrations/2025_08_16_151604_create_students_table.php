@@ -36,6 +36,11 @@ return new class extends Migration
             $table->integer('total_courses_enrolled')->default(0);
             $table->integer('courses_completed')->default(0);
             $table->string('photo')->nullable();
+            $table->string('school_name')->nullable();
+            $table->string('school_address')->nullable();
+            $table->string('board')->nullable();
+            $table->string('class')->nullable();
+            $table->string('enrollment_id')->nullable()->index();
             $table->timestamps();
         });
     }

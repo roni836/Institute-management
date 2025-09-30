@@ -41,6 +41,7 @@ class Admission extends Model
         'fee_total'      => 'decimal:2',
         'fee_due'        => 'decimal:2',
         'admission_date' => 'date',
+        'stream'         => 'string',
     ];
 
     public function attendanceRecords()

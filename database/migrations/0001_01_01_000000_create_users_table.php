@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
+            $table->boolean('is_admin')->default(false);
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->string('phone')->nullable();
             $table->text('address')->nullable();

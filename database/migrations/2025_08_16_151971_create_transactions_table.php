@@ -17,9 +17,11 @@ return new class extends Migration
             $table->foreignId('payment_schedule_id')->nullable()->constrained('payment_schedules')->cascadeOnDelete();
             $table->decimal('amount', 10, 2);
             $table->date('date');
-            $table->string('mode');                     // e.g., cash, cheque, online
+            $table->string('mode');
+            $table->decimal('gst', 10, 2)->default(0.00);
             $table->string('reference_no')->nullable(); // CHQ/UTR
             $table->enum('status', ['success', 'failed', 'pending'])->default('success');
+            $table->string('receipt_number')->nullable(); // CHQ/UTR
             $table->timestamps();
         });
     }

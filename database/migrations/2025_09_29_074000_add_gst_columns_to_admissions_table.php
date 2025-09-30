@@ -14,10 +14,8 @@ return new class extends Migration
         if (! Schema::hasColumn('admissions', 'gst_amount') || ! Schema::hasColumn('admissions', 'gst_rate')) {
             Schema::table('admissions', function (Blueprint $table) {
                 if (! Schema::hasColumn('admissions', 'gst_amount')) {
-                    $table->decimal('gst_amount', 10, 2)->default(0)->nullable()->after('is_gst');
                 }
                 if (! Schema::hasColumn('admissions', 'gst_rate')) {
-                    $table->decimal('gst_rate', 5, 2)->default(0)->nullable()->after('gst_amount');
                 }
             });
         }

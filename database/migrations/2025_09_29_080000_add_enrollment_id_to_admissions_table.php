@@ -13,7 +13,6 @@ return new class extends Migration
     {
         if (! Schema::hasColumn('admissions', 'enrollment_id')) {
             Schema::table('admissions', function (Blueprint $table) {
-                $table->string('enrollment_id')->nullable()->after('student_id')->index();
             });
         }
     }

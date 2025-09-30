@@ -20,6 +20,14 @@ return new class extends Migration
             $table->decimal('discount', 10, 2)->default(0);
             $table->decimal('net_fee', 10, 2)->storedAs('gross_fee - discount');
             $table->integer('students_count')->default(0);  // Add this line
+            $table->enum('status', ['Active', 'Upcoming'])->default('Active');
+            $table->decimal('tution_fee', 10, 2)->nullable();
+            $table->decimal('admission_fee', 10, 2)->nullable();
+            $table->decimal('exam_fee', 10, 2)->nullable();
+            $table->decimal('infra_fee', 10, 2)->nullable();
+            $table->decimal('SM_fee', 10, 2)->nullable();
+            $table->decimal('tech_fee', 10, 2)->nullable();
+            $table->decimal('other_fee', 10, 2)->nullable();
             $table->timestamps();
         });
     }

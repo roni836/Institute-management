@@ -16,7 +16,6 @@ return new class extends Migration
         if (! Schema::hasColumn('admissions', 'discount_value')) {
             Schema::table('admissions', function (Blueprint $table) {
                 // decimal to store fixed amount or percentage value
-                $table->decimal('discount_value', 10, 2)->default(0)->nullable()->after('discount_type');
             });
         }
     }

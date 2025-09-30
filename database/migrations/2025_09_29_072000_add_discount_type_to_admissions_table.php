@@ -10,7 +10,6 @@ return new class extends Migration
     {
         if (! Schema::hasColumn('admissions', 'discount_type')) {
             Schema::table('admissions', function (Blueprint $table) {
-                $table->string('discount_type')->nullable()->default('fixed')->after('discount');
             });
         }
     }
@@ -19,7 +18,6 @@ return new class extends Migration
     {
         if (Schema::hasColumn('admissions', 'discount_type')) {
             Schema::table('admissions', function (Blueprint $table) {
-                $table->dropColumn('discount_type');
             });
         }
     }

@@ -17,7 +17,6 @@ return new class extends Migration
             $table->foreignId('batch_id')->constrained()->cascadeOnDelete();
             $table->date('admission_date');
             $table->enum('mode', ['full', 'installment'])->default('full');
-            $table->decimal('discount', 10, 2)->default(0);
             $table->decimal('fee_total', 10, 2); // final payable after discount
             $table->decimal('fee_due', 10, 2)->default(0);
             $table->boolean('is_gst')->default(false); // Whether GST was applied
@@ -30,6 +29,12 @@ return new class extends Migration
             $table->timestamp('reviewed_at')->nullable();
             $table->foreignId('reviewed_by')->nullable()->constrained('users');
             $table->timestamps();
+            $table->string('reason')->nullable();
+            $table->text('cancellation_reason')->nullable();
+            $table->foreignId('course_id')->constrained()->cascadeOnDelete();
+            $table->string(column: 'discount_type')->nullable()->default('fixed');
+            $table->decimal('discount_value', 10, 2)->default(0)->nullable();
+                $table->string(column: 'stream')->nullable();
 
             $table->unique(['student_id', 'batch_id']); // same student can’t be admitted twice to same batch
         });
