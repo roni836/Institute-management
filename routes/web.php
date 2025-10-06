@@ -42,8 +42,8 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     // Admissions
     Route::get('/admissions', AdmissionsIndex::class)->name('admin.admissions.index');
-    Route::get('/admissions/create', AdmissionsCreate::class)->name('admin.admissions.create');
-    Route::get('/admissions/create/new', NewForm::class)->name('admin.admissions.new');
+    Route::get('/admissions/create/new', AdmissionsCreate::class)->name('admin.admissions.new');
+    Route::get('/admissions/create/', NewForm::class)->name('admin.admissions.create');
     Route::get('/admissions/{admission}/edit', AdmissionEdit::class)->name('admin.admissions.edit');
     Route::get('/admin/show-admissions/{admission}', AdmissionShow::class)->name('admin.admissions.show');
     Route::get('/admin/cancel-admissions/{admission}', Cancel::class)->name('admin.admissions.cancel');

@@ -304,7 +304,7 @@ class NewForm extends Component
             'city' => ['nullable', 'string', 'max:100'],
             'state' => ['nullable', 'string', 'max:100'],
             'district' => ['nullable', 'string', 'max:100'],
-            'pincode' => ['nullable', 'string', 'max:10'],
+            'pincode' => ['nullable', 'regex:/^[0-9]+$/', 'max:10'],
             'country' => ['nullable', 'string', 'max:100'],
             
             'same_as_permanent' => ['boolean'],
