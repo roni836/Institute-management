@@ -91,8 +91,8 @@
 <div class=" mx-auto px-3 py-4">
         <div class="max-w-5xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
             <!-- Header -->
-            <div class="bg-primary-600 p-4">
-                <h1 class="text-2xl font-bold text-white text-center">Student Admission Form</h1>
+            <div class="bg-white p-4">
+                <h1 class="text-2xl font-bold text-primary-700 text-center">Student Admission Form</h1>
                 
                 <!-- Step Indicator -->
                 <div class="flex justify-center mt-3">
@@ -104,7 +104,7 @@
                 </div>
                 
                 <div class="text-center mt-2">
-                    <span class="text-primary-100 text-sm font-medium" id="step-title">Student Information</span>
+                    <span class="text-primary-500 text-sm font-medium" id="step-title">Student Information</span>
                 </div>
             </div>
 
@@ -119,17 +119,19 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                                 <div>
                                     <label class="block text-xs font-medium text-gray-700 mb-1">Admission Date *</label>
-                                    <input wire:model="admission_date" type="date" name="admission_date" required class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    <input wire:model="admission_date" type="date" name="admission_date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                                     @error('admission_date') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-medium text-gray-700 mb-1">Session *</label>
-                                    <select wire:model="session" name="session" required class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                                        <option value="">Select Session</option>
-                                        <option value="2024-25">2024-25</option>
-                                        <option value="2025-26">2025-26</option>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">Stream *</label>
+                                    <select wire:model="stream" name="stream" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                        <option value="">Select Stream</option>
+                                        <option value="Engineering">Engineering</option>
+                                        <option value="Foundation">Foundation</option>
+                                        <option value="Medical">Medical</option>
+                                        <option value="Other">Other</option>
                                     </select>
-                                    @error('session') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    @error('stream') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                 </div>
                                 <div>
                                     <label class="block text-xs font-medium text-gray-700 mb-1">Academic Session *</label>
@@ -245,7 +247,10 @@
                             <!-- Permanent Address -->
                             <div class="mb-6">
                                 <h4 class="text-base font-medium text-gray-700 mb-2">Permanent Address</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4"
+                                    x-data="addressDropdown('perm')"
+                                    x-init="init()"
+                                >
                                     <div class="md:col-span-2">
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Address Line 1 *</label>
                                         <input wire:model="address_line1" type="text" name="address_line1" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
@@ -257,19 +262,34 @@
                                         @error('address_line2') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
-                                        <input wire:model="city" type="text" name="city" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                                        @error('city') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                                    </div>
-                                    <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">State/Union Territory</label>
-                                        <input wire:model="state" type="text" name="state" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                        <select wire:model="state" x-model="selectedState" @change="onStateChange()" name="state" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                            <option value="">Select State</option>
+                                            <template x-for="s in states" :key="s.name">
+                                                <option :value="s.name" x-text="s.name"></option>
+                                            </template>
+                                        </select>
                                         @error('state') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">District</label>
-                                        <input wire:model="district" type="text" name="district" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                        <select wire:model="district" x-model="selectedDistrict" @change="onDistrictChange()" name="district" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" :disabled="!selectedState">
+                                            <option value="">Select District</option>
+                                            <template x-for="d in districts" :key="d.name">
+                                                <option :value="d.name" x-text="d.name"></option>
+                                            </template>
+                                        </select>
                                         @error('district') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
+                                        <select wire:model="city" x-model="selectedCity" @change="onCityChange()" name="city" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" :disabled="!selectedDistrict">
+                                            <option value="">Select City</option>
+                                            <template x-for="c in cities" :key="c">
+                                                <option :value="c" x-text="c"></option>
+                                            </template>
+                                        </select>
+                                        @error('city') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Pin Code</label>
@@ -293,7 +313,10 @@
                                 
                                 <div x-show="!same_as_permanent" x-cloak>
                                     <h4 class="text-lg font-medium text-gray-700 mb-3">Correspondence Address</h4>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4"
+                                        x-data="addressDropdown('corr')"
+                                        x-init="init()"
+                                    >
                                         <div class="md:col-span-2">
                                             <label class="block text-sm font-medium text-gray-700 mb-2">Address Line 1 *</label>
                                             <input wire:model="corr_address_line1" x-ref="corr_address_line1" :disabled="same_as_permanent" type="text" name="corr_address_line1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
@@ -305,19 +328,88 @@
                                             @error('corr_address_line2') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                         </div>
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
-                                            <input wire:model="corr_city" x-ref="corr_city" :disabled="same_as_permanent" type="text" name="corr_city" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                                            @error('corr_city') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                                        </div>
-                                        <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-2">State/Union Territory</label>
-                                            <input wire:model="corr_state" x-ref="corr_state" :disabled="same_as_permanent" type="text" name="corr_state" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                            <select wire:model="corr_state" x-model="selectedState" @change="onStateChange()" name="corr_state" :disabled="same_as_permanent" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                                <option value="">Select State</option>
+                                                <template x-for="s in states" :key="s.name">
+                                                    <option :value="s.name" x-text="s.name"></option>
+                                                </template>
+                                            </select>
                                             @error('corr_state') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-2">District</label>
-                                            <input wire:model="corr_district" x-ref="corr_district" :disabled="same_as_permanent" type="text" name="corr_district" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                            <select wire:model="corr_district" x-model="selectedDistrict" @change="onDistrictChange()" name="corr_district" :disabled="!selectedState || same_as_permanent" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                                <option value="">Select District</option>
+                                                <template x-for="d in districts" :key="d.name">
+                                                    <option :value="d.name" x-text="d.name"></option>
+                                                </template>
+                                            </select>
                                             @error('corr_district') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
+                                            <select wire:model="corr_city" x-model="selectedCity" @change="onCityChange()" name="corr_city" :disabled="!selectedDistrict || same_as_permanent" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                                <option value="">Select City</option>
+                                                <template x-for="c in cities" :key="c">
+                                                    <option :value="c" x-text="c"></option>
+                                                </template>
+                                            </select>
+                                            @error('corr_city') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+<script>
+function addressDropdown(prefix) {
+    return {
+        states: [],
+        districts: [],
+        cities: [],
+        selectedState: '',
+        selectedDistrict: '',
+        selectedCity: '',
+        async init() {
+            const res = await fetch('/india-states-cities.json');
+            this.states = await res.json();
+            // Set initial values from Livewire
+            if (prefix === 'perm') {
+                this.selectedState = this.$wire.state || '';
+                this.selectedDistrict = this.$wire.district || '';
+                this.selectedCity = this.$wire.city || '';
+            } else {
+                this.selectedState = this.$wire.corr_state || '';
+                this.selectedDistrict = this.$wire.corr_district || '';
+                this.selectedCity = this.$wire.corr_city || '';
+            }
+            this.updateDistricts();
+            this.updateCities();
+        },
+        onStateChange() {
+            if (prefix === 'perm') this.$wire.state = this.selectedState;
+            else this.$wire.corr_state = this.selectedState;
+            this.selectedDistrict = '';
+            this.selectedCity = '';
+            this.updateDistricts();
+            this.updateCities();
+        },
+        onDistrictChange() {
+            if (prefix === 'perm') this.$wire.district = this.selectedDistrict;
+            else this.$wire.corr_district = this.selectedDistrict;
+            this.selectedCity = '';
+            this.updateCities();
+        },
+        onCityChange() {
+            if (prefix === 'perm') this.$wire.city = this.selectedCity;
+            else this.$wire.corr_city = this.selectedCity;
+        },
+        updateDistricts() {
+            const state = this.states.find(s => s.name === this.selectedState);
+            this.districts = state ? state.districts : [];
+        },
+        updateCities() {
+            const district = this.districts.find(d => d.name === this.selectedDistrict);
+            this.cities = district ? district.cities : [];
+        }
+    }
+}
+</script>
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-2">Pin Code</label>
@@ -338,17 +430,7 @@
                         <div class="mb-3 p-3 border border-primary-100 rounded bg-primary-50">
                             <h3 class="text-lg font-semibold text-primary-800 mb-3">Class Details</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Stream *</label>
-                                    <select wire:model="stream" name="stream" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                                        <option value="">Select Stream</option>
-                                        <option value="Engineering">Engineering</option>
-                                        <option value="Foundation">Foundation</option>
-                                        <option value="Medical">Medical</option>
-                                        <option value="Other">Other</option>
-                                    </select>
-                                    @error('stream') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                                </div>
+                               
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Student Status</label>
                                     <select wire:model="student_status" name="student_status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
