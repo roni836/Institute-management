@@ -21,7 +21,7 @@ jobs:
       - name: Deploy to VPS
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-            cd /var/www/ip-laravel/Institute-management
+            cd /home/learnsyntax-lms/htdocs/lms.learnsyntax.com/Institute-management
             git pull origin main
             sudo systemctl reload php8.2-fpm
             sudo systemctl reload nginx
