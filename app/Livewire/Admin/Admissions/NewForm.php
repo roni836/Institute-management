@@ -25,6 +25,7 @@ class NewForm extends Component
     // Student fields (new student at admission time)
     public $name, $father_name, $mother_name, $email, $phone, $whatsapp_no, $address, $admission;
     public $gender, $category, $alt_phone, $dob, $session, $academic_session, $mother_occupation, $father_occupation;
+    public $school_name, $school_address, $board;
     public $stream;
     public string $student_status = 'active';
     
@@ -66,6 +67,9 @@ class NewForm extends Component
         $this->admission_date = now()->toDateString();
         $this->applyGst = false;
         $this->recalculate();
+    $this->school_name = '';
+    $this->school_address = '';
+    $this->board = '';
     }
 
     public function updated($name, $value)
@@ -199,6 +203,9 @@ class NewForm extends Component
             $this->dob = $student->dob;
             $this->session = $student->session;
             $this->academic_session = $student->academic_session;
+            $this->school_name = $student->school_name;
+            $this->school_address = $student->school_address;
+            $this->board = $student->board;
             $this->gender = $student->gender;
             $this->category = $student->category;
             $this->alt_phone = $student->alt_phone;
@@ -258,7 +265,8 @@ class NewForm extends Component
             'dob', 'session', 'academic_session', 'alt_phone', 'whatsapp_no', 'mother_occupation', 
             'father_occupation', 'stream', 'address_line1', 'address_line2', 'city', 'state', 
             'district', 'pincode', 'country', 'corr_address_line1', 'corr_address_line2', 
-            'corr_city', 'corr_state', 'corr_district', 'corr_pincode', 'corr_country', 'same_as_permanent'
+            'corr_city', 'corr_state', 'corr_district', 'corr_pincode', 'corr_country', 'same_as_permanent',
+            'school_name', 'school_address', 'board'
         ]);
         $this->resetErrorBag('batch_id');
     }
@@ -297,6 +305,9 @@ class NewForm extends Component
             'father_occupation' => ['nullable', 'string', 'max:255'],
             'stream' => ['required', 'string', 'in:Engineering,Foundation,Medical,Other'],
             'student_status' => ['nullable', 'in:active,inactive,alumni'],
+        'school_name' => ['nullable', 'string', 'max:255'],
+        'school_address' => ['nullable', 'string', 'max:255'],
+        'board' => ['nullable', 'string', 'max:100'],
             
             // Address fields
             'address_line1' => ['required', 'string', 'max:255'],
@@ -320,6 +331,9 @@ class NewForm extends Component
             'course_id' => [
                 'required',
                 'exists:courses,id',
+                'school_name' => ['nullable', 'string', 'max:255'],
+                'school_address' => ['nullable', 'string', 'max:255'],
+                'board' => ['nullable', 'string', 'max:100'],
             ],
             'batch_id' => [
                 'required',
@@ -686,6 +700,9 @@ class NewForm extends Component
                         'father_occupation' => $this->father_occupation,
                         'stream' => $this->stream,
                         'academic_session' => $this->academic_session,
+                        'school_name' => $this->school_name,
+                        'school_address' => $this->school_address,
+                        'board' => $this->board,
                         'status' => $this->student_status,
                         'admission_date' => $this->admission_date,
                     ]);
@@ -710,6 +727,9 @@ class NewForm extends Component
                         'father_occupation' => $this->father_occupation,
                         'stream' => $this->stream,
                         'academic_session' => $this->academic_session,
+                        'school_name' => $this->school_name,
+                        'school_address' => $this->school_address,
+                        'board' => $this->board,
                         'admission_date' => $this->admission_date,
                         'roll_no' => $this->generateRollNumber(),
                         'student_uid' => $this->generateStudentUid(),

@@ -430,7 +430,6 @@ function addressDropdown(prefix) {
                         <div class="mb-3 p-3 border border-primary-100 rounded bg-primary-50">
                             <h3 class="text-lg font-semibold text-primary-800 mb-3">Class Details</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                               
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Student Status</label>
                                     <select wire:model="student_status" name="student_status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
@@ -440,10 +439,30 @@ function addressDropdown(prefix) {
                                     </select>
                                     @error('student_status') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                 </div>
+                                
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Alternate Phone</label>
-                                    <input wire:model="alt_phone" type="text" name="alt_phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                                    @error('alt_phone') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">School Name</label>
+                                    <input wire:model="school_name" type="text" name="school_name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Enter current school name">
+                                    @error('school_name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">School Address</label>
+                                    <input wire:model="school_address" type="text" name="school_address" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Enter school address">
+                                    @error('school_address') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Board</label>
+                                    <select wire:model="board" name="board" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                        <option value="">Select Board</option>
+                                        <option value="CBSE">CBSE</option>
+                                        <option value="ICSE">ICSE</option>
+                                        <option value="CISCE">CISCE</option>
+                                        <option value="State Board">State Board</option>
+                                        <option value="IB">IB</option>
+                                        <option value="IGCSE">IGCSE</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                    @error('board') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Enrollment ID Preview</label>
