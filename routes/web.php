@@ -140,3 +140,9 @@ Route::get('/run-migrations', function () {
     Artisan::call('migrate', ["--force" => true]);
     return "Migrations ran successfully.";
 });
+
+Route::get('/run-seeders', function () {
+    Artisan::call('db:seed', ["--force" => true]);
+    return "Seeders ran successfully.";
+});
+
