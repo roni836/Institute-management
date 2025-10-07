@@ -371,7 +371,7 @@ class NewForm extends Component
             'city' => ['nullable', 'string', 'max:100'],
             'state' => ['nullable', 'string', 'max:100'],
             'district' => ['nullable', 'string', 'max:100'],
-            'pincode' => ['nullable', 'digits:6'],
+            'pincode' => ['required', 'digits:6'],
             'country' => ['nullable', 'string', 'max:100'],
             'same_as_permanent' => ['boolean'],
             'photo_upload' => ['nullable', 'image', 'max:2048'],
@@ -381,7 +381,7 @@ class NewForm extends Component
             'corr_city' => ['nullable', 'string', 'max:100'],
             'corr_state' => ['nullable', 'string', 'max:100'],
             'corr_district' => ['nullable', 'string', 'max:100'],
-            'corr_pincode' => ['nullable', 'digits:6'],
+            'corr_pincode' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'digits:6'],
             'corr_country' => ['nullable', 'string', 'max:100'],
 
             // step 2 - Admission details
@@ -454,6 +454,8 @@ class NewForm extends Component
                 'id_card_required' => ['boolean'],
                 'photo_upload' => ['nullable', 'image', 'max:2048'],
                 'aadhaar_upload' => ['nullable', 'mimes:jpeg,jpg,png,pdf', 'max:4096'],
+                'pincode' => ['required', 'digits:6'],
+                'corr_pincode' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'digits:6'],
             ],
             2 => [
                 'stream' => ['required', 'string', 'in:Engineering,Foundation,Medical,Other'],
@@ -481,13 +483,19 @@ class NewForm extends Component
 
     public function next()
     {
-        $this->validate($this->stepRules($this->step));
+        try {
+            $this->validate($this->stepRules($this->step));
+        } catch (ValidationException $e) {
+            // bail out so we stay on the current step
+            throw $e;
+        }
+
         if ($this->step < 2) {
             $this->step++;
             // Dispatch via Livewire's client dispatch for Alpine
             $this->dispatch('stepChanged', step: $this->step);
-         }
-     }
+        }
+    }
 
     public function prev()
     {
