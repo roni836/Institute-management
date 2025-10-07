@@ -48,6 +48,7 @@ class NewForm extends Component
     // Course and Admission fields
     public $course_id = null;
     public $selected_course = null;
+    public $selected_batch = null;
     public $batch_id, $admission_date, $mode = 'full';
     public $fee_total = 0.00, $installments = 2, $plan = [];
     
@@ -92,6 +93,11 @@ class NewForm extends Component
         $this->module4 = null;
         $this->module5 = null;
         $this->id_card_required = false;
+        $this->selected_batch = null;
+
+        if ($this->batch_id) {
+            $this->loadBatchData($this->batch_id);
+        }
     }
 
     public function updated($name, $value)
@@ -108,6 +114,10 @@ class NewForm extends Component
         if ($name === 'course_id' && $value) {
             $this->loadCourseData($value);
             $this->resetBatch(); // Reset batch when course changes
+        }
+
+        if ($name === 'batch_id') {
+            $this->loadBatchData($value);
         }
 
         // Reset custom installments flag when mode changes
@@ -175,6 +185,15 @@ class NewForm extends Component
     public function resetBatch()
     {
         $this->batch_id = null;
+        $this->selected_batch = null;
+    }
+
+    /**
+     * Load batch details for summary display
+     */
+    public function loadBatchData($batchId): void
+    {
+        $this->selected_batch = $batchId ? Batch::find($batchId) : null;
     }
 
     public function updatedSearchPhone()

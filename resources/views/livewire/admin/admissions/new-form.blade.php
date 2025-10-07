@@ -566,79 +566,44 @@ function addressDropdown(prefix) {
                             <!-- Contact Info Section -->
                             <div class="mb-3 p-3 bg-white rounded">
                                 <h4 class="font-semibold text-sm text-gray-700 mb-2">Contact Information</h4>
+                                @php
+                                    $selectedStudent = null;
+                                    if ($selectedStudentId && !empty($foundStudents)) {
+                                        $selectedStudent = collect($foundStudents)->firstWhere('id', $selectedStudentId);
+                                    }
+
+                                    $admissionIdentifier = '—';
+                                    if ($selectedStudent) {
+                                        $admissionIdentifier = data_get($selectedStudent, 'student_uid')
+                                            ?? data_get($selectedStudent, 'enrollment_id')
+                                            ?? 'Existing Student';
+                                    } elseif ($stream) {
+                                        $admissionIdentifier = $this->getNextEnrollmentId();
+                                    }
+
+                                    $contactSummary = [
+                                        ['icon' => '👤', 'label' => 'Student', 'value' => $name ?: '—'],
+                                        ['icon' => '📘', 'label' => 'Course', 'value' => data_get($selected_course, 'name', '—')],
+                                        ['icon' => '📅', 'label' => 'Session', 'value' => $academic_session ?: ($session ?: '—')],
+                                        ['icon' => '👨‍👧', 'label' => 'Father Name', 'value' => $father_name ?: '—'],
+                                        ['icon' => '🎓', 'label' => 'Stream', 'value' => $stream ?: '—'],
+                                        ['icon' => '🗓️', 'label' => 'Batch Type', 'value' => data_get($selected_batch, 'batch_name', '—')],
+                                        ['icon' => '🆔', 'label' => 'Admission Number', 'value' => $admissionIdentifier],
+                                        ['icon' => '🏷️', 'label' => 'Category', 'value' => $category ? strtoupper($category) : '—'],
+                                    ];
+                                @endphp
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                                    <div class="flex items-center">
-                                        <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mr-2">
-                                            <span class="text-xs">👤</span>
+                                    @foreach($contactSummary as $item)
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mr-2">
+                                                <span class="text-xs">{{ $item['icon'] }}</span>
+                                            </div>
+                                            <div>
+                                                <div class="font-medium">{{ $item['label'] }}</div>
+                                                <div class="text-gray-600">{{ $item['value'] }}</div>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <div class="font-medium">Student</div>
-                                            <div class="text-gray-600">Name</div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mr-2">
-                                            <span class="text-xs">👤</span>
-                                        </div>
-                                        <div>
-                                            <div class="font-medium">Course</div>
-                                            <div class="text-gray-600">Class</div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mr-2">
-                                            <span class="text-xs">👤</span>
-                                        </div>
-                                        <div>
-                                            <div class="font-medium">Session</div>
-                                            <div class="text-gray-600">Academic Year</div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mr-2">
-                                            <span class="text-xs">👤</span>
-                                        </div>
-                                        <div>
-                                            <div class="font-medium">Father Name</div>
-                                            <div class="text-gray-600">Guardian</div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mr-2">
-                                            <span class="text-xs">👤</span>
-                                        </div>
-                                        <div>
-                                            <div class="font-medium">Stream</div>
-                                            <div class="text-gray-600">Course Type</div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mr-2">
-                                            <span class="text-xs">👤</span>
-                                        </div>
-                                        <div>
-                                            <div class="font-medium">Batch Type</div>
-                                            <div class="text-gray-600">Schedule</div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mr-2">
-                                            <span class="text-xs">👤</span>
-                                        </div>
-                                        <div>
-                                            <div class="font-medium">Admission Number</div>
-                                            <div class="text-gray-600">ID</div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mr-2">
-                                            <span class="text-xs">👤</span>
-                                        </div>
-                                        <div>
-                                            <div class="font-medium">Category</div>
-                                            <div class="text-gray-600">Type</div>
-                                        </div>
-                                    </div>
+                                    @endforeach
                                 </div>
                             </div>
 
