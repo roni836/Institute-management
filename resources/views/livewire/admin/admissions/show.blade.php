@@ -4,8 +4,12 @@
         <div class="md:flex">
             {{-- Student Avatar & Basic Info --}}
             <div class="p-6 flex gap-6 items-center flex-1">
-                <div class="h-20 w-20 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-2xl font-bold text-white">
-                    {{ Str::of($admission->student->name)->substr(0,1)->upper() }}
+                <div class="h-20 w-20 rounded-full overflow-hidden border border-primary-100 flex items-center justify-center bg-gradient-to-br from-primary-500 to-primary-600">
+                    @if($photoUrl)
+                        <img src="{{ $photoUrl }}" alt="{{ $admission->student->name }}" class="h-full w-full object-cover">
+                    @else
+                        <span class="text-2xl font-bold text-white">{{ Str::of($admission->student->name)->substr(0,1)->upper() }}</span>
+                    @endif
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900">{{ $admission->student->name }}</h1>
@@ -225,11 +229,46 @@
                     <div><span class="text-gray-500">Address:</span> {{ $admission->student->address ?? '—' }}</div>
                     <div><span class="text-gray-500">Father:</span> {{ $admission->student->father_name ?? '—' }}</div>
                     <div><span class="text-gray-500">Mother:</span> {{ $admission->student->mother_name ?? '—' }}</div>
+                    @if($aadhaarUrl)
+                        <div>
+                            <span class="text-gray-500">Aadhaar:</span>
+                            <a href="{{ $aadhaarUrl }}" target="_blank" rel="noopener" class="ml-1 text-primary-600 hover:underline">
+                                View Document{{ $aadhaarFilename ? ' ('.$aadhaarFilename.')' : '' }}
+                            </a>
+                        </div>
+                    @else
+                        <div><span class="text-gray-500">Aadhaar:</span> —</div>
+                    @endif
                     <div>
                         <span class="text-gray-500">Student Status:</span>
                         <span class="ml-1 px-2 py-0.5 rounded text-xs capitalize
                             {{ $admission->student->status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-700' }}">
                             {{ $admission->student->status }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Modules & ID Card --}}
+            <div class="bg-white border rounded-xl p-4">
+                <h2 class="text-base font-semibold mb-3">Modules & Documents</h2>
+                <div class="space-y-3 text-sm">
+                    <div>
+                        <div class="text-xs text-gray-500 uppercase tracking-wide">Optional Modules</div>
+                        @if(count($optionalModules))
+                            <ul class="mt-2 space-y-1">
+                                @foreach($optionalModules as $module)
+                                    <li class="px-2 py-1 rounded bg-primary-50 text-primary-700">{{ $module }}</li>
+                                @endforeach
+                            </ul>
+                        @else
+                            <p class="text-gray-600 mt-2">No optional modules recorded.</p>
+                        @endif
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-500 uppercase tracking-wide">ID Card</span>
+                        <span class="px-2 py-0.5 rounded text-xs font-medium {{ $admission->id_card_required ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600' }}">
+                            {{ $admission->id_card_required ? 'Required' : 'Not Required' }}
                         </span>
                     </div>
                 </div>

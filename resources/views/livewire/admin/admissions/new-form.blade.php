@@ -110,7 +110,7 @@
 
             <!-- Form Content -->
             <div class="p-4">
-                <form id="admissionForm" wire:submit.prevent="save">
+                <form id="admissionForm" wire:submit.prevent="save" enctype="multipart/form-data">
                     <!-- Step 1: Student Information -->
                     <div id="step1" class="form-section" x-show="step === 1" x-cloak>
                         <!-- Admission Info -->
@@ -473,24 +473,87 @@ function addressDropdown(prefix) {
                             </div>
                         </div>
 
-                        <!-- Modules -->
+                        <!-- Modules & Documents -->
                         <div class="mb-3 p-3 border border-primary-100 rounded bg-primary-50">
-                            <h3 class="text-lg font-semibold text-primary-800 mb-3">Additional Modules</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Additional Module 1</label>
-                                    <input type="text" name="module1" placeholder="Optional" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <h3 class="text-lg font-semibold text-primary-800 mb-3">Additional Modules & Documents</h3>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div class="bg-white border border-primary-100 rounded-lg p-4">
+                                    <h4 class="text-sm font-semibold text-primary-700 mb-3">Uploads</h4>
+                                    <div class="space-y-5">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Student Photo</label>
+                                            <input type="file" wire:model="photo_upload" accept="image/*" class="w-full text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" />
+                                            <div wire:loading wire:target="photo_upload" class="text-xs text-primary-600 mt-1">Uploading photo...</div>
+                                            @error('photo_upload') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                            <div class="mt-3">
+                                                @if($photo_upload)
+                                                    <img src="{{ $photo_upload->temporaryUrl() }}" alt="Photo preview" class="h-32 w-32 object-cover rounded-lg shadow" />
+                                                @elseif($this->existingPhotoUrl)
+                                                    <img src="{{ $this->existingPhotoUrl }}" alt="Uploaded photo" class="h-32 w-32 object-cover rounded-lg shadow" />
+                                                @else
+                                                    <p class="text-xs text-gray-500">No photo uploaded yet.</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Aadhaar Card</label>
+                                            <input type="file" wire:model="aadhaar_upload" accept="image/*,.pdf" class="w-full text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" />
+                                            <div wire:loading wire:target="aadhaar_upload" class="text-xs text-primary-600 mt-1">Uploading Aadhaar...</div>
+                                            @error('aadhaar_upload') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                            <div class="mt-3 space-y-2 text-sm text-gray-700">
+                                                @if($aadhaar_upload)
+                                                    <p class="font-medium">{{ $aadhaar_upload->getClientOriginalName() }}</p>
+                                                    @if(str_contains($aadhaar_upload->getMimeType(), 'image'))
+                                                        <img src="{{ $aadhaar_upload->temporaryUrl() }}" alt="Aadhaar preview" class="h-32 w-32 object-cover rounded-lg shadow" />
+                                                    @endif
+                                                @elseif($this->existingAadhaarUrl)
+                                                    <a href="{{ $this->existingAadhaarUrl }}" target="_blank" rel="noopener" class="text-primary-600 underline">
+                                                        View Aadhaar{{ $this->existingAadhaarFilename ? ' ('.$this->existingAadhaarFilename.')' : '' }}
+                                                    </a>
+                                                @else
+                                                    <p class="text-xs text-gray-500">No Aadhaar document uploaded yet.</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Additional Module 2</label>
-                                    <input type="text" name="module2" placeholder="Optional" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                <div class="bg-white border border-primary-100 rounded-lg p-4">
+                                    <h4 class="text-sm font-semibold text-primary-700 mb-3">Optional Modules</h4>
+                                    <div class="grid grid-cols-1 gap-3">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Additional Module 1</label>
+                                            <input type="text" wire:model.defer="module1" name="module1" placeholder="Optional" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                            @error('module1') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Additional Module 2</label>
+                                            <input type="text" wire:model.defer="module2" name="module2" placeholder="Optional" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                            @error('module2') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Additional Module 3</label>
+                                            <input type="text" wire:model.defer="module3" name="module3" placeholder="Optional" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                            @error('module3') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Additional Module 4</label>
+                                            <input type="text" wire:model.defer="module4" name="module4" placeholder="Optional" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                            @error('module4') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Additional Module 5</label>
+                                            <input type="text" wire:model.defer="module5" name="module5" placeholder="Optional" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                            @error('module5') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                        </div>
+                                    </div>
+                                    <div class="mt-4">
+                                        <label class="flex items-center">
+                                            <input type="checkbox" wire:model.live="id_card_required" name="idCard" class="mr-2">
+                                            <span class="text-sm font-medium text-gray-700">ID Card Required</span>
+                                        </label>
+                                        @error('id_card_required') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="mt-4">
-                                <label class="flex items-center">
-                                    <input type="checkbox" name="idCard" class="mr-2">
-                                    <span class="text-sm font-medium text-gray-700">ID Card Required</span>
-                                </label>
                             </div>
                         </div>
                     </div>

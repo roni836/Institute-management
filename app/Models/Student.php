@@ -23,6 +23,9 @@ class Student extends Model
         'alt_phone',
         'stream',
         'academic_session',
+        'school_name',
+        'school_address',
+        'board',
         'roll_no',
         'student_uid',
         'admission_date',
@@ -32,6 +35,7 @@ class Student extends Model
         'total_courses_enrolled',
         'courses_completed',
         'photo',
+        'aadhaar_document_path',
     ];
 
     /**

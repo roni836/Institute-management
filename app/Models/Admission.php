@@ -42,6 +42,7 @@ class Admission extends Model
         'fee_due'        => 'decimal:2',
         'admission_date' => 'date',
         'stream'         => 'string',
+        'id_card_required' => 'boolean',
     ];
 
     public function attendanceRecords()

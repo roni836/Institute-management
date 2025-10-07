@@ -11,14 +11,18 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 #[Layout('components.layouts.admin')]
 class NewForm extends Component
 {
+    use WithFileUploads;
+
     // Stepper
     public int $step = 1; // 1: Student, 2: Admission & Payment
 
@@ -28,6 +32,12 @@ class NewForm extends Component
     public $school_name, $school_address, $board;
     public $stream;
     public string $student_status = 'active';
+    public ?string $module1 = null;
+    public ?string $module2 = null;
+    public ?string $module3 = null;
+    public ?string $module4 = null;
+    public ?string $module5 = null;
+    public bool $id_card_required = false;
     
     // Address fields
     public $address_type = 'permanent';
@@ -61,15 +71,27 @@ class NewForm extends Component
     public $foundStudents = [];
     public $selectedStudentId = null;
     public bool $showStudentSelection = false;
+    public $photo_upload;
+    public $aadhaar_upload;
+    public ?string $existing_photo = null;
+    public ?string $existing_aadhaar = null;
 
     public function mount()
     {
         $this->admission_date = now()->toDateString();
         $this->applyGst = false;
         $this->recalculate();
-    $this->school_name = '';
-    $this->school_address = '';
-    $this->board = '';
+        $this->school_name = '';
+        $this->school_address = '';
+        $this->board = '';
+        $this->photo_upload = null;
+        $this->aadhaar_upload = null;
+        $this->module1 = null;
+        $this->module2 = null;
+        $this->module3 = null;
+        $this->module4 = null;
+        $this->module5 = null;
+        $this->id_card_required = false;
     }
 
     public function updated($name, $value)
@@ -213,6 +235,10 @@ class NewForm extends Component
             $this->father_occupation = $student->father_occupation;
             $this->stream = $student->stream;
             $this->student_status = $student->status;
+            $this->existing_photo = $student->photo;
+            $this->existing_aadhaar = $student->aadhaar_document_path;
+            $this->photo_upload = null;
+            $this->aadhaar_upload = null;
             
             // Pre-fill addresses if available
             $permanentAddress = $student->addresses->where('type', 'permanent')->first();
@@ -266,8 +292,13 @@ class NewForm extends Component
             'father_occupation', 'stream', 'address_line1', 'address_line2', 'city', 'state', 
             'district', 'pincode', 'country', 'corr_address_line1', 'corr_address_line2', 
             'corr_city', 'corr_state', 'corr_district', 'corr_pincode', 'corr_country', 'same_as_permanent',
-            'school_name', 'school_address', 'board'
+            'school_name', 'school_address', 'board',
+            'module1', 'module2', 'module3', 'module4', 'module5', 'id_card_required'
         ]);
+        $this->photo_upload = null;
+        $this->aadhaar_upload = null;
+        $this->existing_photo = null;
+        $this->existing_aadhaar = null;
         $this->resetErrorBag('batch_id');
     }
 
@@ -305,9 +336,15 @@ class NewForm extends Component
             'father_occupation' => ['nullable', 'string', 'max:255'],
             'stream' => ['required', 'string', 'in:Engineering,Foundation,Medical,Other'],
             'student_status' => ['nullable', 'in:active,inactive,alumni'],
-        'school_name' => ['nullable', 'string', 'max:255'],
-        'school_address' => ['nullable', 'string', 'max:255'],
-        'board' => ['nullable', 'string', 'max:100'],
+            'school_name' => ['nullable', 'string', 'max:255'],
+            'school_address' => ['nullable', 'string', 'max:255'],
+            'board' => ['nullable', 'string', 'max:100'],
+            'module1' => ['nullable', 'string', 'max:255'],
+            'module2' => ['nullable', 'string', 'max:255'],
+            'module3' => ['nullable', 'string', 'max:255'],
+            'module4' => ['nullable', 'string', 'max:255'],
+            'module5' => ['nullable', 'string', 'max:255'],
+            'id_card_required' => ['boolean'],
             
             // Address fields
             'address_line1' => ['required', 'string', 'max:255'],
@@ -317,8 +354,9 @@ class NewForm extends Component
             'district' => ['nullable', 'string', 'max:100'],
             'pincode' => ['nullable', 'regex:/^[0-9]+$/', 'max:10'],
             'country' => ['nullable', 'string', 'max:100'],
-            
             'same_as_permanent' => ['boolean'],
+            'photo_upload' => ['nullable', 'image', 'max:2048'],
+            'aadhaar_upload' => ['nullable', 'mimes:jpeg,jpg,png,pdf', 'max:4096'],
             'corr_address_line1' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'string', 'max:255'],
             'corr_address_line2' => ['nullable', 'string', 'max:255'],
             'corr_city' => ['nullable', 'string', 'max:100'],
@@ -367,6 +405,17 @@ class NewForm extends Component
         return $rules;
     }
 
+    protected function normalizeModule(?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $trimmed = trim($value);
+
+        return $trimmed === '' ? null : $trimmed;
+    }
+
     /** Rules per step (for Next buttons) */
     protected function stepRules(int $step): array
     {
@@ -375,6 +424,17 @@ class NewForm extends Component
                 'name' => ['required', 'string', 'max:255'],
                 'email' => ['nullable', 'email', 'max:255'],
                 'phone' => ['nullable', 'string', 'max:20'],
+                'school_name' => ['nullable', 'string', 'max:255'],
+                'school_address' => ['nullable', 'string', 'max:255'],
+                'board' => ['nullable', 'string', 'max:100'],
+                'module1' => ['nullable', 'string', 'max:255'],
+                'module2' => ['nullable', 'string', 'max:255'],
+                'module3' => ['nullable', 'string', 'max:255'],
+                'module4' => ['nullable', 'string', 'max:255'],
+                'module5' => ['nullable', 'string', 'max:255'],
+                'id_card_required' => ['boolean'],
+                'photo_upload' => ['nullable', 'image', 'max:2048'],
+                'aadhaar_upload' => ['nullable', 'mimes:jpeg,jpg,png,pdf', 'max:4096'],
             ],
             2 => [
                 'stream' => ['required', 'string', 'in:Engineering,Foundation,Medical,Other'],
@@ -649,6 +709,37 @@ class NewForm extends Component
         $this->resetErrorBag('plan');
     }
 
+    public function getExistingPhotoUrlProperty(): ?string
+    {
+        if (!$this->existing_photo) {
+            return null;
+        }
+
+        if (Storage::disk('public')->exists($this->existing_photo)) {
+            return asset('storage/' . ltrim($this->existing_photo, '/'));
+        }
+
+        return null;
+    }
+
+    public function getExistingAadhaarUrlProperty(): ?string
+    {
+        if (!$this->existing_aadhaar) {
+            return null;
+        }
+
+        if (Storage::disk('public')->exists($this->existing_aadhaar)) {
+            return asset('storage/' . ltrim($this->existing_aadhaar, '/'));
+        }
+
+        return null;
+    }
+
+    public function getExistingAadhaarFilenameProperty(): ?string
+    {
+        return $this->existing_aadhaar ? basename($this->existing_aadhaar) : null;
+    }
+
     public function save()
     {
         try {
@@ -737,6 +828,38 @@ class NewForm extends Component
 
                     ]);
                 }
+
+                $studentNeedsSave = false;
+
+                if ($this->photo_upload) {
+                    if (!empty($student->photo) && Storage::disk('public')->exists($student->photo)) {
+                        Storage::disk('public')->delete($student->photo);
+                    }
+                    $photoPath = $this->photo_upload->store('students/photos', 'public');
+                    $student->photo = $photoPath;
+                    $this->existing_photo = $photoPath;
+                    $this->photo_upload = null;
+                    $studentNeedsSave = true;
+                } else {
+                    $this->existing_photo = $student->photo;
+                }
+
+                if ($this->aadhaar_upload) {
+                    if (!empty($student->aadhaar_document_path) && Storage::disk('public')->exists($student->aadhaar_document_path)) {
+                        Storage::disk('public')->delete($student->aadhaar_document_path);
+                    }
+                    $aadhaarPath = $this->aadhaar_upload->store('students/aadhaar', 'public');
+                    $student->aadhaar_document_path = $aadhaarPath;
+                    $this->existing_aadhaar = $aadhaarPath;
+                    $this->aadhaar_upload = null;
+                    $studentNeedsSave = true;
+                } else {
+                    $this->existing_aadhaar = $student->aadhaar_document_path;
+                }
+
+                if ($studentNeedsSave) {
+                    $student->save();
+                }
                 
                 // Save or update addresses
                 // Permanent Address
@@ -804,6 +927,12 @@ class NewForm extends Component
                     'gst_rate' => $this->gstRate ?? 0,
                     'stream' => $this->stream, 
                     // Add student's stream to admission record
+                    'module1' => $this->normalizeModule($this->module1),
+                    'module2' => $this->normalizeModule($this->module2),
+                    'module3' => $this->normalizeModule($this->module3),
+                    'module4' => $this->normalizeModule($this->module4),
+                    'module5' => $this->normalizeModule($this->module5),
+                    'id_card_required' => (bool) $this->id_card_required,
                 ]);
 
                 // Create payment schedule

@@ -3,6 +3,7 @@ namespace App\Livewire\Admin\Admissions;
 
 use App\Models\Admission;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -57,9 +58,13 @@ class Show extends Component
     #[Computed]
     public function nextDue(): ?array
     {
-        $next = $this->admission->schedules->first(function ($s) {
-            return (float) $s->amount > (float) $s->paid_amount;
-        });
+        $next = null;
+        foreach ($this->admission->schedules as $schedule) {
+            if ((float) $schedule->amount > (float) $schedule->paid_amount) {
+                $next = $schedule;
+                break;
+            }
+        }
 
         if (! $next) {
             return null;
@@ -96,11 +101,65 @@ class Show extends Component
             ->take(5);
     }
 
+    #[Computed]
+    public function photoUrl(): ?string
+    {
+        $path = $this->admission->student->photo ?? null;
+        if (!$path) {
+            return null;
+        }
+
+        if (!Storage::disk('public')->exists($path)) {
+            return null;
+        }
+
+        return asset('storage/' . ltrim($path, '/'));
+    }
+
+    #[Computed]
+    public function aadhaarUrl(): ?string
+    {
+        $path = $this->admission->student->aadhaar_document_path ?? null;
+        if (!$path) {
+            return null;
+        }
+
+        if (!Storage::disk('public')->exists($path)) {
+            return null;
+        }
+
+        return asset('storage/' . ltrim($path, '/'));
+    }
+
+    #[Computed]
+    public function aadhaarFilename(): ?string
+    {
+        $path = $this->admission->student->aadhaar_document_path ?? null;
+        return $path ? basename($path) : null;
+    }
+
+    #[Computed]
+    public function optionalModules(): array
+    {
+        return collect(range(1, 5))
+            ->map(function (int $index) {
+                $value = $this->admission->{"module{$index}"} ?? null;
+                return $value !== null ? trim((string) $value) : null;
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
+
     public function render()
     {
         return view('livewire.admin.admissions.show', [
             'stats' => $this->stats,
             'recentTransactions' => $this->recentTransactions,
+            'photoUrl' => $this->photoUrl,
+            'aadhaarUrl' => $this->aadhaarUrl,
+            'aadhaarFilename' => $this->aadhaarFilename,
+            'optionalModules' => $this->optionalModules,
         ]);
     }
 }
