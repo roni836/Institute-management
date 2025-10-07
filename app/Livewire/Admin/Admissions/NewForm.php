@@ -352,7 +352,7 @@ class NewForm extends Component
             'city' => ['nullable', 'string', 'max:100'],
             'state' => ['nullable', 'string', 'max:100'],
             'district' => ['nullable', 'string', 'max:100'],
-            'pincode' => ['nullable', 'regex:/^[0-9]+$/', 'max:10'],
+            'pincode' => ['nullable', 'digits:6'],
             'country' => ['nullable', 'string', 'max:100'],
             'same_as_permanent' => ['boolean'],
             'photo_upload' => ['nullable', 'image', 'max:2048'],
@@ -362,7 +362,7 @@ class NewForm extends Component
             'corr_city' => ['nullable', 'string', 'max:100'],
             'corr_state' => ['nullable', 'string', 'max:100'],
             'corr_district' => ['nullable', 'string', 'max:100'],
-            'corr_pincode' => ['nullable', 'string', 'max:10'],
+            'corr_pincode' => ['nullable', 'digits:6'],
             'corr_country' => ['nullable', 'string', 'max:100'],
 
             // step 2 - Admission details

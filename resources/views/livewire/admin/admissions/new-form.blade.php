@@ -293,7 +293,7 @@
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Pin Code</label>
-                                        <input wire:model="pincode" type="text" name="pincode" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                        <input wire:model="pincode" type="text" name="pincode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                                         @error('pincode') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                     </div>
                                     <div>
@@ -413,7 +413,7 @@ function addressDropdown(prefix) {
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-2">Pin Code</label>
-                                            <input wire:model="corr_pincode" x-ref="corr_pincode" :disabled="same_as_permanent" type="text" name="corr_pincode" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                            <input wire:model="corr_pincode" x-ref="corr_pincode" :disabled="same_as_permanent" type="text" name="corr_pincode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                                             @error('corr_pincode') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                         </div>
                                         <div>
