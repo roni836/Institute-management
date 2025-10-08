@@ -504,7 +504,7 @@ function addressDropdown(prefix) {
                                                 @if($aadhaar_upload)
                                                     <p class="font-medium">{{ $aadhaar_upload->getClientOriginalName() }}</p>
                                                     @if(str_contains($aadhaar_upload->getMimeType(), 'image'))
-                                                        <img src="{{ $aadhaar_upload->temporaryUrl() }}" alt="Aadhaar preview" class="h-32 w-32 object-cover rounded-lg shadow" />
+                                                            <img src="{{ $aadhaar_upload->temporaryUrl() }}" alt="Aadhaar preview" class="h-32 w-32 object-cover rounded-lg shadow" />
                                                     @endif
                                                 @elseif($this->existingAadhaarUrl)
                                                     <a href="{{ $this->existingAadhaarUrl }}" target="_blank" rel="noopener" class="text-primary-600 underline">
