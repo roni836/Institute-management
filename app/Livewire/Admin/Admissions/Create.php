@@ -341,15 +341,20 @@ class Create extends Component
     }
 
     /**
-     * Generate unique enrollment ID based on stream (F25APU0001, E25APU0001, M25APU0001, O25APU0001)
+     * Generate unique enrollment ID based on stream and class (F25AE260001, E25AE270001, etc.)
+     * Format: [Stream Letter][Session Year]AE[Class][Sequence]
      */
     private function generateEnrollmentId(): string
     {
         if (! $this->stream) {
             throw new \Exception('Stream is required to generate enrollment ID');
         }
+        
+        if (! $this->class) {
+            throw new \Exception('Class is required to generate enrollment ID');
+        }
 
-        $year         = date('y'); // 2-digit year (25 for 2025)
+        $year = date('y'); // 2-digit year (25 for 2025)
         $streamPrefix = match ($this->stream) {
             'Foundation'  => 'F',
             'Engineering' => 'E',
@@ -357,22 +362,41 @@ class Create extends Component
             'Other'       => 'O',
             default       => 'O'
         };
+        
+        // Extract numeric part from class (e.g., "6th" -> "26", "7th" -> "27")
+        $classNumber = $this->extractClassNumber($this->class);
 
-        // Find the last enrollment ID for this stream and year
+        // Build the pattern to search for: F25AE26, E25AE27, etc.
+        $pattern = $streamPrefix . $year . 'AE' . $classNumber;
+        
+        // Find the last enrollment ID for this stream, year, and class
         $lastStudent = Student::where('stream', $this->stream)
-            ->where('enrollment_id', 'like', $streamPrefix . $year . 'APU%')
+            ->where('enrollment_id', 'like', $pattern . '%')
             ->orderBy('enrollment_id', 'desc')
             ->first();
 
         if ($lastStudent && $lastStudent->enrollment_id) {
-            // Extract the number from the last enrollment ID
+            // Extract the sequence number from the last enrollment ID
             $lastNumber = (int) substr($lastStudent->enrollment_id, -4);
             $nextNumber = $lastNumber + 1;
         } else {
             $nextNumber = 1;
         }
 
-        return $streamPrefix . $year . 'APU' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+        return $pattern . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+    }
+    
+    /**
+     * Extract class number from class string (e.g., "6th" -> "26", "7th" -> "27")
+     */
+    private function extractClassNumber(string $class): string
+    {
+        // Extract numeric part from class string
+        preg_match('/\d+/', $class, $matches);
+        $classNum = isset($matches[0]) ? (int)$matches[0] : 0;
+        
+        // Convert to the format used in enrollment ID (6th -> 26, 7th -> 27, etc.)
+        return str_pad($classNum + 20, 2, '0', STR_PAD_LEFT);
     }
 
     /**
