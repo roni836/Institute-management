@@ -807,7 +807,7 @@ class NewForm extends Component
         $classNumber = $this->class;
 
         // Build the pattern to search for: F24AE6, E25AE11, etc.
-        $pattern = $streamPrefix . $sessionYear . 'AE' . $classNumber;
+        $pattern = $streamPrefix . $sessionYear . 'AE2' . $classNumber;
         
         // Find the last enrollment ID for this stream, year, and class
         $lastStudent = Student::where('stream', $this->stream)
