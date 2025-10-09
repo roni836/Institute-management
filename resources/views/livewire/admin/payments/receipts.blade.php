@@ -170,21 +170,15 @@
         <!-- Installment Details -->
         <div>
             <div class="bg-gray-200 px-2 py-2  text-center" style="font-size:13px;font-weight:700;padding-bottom:6px;">
-                @if($isConsolidatedReceipt ?? false)
-                    COMPLETE INSTALLMENT SCHEDULE
-                @else
-                    INSTALLMENT DETAILS
-                @endif
+                INSTALLMENT DETAILS
             </div>
             <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #000;">
                 <thead>
                     <tr>
-                        <th style="border:1px solid #000;padding:6px;text-align:center;background:#f5f5f5">Inst. #</th>
-                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Due Date</th>
-                        <th style="border:1px solid #000;padding:6px;text-align:right;background:#f5f5f5">Instalment Amount</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Installment Date</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:right;background:#f5f5f5">Installment Amount</th>
                         <th style="border:1px solid #000;padding:6px;text-align:right;background:#f5f5f5">Paid Amount</th>
                         <th style="border:1px solid #000;padding:6px;text-align:right;background:#f5f5f5">Balance</th>
-                        <th style="border:1px solid #000;padding:6px;text-align:center;background:#f5f5f5">Status</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -192,35 +186,27 @@
                         $totalInstalment = 0;
                         $totalPaid = 0;
                         $totalBalance = 0;
-                        $schedulesToShow = $isConsolidatedReceipt && !empty($allPaymentSchedules) ? $allPaymentSchedules : ($admission->schedules ?? []);
+                        $schedulesToShow = !empty($allPaymentSchedules) ? $allPaymentSchedules : ($admission->schedules ?? []);
                     @endphp
                     @foreach ($schedulesToShow as $schedule)
                         @php
                             $instalmentAmount = (float) $schedule->amount;
                             $paidAmount = (float) $schedule->paid_amount;
                             $balance = max(0, $instalmentAmount - $paidAmount);
-                            $status = $schedule->status ?? 'pending';
                             
                             $totalInstalment += $instalmentAmount;
                             $totalPaid += $paidAmount;
                             $totalBalance += $balance;
                             
-                            // Determine row styling based on status
+                            // Determine row styling based on payment status
                             $rowStyle = '';
-                            $statusColor = '#666';
-                            if ($status === 'paid') {
-                                $rowStyle = 'background:#e8f5e8;';
-                                $statusColor = '#046c4e';
-                            } elseif ($status === 'partial') {
-                                $rowStyle = 'background:#fff3cd;';
-                                $statusColor = '#856404';
-                            } elseif ($balance > 0) {
-                                $statusColor = '#b91c1c';
+                            if ($paidAmount >= $instalmentAmount) {
+                                $rowStyle = 'background:#e8f5e8;'; // Green for fully paid
+                            } elseif ($paidAmount > 0) {
+                                $rowStyle = 'background:#fff3cd;'; // Yellow for partial
                             }
                         @endphp
                         <tr style="{{ $rowStyle }}">
-                            <td style="border:1px solid #000;padding:6px;text-align:center">
-                                {{ $schedule->installment_no ?? '—' }}</td>
                             <td style="border:1px solid #000;padding:6px">
                                 {{ $schedule->due_date?->format('d-M-Y') ?? '—' }}</td>
                             <td style="border:1px solid #000;padding:6px;text-align:right">
@@ -228,26 +214,17 @@
                             <td style="border:1px solid #000;padding:6px;text-align:right">
                                 {{ number_format($paidAmount, 2) }}</td>
                             <td style="border:1px solid #000;padding:6px;text-align:right;color:{{ $balance > 0 ? '#b91c1c' : '#046c4e' }}">
-                                {{ $balance > 0 ? number_format($balance, 2) : '0.00' }}</td>
-                            <td style="border:1px solid #000;padding:6px;text-align:center;color:{{ $statusColor }};font-weight:600">
-                                {{ strtoupper($status) }}</td>
+                                {{ number_format($balance, 2) }}</td>
                         </tr>
                     @endforeach
                     <tr style="font-weight:700;background:#f5f5f5">
-                        <td style="border:1px solid #000;padding:6px" colspan="2">Total</td>
+                        <td style="border:1px solid #000;padding:6px">Total</td>
                         <td style="border:1px solid #000;padding:6px;text-align:right">
                             {{ number_format($totalInstalment, 2) }}</td>
                         <td style="border:1px solid #000;padding:6px;text-align:right">
                             {{ number_format($totalPaid, 2) }}</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right;color:#b91c1c">
+                        <td style="border:1px solid #000;padding:6px;text-align:right;color:{{ $totalBalance > 0 ? '#b91c1c' : '#046c4e' }}">
                             {{ number_format($totalBalance, 2) }}</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:center">
-                            @if($totalBalance == 0)
-                                <span style="color:#046c4e">COMPLETED</span>
-                            @else
-                                <span style="color:#b91c1c">PENDING</span>
-                            @endif
-                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -256,97 +233,67 @@
         <!-- Transaction Details -->
         <div>
             <div class="bg-gray-200 px-2 py-2  text-center" style="font-size:13px;font-weight:700;padding-bottom:6px;">
-                @if($isConsolidatedReceipt ?? false)
-                    ALL PAYMENT TRANSACTIONS
-                @else
-                    TRANSACTION DETAILS
-                @endif
+                TRANSACTION DETAILS
             </div>
             <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #000;">
                 <thead>
                     <tr>
-                        <th style="border:1px solid #000;padding:6px;text-align:center;background:#f5f5f5">S.No</th>
-                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Payment Date</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Date</th>
                         <th style="border:1px solid #000;padding:6px;text-align:right;background:#f5f5f5">Amount Paid</th>
-                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Installment</th>
-                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Due Date</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Inst Due date</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Receipt No.</th>
                         <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Mode</th>
-                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Reference</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Details</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Chq Status</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Comment</th>
                     </tr>
                 </thead>
                 <tbody>
                     @php
                         $totalPaid = 0;
-                        $transactionsToShow = $isConsolidatedReceipt ? $consolidatedTransactions : collect([$tx]);
+                        $transactionsToShow = $consolidatedTransactions;
                     @endphp
-                    @foreach ($transactionsToShow as $index => $transaction)
+                    @foreach ($transactionsToShow as $transaction)
                         @php
                             $totalPaid += (float) $transaction->amount;
                         @endphp
                         <tr>
-                            <td style="border:1px solid #000;padding:6px;text-align:center">
-                                {{ $index + 1 }}</td>
-                            <td style="border:1px solid #000;padding:6px;font-weight:600">
-                                {{ $transaction->date?->format('d-M-Y') ?? '—' }}
-                                <br><small style="color:#666;font-weight:normal">{{ $transaction->date?->format('h:i A') ?? '' }}</small>
-                            </td>
-                            <td style="border:1px solid #000;padding:6px;text-align:right;font-weight:600;color:#046c4e">
-                                ₹ {{ number_format($transaction->amount, 2) }}</td>
                             <td style="border:1px solid #000;padding:6px">
-                                {{ $transaction->schedule ? 'Installment #' . $transaction->schedule->installment_no : 'Advance Payment' }}
-                                @if($transaction->schedule?->due_date)
-                                    <br><small style="color:#666">Due: {{ $transaction->schedule->due_date->format('d-M-Y') }}</small>
-                                @endif
-                            </td>
+                                {{ $transaction->date?->format('d-M-Y') ?? '—' }}</td>
+                            <td style="border:1px solid #000;padding:6px;text-align:right">
+                                {{ number_format($transaction->amount, 2) }}</td>
                             <td style="border:1px solid #000;padding:6px">
                                 {{ $transaction->schedule?->due_date?->format('d-M-Y') ?? '—' }}</td>
+                            <td style="border:1px solid #000;padding:6px">{{ $transaction->receipt_number ?? '—' }}</td>
+                            <td style="border:1px solid #000;padding:6px">{{ strtoupper($transaction->mode ?? '—') }}</td>
                             <td style="border:1px solid #000;padding:6px">
-                                <span style="background:#e5e7eb;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600">
-                                    {{ strtoupper($transaction->mode ?? '—') }}
-                                </span>
-                            </td>
-                            <td style="border:1px solid #000;padding:6px;font-size:11px">
                                 @if ($transaction->mode === 'cheque')
-                                    <strong>CHQ:</strong> {{ $transaction->reference_no ?? '—' }}
-                                    <br><small>Date: {{ $transaction->date?->format('d-M-Y') ?? '—' }}</small>
+                                    CHQ NO: {{ $transaction->reference_no ?? '—' }} DT:
+                                    {{ $transaction->date?->format('Y-m-d') ?? '—' }}
                                 @elseif($transaction->mode === 'online')
-                                    <strong>UTR:</strong> {{ $transaction->reference_no ?? '—' }}
-                                @elseif($transaction->reference_no)
-                                    <strong>Ref:</strong> {{ $transaction->reference_no }}
+                                    UTR {{ $transaction->reference_no ?? '—' }}
                                 @else
-                                    —
-                                @endif
-                                @if($transaction->transaction_id)
-                                    <br><small style="color:#666">ID: {{ $transaction->transaction_id }}</small>
+                                    {{ $transaction->reference_no ?? '—' }}
                                 @endif
                             </td>
+                            <td style="border:1px solid #000;padding:6px">
+                                @if ($transaction->mode === 'cheque')
+                                    {{ strtoupper($transaction->status ?? 'PENDING') }}
+                                @else
+                                    {{ strtoupper($transaction->status ?? 'SUCCESS') }}
+                                @endif
+                            </td>
+                            <td style="border:1px solid #000;padding:6px">{{ $transaction->remarks ?? '—' }}</td>
                         </tr>
                     @endforeach
                     <tr style="font-weight:700;background:#f5f5f5">
-                        <td style="border:1px solid #000;padding:6px" colspan="2">
-                            @if($isConsolidatedReceipt ?? false)
-                                Total Payment ({{ $consolidatedTransactions->count() }} Transactions)
-                            @else
-                                Total Payment
-                            @endif
-                        </td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right;color:#046c4e;font-size:14px">
-                            ₹ {{ number_format($totalPaid, 2) }}</td>
-                        <td style="border:1px solid #000;padding:6px" colspan="4">
-                            @if($isConsolidatedReceipt ?? false)
-                                Receipt No: {{ $tx->receipt_number ?? '—' }}
-                            @endif
-                        </td>
+                        <td style="border:1px solid #000;padding:6px" colspan="1">Total</td>
+                        <td style="border:1px solid #000;padding:6px;text-align:right">
+                            {{ number_format($totalPaid, 2) }}</td>
+                        <td style="border:1px solid #000;padding:6px" colspan="6"></td>
                     </tr>
                 </tbody>
             </table>
-            
-            @if($isConsolidatedReceipt ?? false)
-                <div style="margin-top: 10px; padding: 8px; background-color: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 4px; font-size: 11px;">
-                    <strong style="color: #0369a1;">Consolidated Receipt:</strong> 
-                    <span style="color: #0369a1;">This receipt covers {{ $consolidatedTransactions->count() }} installment payments made together on {{ $tx->date?->format('d-M-Y') }}.</span>
-                </div>
-            @endif
         </div>
 
         <!-- Other Transaction Details -->

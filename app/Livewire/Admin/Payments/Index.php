@@ -123,33 +123,27 @@ class Index extends Component
 
     private function getTransactionsQuery()
     {
-        // Get consolidated receipt data - one entry per receipt number per admission
+        // Get one representative transaction per student (admission_id) - showing student's payment summary
         $subQuery = Transaction::select(
-                'receipt_number', 
                 'admission_id',
                 FacadesDB::raw('MIN(id) as representative_id'),
                 FacadesDB::raw('SUM(amount) as total_amount'),
                 FacadesDB::raw('SUM(gst) as total_gst'),
                 FacadesDB::raw('COUNT(*) as transaction_count'),
                 FacadesDB::raw('MIN(date) as earliest_date'),
+                FacadesDB::raw('MAX(date) as latest_date'),
                 FacadesDB::raw('GROUP_CONCAT(DISTINCT mode) as modes'),
-                FacadesDB::raw('GROUP_CONCAT(DISTINCT status) as statuses')
+                FacadesDB::raw('GROUP_CONCAT(DISTINCT status) as statuses'),
+                FacadesDB::raw('GROUP_CONCAT(DISTINCT receipt_number) as receipt_numbers')
             )
-            ->whereNotNull('receipt_number')
-            ->groupBy('receipt_number', 'admission_id');
+            ->groupBy('admission_id');
 
         return Transaction::query()
             ->with(['admission.student', 'admission.batch'])
-            ->leftJoinSub($subQuery, 'consolidated', function($join) {
-                $join->on('transactions.id', '=', 'consolidated.representative_id');
+            ->leftJoinSub($subQuery, 'student_summary', function($join) {
+                $join->on('transactions.id', '=', 'student_summary.representative_id');
             })
-            ->where(function($q) use ($subQuery) {
-                // Include transactions that are either:
-                // 1. Representative transactions from consolidated groups, OR
-                // 2. Transactions without receipt numbers (null receipt_number)
-                $q->whereIn('transactions.id', $subQuery->pluck('representative_id'))
-                  ->orWhereNull('transactions.receipt_number');
-            })
+            ->whereIn('transactions.id', $subQuery->pluck('representative_id'))
             ->when($this->search, fn($q) => $q->where(function($qq) {
                 $term = "%{$this->search}%";
                 $qq->whereHas('admission.student', fn($s) => 
@@ -165,14 +159,16 @@ class Index extends Component
             ->when($this->fromDate, fn($q) => $q->whereDate('transactions.date', '>=', $this->fromDate))
             ->when($this->toDate, fn($q) => $q->whereDate('transactions.date', '<=', $this->toDate))
             ->select('transactions.*', 
-                'consolidated.total_amount', 
-                'consolidated.total_gst', 
-                'consolidated.transaction_count',
-                'consolidated.earliest_date',
-                'consolidated.modes',
-                'consolidated.statuses'
+                'student_summary.total_amount', 
+                'student_summary.total_gst', 
+                'student_summary.transaction_count',
+                'student_summary.earliest_date',
+                'student_summary.latest_date',
+                'student_summary.modes',
+                'student_summary.statuses',
+                'student_summary.receipt_numbers'
             )
-            ->latest('transactions.date');
+            ->latest('student_summary.latest_date');
     }
 
     private function getPaymentStats()

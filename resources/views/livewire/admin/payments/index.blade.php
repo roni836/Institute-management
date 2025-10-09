@@ -136,19 +136,24 @@
                 @forelse($transactions as $i=>$t)
                     <tr class="border-t">
                         <td class="p-3">{{ $i+1 }}.</td>
-                        <td class="p-3">{{ $t->date?->format('d-M-Y') }}</td>
+                        <td class="p-3">
+                            <div class="flex flex-col">
+                                <span class="font-medium">{{ $t->latest_date ? \Carbon\Carbon::parse($t->latest_date)->format('d-M-Y') : $t->date?->format('d-M-Y') }}</span>
+                                @if ($t->earliest_date && $t->latest_date && $t->earliest_date != $t->latest_date)
+                                    <span class="text-xs text-gray-500">First: {{ \Carbon\Carbon::parse($t->earliest_date)->format('d-M-Y') }}</span>
+                                @endif
+                            </div>
+                        </td>
                         <td class="p-3">{{ $t->admission?->student?->name }}</td>
                         <td class="p-3">{{ $t->admission?->student?->enrollment_id}}</td>
                         <td class="p-3">{{ $t->admission?->batch?->batch_name }}</td>
                         <td class="p-3 font-medium">
-                            @if ($t->total_amount && $t->transaction_count > 1)
-                                <div class="flex flex-col">
-                                    <span>₹ {{ number_format($t->total_amount, 2) }}</span>
-                                    <span class="text-xs text-gray-500">({{ $t->transaction_count }} installments)</span>
-                                </div>
-                            @else
-                                ₹ {{ number_format($t->amount, 2) }}
-                            @endif
+                            <div class="flex flex-col">
+                                <span>₹ {{ number_format($t->total_amount ?? $t->amount, 2) }}</span>
+                                @if ($t->transaction_count > 1)
+                                    <span class="text-xs text-gray-500">({{ $t->transaction_count }} payments)</span>
+                                @endif
+                            </div>
                         </td>
                         <td class="p-3">
                             @php
@@ -169,16 +174,19 @@
                         </td>
                         <td class="p-3">
                             <div class="flex flex-col">
-                                <span class="font-mono text-sm text-blue-600">{{ $t->receipt_number ?? '—' }}</span>
-                                @if ($t->transaction_count > 1)
-                                    <span class="text-xs text-green-600">Consolidated Receipt</span>
+                                @if ($t->receipt_numbers && str_contains($t->receipt_numbers, ','))
+                                    <span class="font-mono text-sm text-blue-600">Multiple</span>
+                                    <span class="text-xs text-gray-500">{{ count(explode(',', $t->receipt_numbers)) }} receipts</span>
+                                @else
+                                    <span class="font-mono text-sm text-blue-600">{{ $t->receipt_number ?? '—' }}</span>
                                 @endif
+                                <span class="text-xs text-green-600">Student Summary</span>
                             </div>
                         </td>
                         <td class="p-3 no-print gap-2">
                             <a href="{{ route('admin.payments.receipt', $t->id) }}"
                                 class="px-3 py-1 text-sm rounded bg-indigo-600 text-white hover:bg-indigo-700">
-                                Receipt
+                                Full Receipt
                             </a>
                             <a href="{{ route('admin.payments.edit', $t->id) }}"
                                 class="px-3 py-1 text-sm rounded bg-indigo-600 text-white hover:bg-indigo-700">

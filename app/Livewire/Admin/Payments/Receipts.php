@@ -27,24 +27,21 @@ class Receipts extends Component
         $transaction->load(['admission.student', 'admission.batch.course', 'schedule']);
         $this->transaction = $transaction;
         
-        // Get all transactions with the same receipt number for this admission
-        $this->consolidatedTransactions = Transaction::where('receipt_number', $transaction->receipt_number)
-            ->where('admission_id', $transaction->admission_id)
+        // Get ALL transactions for this student (admission_id) - not just same receipt number
+        $this->consolidatedTransactions = Transaction::where('admission_id', $transaction->admission_id)
             ->with(['schedule'])
             ->orderBy('date', 'asc')
             ->orderBy('id', 'asc')
             ->get();
             
-        $this->isConsolidatedReceipt = $this->consolidatedTransactions->count() > 1;
+        // Always show as consolidated receipt since we're showing all student payments
+        $this->isConsolidatedReceipt = true;
         
-        // If this is a consolidated receipt, get all payment schedules for this admission
-        // to show both paid and due installments
-        if ($this->isConsolidatedReceipt) {
-            $this->allPaymentSchedules = \App\Models\PaymentSchedule::where('admission_id', $transaction->admission_id)
-                ->with(['transactions'])
-                ->orderBy('installment_no')
-                ->get();
-        }
+        // Get all payment schedules for this admission to show complete installment details
+        $this->allPaymentSchedules = \App\Models\PaymentSchedule::where('admission_id', $transaction->admission_id)
+            ->with(['transactions'])
+            ->orderBy('installment_no')
+            ->get();
     }
 
     public function openEmailModal()
