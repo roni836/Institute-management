@@ -504,7 +504,7 @@ function addressDropdown(prefix) {
                                             @error('photo_upload') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                                             <div class="mt-3">
                                                 @if($photo_upload)
-                                                    <img src="{{ $photo_upload->temporaryUrl() }}" alt="Photo preview" class="h-32 w-32 object-cover rounded-lg shadow" />
+                                                    {{-- <img src="{{ $photo_upload->temporaryUrl() }}" alt="Photo preview" class="h-32 w-32 object-cover rounded-lg shadow" /> --}}
                                                 @elseif($this->existingPhotoUrl)
                                                     <img src="{{ $this->existingPhotoUrl }}" alt="Uploaded photo" class="h-32 w-32 object-cover rounded-lg shadow" />
                                                 @else
