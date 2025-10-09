@@ -124,7 +124,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-xs font-medium text-gray-700 mb-1">Stream *</label>
-                                    <select wire:model="stream" name="stream" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    <select wire:model.live="stream" name="stream" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                                         <option value="">Select Stream</option>
                                         <option value="Engineering">Engineering</option>
                                         <option value="Foundation">Foundation</option>
@@ -135,7 +135,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-xs font-medium text-gray-700 mb-1">Academic Session *</label>
-                                    <select wire:model="academic_session" name="academic_session" required class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    <select wire:model.live="academic_session" name="academic_session" required class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                                         <option value="">Select Academic Session</option>
                                         <option value="2024-25">2024-25</option>
                                         <option value="2025-26">2025-26</option>
@@ -464,6 +464,23 @@ function addressDropdown(prefix) {
                                     </select>
                                     @error('board') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                 </div>
+                                <div>
+                                <label class="text-xs">Class <span class="text-red-500">*</span></label>
+                                <select class="w-full border rounded p-2 bg-white" wire:model.live="class">
+                                    <option value="">Select class</option>
+                                    <option value="5">5th</option>
+                                    <option value="6">6th</option>
+                                    <option value="7">7th</option>
+                                    <option value="8">8th</option>
+                                    <option value="9">9th</option>
+                                    <option value="10">10th</option>
+                                    <option value="11">11th</option>
+                                    <option value="12">12th</option>
+                                </select>
+                                @error('class')
+                                    <p class="text-xs text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Enrollment ID Preview</label>
                                     <div class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">

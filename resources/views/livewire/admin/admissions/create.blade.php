@@ -388,10 +388,27 @@
                                 @enderror
                             </div>
                             <div>
+                                <label class="text-xs">Class <span class="text-red-500">*</span></label>
+                                <select class="w-full border rounded p-2 bg-white" wire:model.live="class">
+                                    <option value="">Select class</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10</option>
+                                    <option value="11">11</option>
+                                    <option value="12">12</option>
+                                </select>
+                                @error('class')
+                                    <p class="text-xs text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
                                 <label class="text-xs">Enrollment ID</label>
                                 <input type="text" readonly class="w-full border rounded p-2 bg-gray-50"
                                     value="{{ $this->getNextEnrollmentId() }}">
-                                <p class="text-xs text-gray-500 mt-1">Auto-generated based on stream</p>
+                                <p class="text-xs text-gray-500 mt-1">Auto-generated based on stream and class</p>
                             </div>
                         </div>
                         <div>

@@ -29,7 +29,7 @@ class NewForm extends Component
     // Student fields (new student at admission time)
     public $name, $father_name, $mother_name, $email, $phone, $whatsapp_no, $address, $admission;
     public $gender, $category, $alt_phone, $dob, $session, $academic_session, $mother_occupation, $father_occupation;
-    public $school_name, $school_address, $board;
+    public $school_name, $school_address, $board, $class;
     public $stream;
     public string $student_status = 'active';
     public ?string $module1 = null;
@@ -253,6 +253,7 @@ class NewForm extends Component
             $this->mother_occupation = $student->mother_occupation;
             $this->father_occupation = $student->father_occupation;
             $this->stream = $student->stream;
+            $this->class = $student->class;
             $this->student_status = $student->status;
             $this->existing_photo = $student->photo;
             $this->existing_aadhaar = $student->aadhaar_document_path;
@@ -311,7 +312,7 @@ class NewForm extends Component
             'father_occupation', 'stream', 'address_line1', 'address_line2', 'city', 'state', 
             'district', 'pincode', 'country', 'corr_address_line1', 'corr_address_line2', 
             'corr_city', 'corr_state', 'corr_district', 'corr_pincode', 'corr_country', 'same_as_permanent',
-            'school_name', 'school_address', 'board',
+            'school_name', 'school_address', 'board', 'class',
             'module1', 'module2', 'module3', 'module4', 'module5', 'id_card_required'
         ]);
         $this->photo_upload = null;
@@ -358,6 +359,7 @@ class NewForm extends Component
             'school_name' => ['nullable', 'string', 'max:255'],
             'school_address' => ['nullable', 'string', 'max:255'],
             'board' => ['nullable', 'string', 'max:100'],
+            'class' => ['nullable', 'string', 'max:255'],
             'module1' => ['nullable', 'string', 'max:255'],
             'module2' => ['nullable', 'string', 'max:255'],
             'module3' => ['nullable', 'string', 'max:255'],
@@ -446,6 +448,7 @@ class NewForm extends Component
                 'school_name' => ['nullable', 'string', 'max:255'],
                 'school_address' => ['nullable', 'string', 'max:255'],
                 'board' => ['nullable', 'string', 'max:100'],
+                'class' => ['nullable', 'string', 'max:255'],
                 'module1' => ['nullable', 'string', 'max:255'],
                 'module2' => ['nullable', 'string', 'max:255'],
                 'module3' => ['nullable', 'string', 'max:255'],
@@ -608,15 +611,13 @@ class NewForm extends Component
             throw new \Exception('Stream is required to generate enrollment ID');
         }
         
-        // For NewForm, we need to get class from the batch or course information
-        // Since class field might not be directly available, we'll use a default approach
-        $classValue = $this->getClassForEnrollment();
-        
-        if (!$classValue) {
-            throw new \Exception('Class information is required to generate enrollment ID');
+        if (!$this->class) {
+            throw new \Exception('Class is required to generate enrollment ID');
         }
 
-        $year = date('y'); // 2-digit year (25 for 2025)
+        // Get session year start (e.g., "2024-25" -> "24", "2025-26" -> "25")
+        $sessionYear = $this->academic_session ? $this->getSessionYearStart($this->academic_session) : date('y');
+        
         $streamPrefix = match ($this->stream) {
             'Foundation' => 'F',
             'Engineering' => 'E',
@@ -625,11 +626,11 @@ class NewForm extends Component
             default => 'O'
         };
         
-        // Extract numeric part from class (e.g., "6th" -> "26", "7th" -> "27")
-        $classNumber = $this->extractClassNumber($classValue);
+        // Use class number directly (5, 6, 7, 8, 9, 10, 11, 12)
+        $classNumber = $this->class;
 
-        // Build the pattern to search for: F25AE26, E25AE27, etc.
-        $pattern = $streamPrefix . $year . 'AE' . $classNumber;
+        // Build the pattern to search for: F24AE6, E25AE11, etc.
+        $pattern = $streamPrefix . $sessionYear . 'AE' . $classNumber;
         
         // Find the last enrollment ID for this stream, year, and class
         $lastStudent = Student::where('stream', $this->stream)
@@ -653,6 +654,11 @@ class NewForm extends Component
      */
     private function getClassForEnrollment(): ?string
     {
+        // First priority: use the class field directly
+        if ($this->class) {
+            return $this->class;
+        }
+        
         // Try to get class from batch information
         if ($this->selected_batch && isset($this->selected_batch->class)) {
             return $this->selected_batch->class;
@@ -665,25 +671,26 @@ class NewForm extends Component
         
         // Default class mapping based on stream
         return match ($this->stream) {
-            'Foundation' => '6th',
-            'Engineering' => '11th', 
-            'Medical' => '11th',
-            'Other' => '10th',
-            default => '10th'
+            'Foundation' => '6',
+            'Engineering' => '11', 
+            'Medical' => '11',
+            'Other' => '10',
+            default => '10'
         };
     }
     
     /**
-     * Extract class number from class string (e.g., "6th" -> "26", "7th" -> "27")
+     * Extract session year start from session string (e.g., "2024-25" -> "24", "2025-26" -> "25")
      */
-    private function extractClassNumber(string $class): string
+    private function getSessionYearStart(string $session): string
     {
-        // Extract numeric part from class string
-        preg_match('/\d+/', $class, $matches);
-        $classNum = isset($matches[0]) ? (int)$matches[0] : 0;
+        // Extract the starting year from session format "YYYY-YY"
+        if (preg_match('/^(\d{4})-\d{2}$/', $session, $matches)) {
+            return substr($matches[1], -2); // Get last 2 digits of the year
+        }
         
-        // Convert to the format used in enrollment ID (6th -> 26, 7th -> 27, etc.)
-        return str_pad($classNum + 20, 2, '0', STR_PAD_LEFT);
+        // Fallback to current year if session format is invalid
+        return date('y');
     }
     
     /**
@@ -738,7 +745,14 @@ class NewForm extends Component
         if (!$this->stream) {
             return 'Select stream first';
         }
-        return $this->generateEnrollmentId();
+        if (!$this->class) {
+            return 'Select class first';
+        }
+        try {
+            return $this->generateEnrollmentId();
+        } catch (\Exception $e) {
+            return 'Select stream and class first';
+        }
     }
 
     /**
@@ -870,6 +884,7 @@ class NewForm extends Component
                         'mother_occupation' => $this->mother_occupation,
                         'father_occupation' => $this->father_occupation,
                         'stream' => $this->stream,
+                        'class' => $this->class,
                         'academic_session' => $this->academic_session,
                         'school_name' => $this->school_name,
                         'school_address' => $this->school_address,
@@ -897,6 +912,7 @@ class NewForm extends Component
                         'mother_occupation' => $this->mother_occupation,
                         'father_occupation' => $this->father_occupation,
                         'stream' => $this->stream,
+                        'class' => $this->class,
                         'academic_session' => $this->academic_session,
                         'school_name' => $this->school_name,
                         'school_address' => $this->school_address,
@@ -904,8 +920,8 @@ class NewForm extends Component
                         'admission_date' => $this->admission_date,
                         'roll_no' => $this->generateRollNumber(),
                         'student_uid' => $this->generateStudentUid(),
-                            "enrollment_id" => $this->getNextEnrollmentId(),
-
+                        'enrollment_id' => $enrollmentId,
+                        'status' => $this->student_status,
                     ]);
                 }
 

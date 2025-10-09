@@ -354,7 +354,9 @@ class Create extends Component
             throw new \Exception('Class is required to generate enrollment ID');
         }
 
-        $year = date('y'); // 2-digit year (25 for 2025)
+        // Get session year start (e.g., "2024-25" -> "24", "2025-26" -> "25")
+        $sessionYear = $this->session ? $this->getSessionYearStart($this->session) : date('y');
+        
         $streamPrefix = match ($this->stream) {
             'Foundation'  => 'F',
             'Engineering' => 'E',
@@ -363,11 +365,11 @@ class Create extends Component
             default       => 'O'
         };
         
-        // Extract numeric part from class (e.g., "6th" -> "26", "7th" -> "27")
-        $classNumber = $this->extractClassNumber($this->class);
+        // Use class number directly (5, 6, 7, 8, 9, 10, 11, 12)
+        $classNumber = $this->class;
 
-        // Build the pattern to search for: F25AE26, E25AE27, etc.
-        $pattern = $streamPrefix . $year . 'AE' . $classNumber;
+        // Build the pattern to search for: F24AE6, E25AE11, etc.
+        $pattern = $streamPrefix . $sessionYear . 'AE' . $classNumber;
         
         // Find the last enrollment ID for this stream, year, and class
         $lastStudent = Student::where('stream', $this->stream)
@@ -387,16 +389,17 @@ class Create extends Component
     }
     
     /**
-     * Extract class number from class string (e.g., "6th" -> "26", "7th" -> "27")
+     * Extract session year start from session string (e.g., "2024-25" -> "24", "2025-26" -> "25")
      */
-    private function extractClassNumber(string $class): string
+    private function getSessionYearStart(string $session): string
     {
-        // Extract numeric part from class string
-        preg_match('/\d+/', $class, $matches);
-        $classNum = isset($matches[0]) ? (int)$matches[0] : 0;
+        // Extract the starting year from session format "YYYY-YY"
+        if (preg_match('/^(\d{4})-\d{2}$/', $session, $matches)) {
+            return substr($matches[1], -2); // Get last 2 digits of the year
+        }
         
-        // Convert to the format used in enrollment ID (6th -> 26, 7th -> 27, etc.)
-        return str_pad($classNum + 20, 2, '0', STR_PAD_LEFT);
+        // Fallback to current year if session format is invalid
+        return date('y');
     }
 
     /**
@@ -470,7 +473,14 @@ class Create extends Component
         if (! $this->stream) {
             return 'Select stream first';
         }
-        return $this->generateEnrollmentId();
+        if (! $this->class) {
+            return 'Select class first';
+        }
+        try {
+            return $this->generateEnrollmentId();
+        } catch (\Exception $e) {
+            return 'Select stream and class first';
+        }
     }
 
     /**
