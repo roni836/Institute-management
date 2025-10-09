@@ -123,8 +123,20 @@ class Index extends Component
 
     private function getTransactionsQuery()
     {
+        // Get the earliest transaction ID for each receipt number to avoid duplicates
+        $subQuery = Transaction::select('receipt_number', FacadesDB::raw('MIN(id) as min_id'))
+            ->whereNotNull('receipt_number')
+            ->groupBy('receipt_number');
+
         return Transaction::query()
             ->with(['admission.student', 'admission.batch'])
+            ->where(function($q) use ($subQuery) {
+                // Include transactions that are either:
+                // 1. The first transaction of each receipt number group, OR
+                // 2. Transactions without receipt numbers (null receipt_number)
+                $q->whereIn('id', $subQuery->pluck('min_id'))
+                  ->orWhereNull('receipt_number');
+            })
             ->when($this->search, fn($q) => $q->where(function($qq) {
                 $term = "%{$this->search}%";
                 $qq->whereHas('admission.student', fn($s) => 
@@ -132,7 +144,8 @@ class Index extends Component
                       ->orWhere('email', 'like', $term)
                       ->orWhere('phone', 'like', $term)
                 )
-                ->orWhere('transaction_id', 'like', $term);
+                ->orWhere('transaction_id', 'like', $term)
+                ->orWhere('receipt_number', 'like', $term);
             }))
             ->when($this->status, fn($q) => $q->where('status', $this->status))
             ->when($this->mode, fn($q) => $q->where('mode', $this->mode))

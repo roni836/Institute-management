@@ -134,18 +134,52 @@
             </thead>
             <tbody>
                 @forelse($transactions as $i=>$t)
+                    @php
+                        // Get consolidated data for this receipt if it has multiple transactions
+                        $consolidatedData = null;
+                        if ($t->receipt_number) {
+                            $consolidatedTransactions = \App\Models\Transaction::where('receipt_number', $t->receipt_number)
+                                ->where('admission_id', $t->admission_id)
+                                ->get();
+                            
+                            if ($consolidatedTransactions->count() > 1) {
+                                $consolidatedData = [
+                                    'total_amount' => $consolidatedTransactions->sum('amount'),
+                                    'total_gst' => $consolidatedTransactions->sum('gst'),
+                                    'count' => $consolidatedTransactions->count()
+                                ];
+                            }
+                        }
+                    @endphp
                     <tr class="border-t">
                         <td class="p-3">{{ $i+1 }}.</td>
                         <td class="p-3">{{ $t->date?->format('d-M-Y') }}</td>
                         <td class="p-3">{{ $t->admission?->student?->name }}</td>
                         <td class="p-3">{{ $t->admission?->student?->enrollment_id}}</td>
                         <td class="p-3">{{ $t->admission?->batch?->batch_name }}</td>
-                        <td class="p-3 font-medium">₹ {{ number_format($t->amount, 2) }}</td>
-                        <td class="p-3">
-                            @if ($t->gst > 0)
-                                <span class="text-blue-600 font-medium">₹ {{ number_format($t->gst, 2) }}</span>
+                        <td class="p-3 font-medium">
+                            @if ($consolidatedData)
+                                <div class="flex flex-col">
+                                    <span>₹ {{ number_format($consolidatedData['total_amount'], 2) }}</span>
+                                    <span class="text-xs text-gray-500">({{ $consolidatedData['count'] }} transactions)</span>
+                                </div>
                             @else
-                                <span class="text-gray-400">—</span>
+                                ₹ {{ number_format($t->amount, 2) }}
+                            @endif
+                        </td>
+                        <td class="p-3">
+                            @if ($consolidatedData)
+                                @if ($consolidatedData['total_gst'] > 0)
+                                    <span class="text-blue-600 font-medium">₹ {{ number_format($consolidatedData['total_gst'], 2) }}</span>
+                                @else
+                                    <span class="text-gray-400">—</span>
+                                @endif
+                            @else
+                                @if ($t->gst > 0)
+                                    <span class="text-blue-600 font-medium">₹ {{ number_format($t->gst, 2) }}</span>
+                                @else
+                                    <span class="text-gray-400">—</span>
+                                @endif
                             @endif
                         </td>
                         <td class="p-3 capitalize">{{ $t->mode }}</td>

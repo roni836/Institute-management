@@ -226,27 +226,30 @@
         <!-- Transaction Details -->
         <div>
             <div class="bg-gray-200 px-2 py-2  text-center" style="font-size:13px;font-weight:700;padding-bottom:6px;">
-                TRANSACTION DETAILS</div>
+                @if($isConsolidatedReceipt ?? false)
+                    CONSOLIDATED PAYMENT DETAILS
+                @else
+                    TRANSACTION DETAILS
+                @endif
+            </div>
             <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #000;">
                 <thead>
                     <tr>
                         <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Date</th>
-                        <th style="border:1px solid #000;padding:6px;text-align:right;background:#f5f5f5">Amount Paid
-                        </th>
-                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Inst Due date
-                        </th>
-                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Receipt No.
-                        </th>
+                        <th style="border:1px solid #000;padding:6px;text-align:right;background:#f5f5f5">Amount Paid</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Installment</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Due Date</th>
+                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Receipt No.</th>
                         <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Mode</th>
                         <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Details</th>
-                        <th style="border:1px solid #000;padding:6px;text-align:left;background:#f5f5f5">Comment</th>
                     </tr>
                 </thead>
                 <tbody>
                     @php
                         $totalPaid = 0;
+                        $transactionsToShow = $isConsolidatedReceipt ? $consolidatedTransactions : collect([$tx]);
                     @endphp
-                    @foreach ($admission->transactions ?? [] as $transaction)
+                    @foreach ($transactionsToShow as $transaction)
                         @php
                             $totalPaid += (float) $transaction->amount;
                         @endphp
@@ -256,11 +259,11 @@
                             <td style="border:1px solid #000;padding:6px;text-align:right">
                                 {{ number_format($transaction->amount, 2) }}</td>
                             <td style="border:1px solid #000;padding:6px">
+                                {{ $transaction->schedule ? 'Installment #' . $transaction->schedule->installment_no : 'Advance Payment' }}</td>
+                            <td style="border:1px solid #000;padding:6px">
                                 {{ $transaction->schedule?->due_date?->format('d-M-Y') ?? '—' }}</td>
-                            <td style="border:1px solid #000;padding:6px">{{ $transaction->receipt_number ?? '—' }}
-                            </td>
-                            <td style="border:1px solid #000;padding:6px">{{ strtoupper($transaction->mode ?? '—') }}
-                            </td>
+                            <td style="border:1px solid #000;padding:6px">{{ $transaction->receipt_number ?? '—' }}</td>
+                            <td style="border:1px solid #000;padding:6px">{{ strtoupper($transaction->mode ?? '—') }}</td>
                             <td style="border:1px solid #000;padding:6px">
                                 @if ($transaction->mode === 'cheque')
                                     CHQ NO: {{ $transaction->reference_no ?? '—' }} DT:
@@ -271,18 +274,32 @@
                                     —
                                 @endif
                             </td>
-                            <td style="border:1px solid #000;padding:6px">{{ strtoupper($transaction->mode ?? '—') }}
-                            </td>
                         </tr>
                     @endforeach
-                    <tr style="font-weight:700;background:#f5f5f5">
-                        <td style="border:1px solid #000;padding:6px">Total</td>
-                        <td style="border:1px solid #000;padding:6px;text-align:right">
-                            {{ number_format($totalPaid, 2) }}</td>
-                        <td style="border:1px solid #000;padding:6px" colspan="5"></td>
-                    </tr>
+                    @if($isConsolidatedReceipt ?? false)
+                        <tr style="font-weight:700;background:#f5f5f5">
+                            <td style="border:1px solid #000;padding:6px">Total Payment</td>
+                            <td style="border:1px solid #000;padding:6px;text-align:right">
+                                {{ number_format($totalPaid, 2) }}</td>
+                            <td style="border:1px solid #000;padding:6px" colspan="5">{{ $consolidatedTransactions->count() }} Installments Paid</td>
+                        </tr>
+                    @else
+                        <tr style="font-weight:700;background:#f5f5f5">
+                            <td style="border:1px solid #000;padding:6px">Total</td>
+                            <td style="border:1px solid #000;padding:6px;text-align:right">
+                                {{ number_format($totalPaid, 2) }}</td>
+                            <td style="border:1px solid #000;padding:6px" colspan="5"></td>
+                        </tr>
+                    @endif
                 </tbody>
             </table>
+            
+            @if($isConsolidatedReceipt ?? false)
+                <div style="margin-top: 10px; padding: 8px; background-color: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 4px; font-size: 11px;">
+                    <strong style="color: #0369a1;">Consolidated Receipt:</strong> 
+                    <span style="color: #0369a1;">This receipt covers {{ $consolidatedTransactions->count() }} installment payments made together on {{ $tx->date?->format('d-M-Y') }}.</span>
+                </div>
+            @endif
         </div>
 
         <!-- Other Transaction Details -->

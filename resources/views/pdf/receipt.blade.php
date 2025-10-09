@@ -394,30 +394,38 @@
 
     <!-- Transaction Details -->
     <div class="section">
-        <div class="section-title">TRANSACTION DETAILS</div>
+        <div class="section-title">
+            @if($isConsolidatedReceipt ?? false)
+                CONSOLIDATED PAYMENT DETAILS
+            @else
+                TRANSACTION DETAILS
+            @endif
+        </div>
         <table class="table">
             <thead>
                 <tr>
                     <th>Date</th>
                     <th class="text-right">Amount Paid</th>
-                    <th>Inst Due date</th>
+                    <th>Installment</th>
+                    <th>Due Date</th>
                     <th>Receipt No.</th>
                     <th>Mode</th>
                     <th>Details</th>
-                    <th>Comment</th>
                 </tr>
             </thead>
             <tbody>
                 @php
                     $totalPaid = 0;
+                    $transactionsToShow = $isConsolidatedReceipt ? $consolidatedTransactions : collect([$tx]);
                 @endphp
-                @foreach($admission->transactions ?? [] as $transaction)
+                @foreach($transactionsToShow as $transaction)
                     @php
                         $totalPaid += (float) $transaction->amount;
                     @endphp
                     <tr>
                         <td>{{ $transaction->date?->format('d-M-Y') ?? '—' }}</td>
                         <td class="text-right">{{ number_format($transaction->amount, 2) }}</td>
+                        <td>{{ $transaction->schedule ? 'Installment #' . $transaction->schedule->installment_no : 'Advance Payment' }}</td>
                         <td>{{ $transaction->schedule?->due_date?->format('d-M-Y') ?? '—' }}</td>
                         <td>{{ $transaction->receipt_number ?? '—' }}</td>
                         <td>{{ strtoupper($transaction->mode ?? '—') }}</td>
@@ -430,16 +438,30 @@
                                 —
                             @endif
                         </td>
-                        <td>{{ strtoupper($transaction->mode ?? '—') }}</td>
                     </tr>
                 @endforeach
-                <tr class="total-row">
-                    <td colspan="1"><strong>Total</strong></td>
-                    <td class="text-right"><strong>{{ number_format($totalPaid, 2) }}</strong></td>
-                    <td colspan="5"></td>
-                </tr>
+                @if($isConsolidatedReceipt ?? false)
+                    <tr class="total-row">
+                        <td colspan="1"><strong>Total Payment</strong></td>
+                        <td class="text-right"><strong>{{ number_format($totalPaid, 2) }}</strong></td>
+                        <td colspan="5"><strong>{{ $consolidatedTransactions->count() }} Installments Paid</strong></td>
+                    </tr>
+                @else
+                    <tr class="total-row">
+                        <td colspan="1"><strong>Total</strong></td>
+                        <td class="text-right"><strong>{{ number_format($totalPaid, 2) }}</strong></td>
+                        <td colspan="5"></td>
+                    </tr>
+                @endif
             </tbody>
         </table>
+        
+        @if($isConsolidatedReceipt ?? false)
+            <div style="margin-top: 15px; padding: 10px; background-color: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 5px;">
+                <strong style="color: #0369a1;">Consolidated Receipt:</strong> 
+                <span style="color: #0369a1;">This receipt covers {{ $consolidatedTransactions->count() }} installment payments made together on {{ $tx->date?->format('d-M-Y') }}.</span>
+            </div>
+        @endif
     </div>
 
     <!-- Other Transaction Details -->

@@ -13,7 +13,8 @@ use Livewire\Component;
 class Receipts extends Component
 {
      public Transaction $transaction;
-
+    public $consolidatedTransactions = [];
+    public bool $isConsolidatedReceipt = false;
 
     // Email modal state
     public bool $showEmailModal = false;
@@ -24,7 +25,15 @@ class Receipts extends Component
         // Eager load related data for the view
         $transaction->load(['admission.student', 'admission.batch.course', 'schedule']);
         $this->transaction = $transaction;
-      
+        
+        // Check if this transaction is part of a consolidated payment (multiple transactions with same receipt number)
+        $this->consolidatedTransactions = Transaction::where('receipt_number', $transaction->receipt_number)
+            ->where('admission_id', $transaction->admission_id)
+            ->with(['schedule'])
+            ->orderBy('id')
+            ->get();
+            
+        $this->isConsolidatedReceipt = $this->consolidatedTransactions->count() > 1;
     }
 
     public function openEmailModal()
@@ -45,6 +54,8 @@ class Receipts extends Component
         // Use the dedicated PDF view (inline CSS, dompdf-friendly)
         return view('pdf.receipt', [
             'tx' => $this->transaction,
+            'consolidatedTransactions' => $this->consolidatedTransactions,
+            'isConsolidatedReceipt' => $this->isConsolidatedReceipt,
             'org' => [
                 'name'    => 'Antra Institutions',
                 'gst'     => '5451515121',
@@ -89,6 +100,8 @@ class Receipts extends Component
         // If the request sets ?minimal=1 we render using a minimal print layout
         $data = [
             'tx' => $this->transaction,
+            'consolidatedTransactions' => $this->consolidatedTransactions,
+            'isConsolidatedReceipt' => $this->isConsolidatedReceipt,
             'org' => [
                 'name'    => 'Antra Institutions',
                 'gst'     => '5451515121',
