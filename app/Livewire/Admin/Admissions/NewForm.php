@@ -77,6 +77,11 @@ class NewForm extends Component
     public ?string $existing_photo = null;
     public ?string $existing_aadhaar = null;
 
+    // Validation error tracking
+    public array $validationErrors = [];
+    public bool $showValidationErrors = false;
+    public string $validationMessage = '';
+
     public function mount()
     {
         $this->admission_date = now()->toDateString();
@@ -385,6 +390,107 @@ class NewForm extends Component
         }
     }
 
+    /**
+     * Clear validation errors
+     */
+    public function clearValidationErrors()
+    {
+        $this->validationErrors = [];
+        $this->showValidationErrors = false;
+        $this->validationMessage = '';
+        $this->resetErrorBag();
+    }
+
+    /**
+     * Display validation errors in a user-friendly format
+     */
+    public function displayValidationErrors(array $errors)
+    {
+        $this->validationErrors = $errors;
+        $this->showValidationErrors = true;
+        
+        // Create a summary message
+        $errorCount = count($errors);
+        $fieldCount = array_sum(array_map('count', $errors));
+        
+        $this->validationMessage = "Please fix {$fieldCount} validation error(s) in {$errorCount} field(s) before submitting.";
+        
+        // Dispatch to frontend for additional UI feedback
+        $this->dispatch('showValidationErrors', [
+            'errors' => $errors,
+            'message' => $this->validationMessage,
+            'count' => $fieldCount
+        ]);
+    }
+
+    /**
+     * Get formatted validation errors for display
+     */
+    public function getFormattedValidationErrors(): array
+    {
+        $formatted = [];
+        foreach ($this->validationErrors as $field => $messages) {
+            $fieldLabel = $this->getFieldLabel($field);
+            $formatted[] = [
+                'field' => $field,
+                'label' => $fieldLabel,
+                'messages' => $messages
+            ];
+        }
+        return $formatted;
+    }
+
+    /**
+     * Get user-friendly field labels
+     */
+    private function getFieldLabel(string $field): string
+    {
+        $labels = [
+            'name' => 'Student Name',
+            'father_name' => 'Father Name',
+            'mother_name' => 'Mother Name',
+            'email' => 'Email Address',
+            'phone' => 'Phone Number',
+            'whatsapp_no' => 'WhatsApp Number',
+            'address' => 'Address',
+            'dob' => 'Date of Birth',
+            'gender' => 'Gender',
+            'category' => 'Category',
+            'stream' => 'Stream',
+            'course_id' => 'Course',
+            'batch_id' => 'Batch',
+            'admission_date' => 'Admission Date',
+            'address_line1' => 'Permanent Address Line 1',
+            'address_line2' => 'Permanent Address Line 2',
+            'city' => 'Permanent City',
+            'state' => 'Permanent State',
+            'district' => 'Permanent District',
+            'pincode' => 'Permanent Pin Code',
+            'country' => 'Permanent Country',
+            'corr_address_line1' => 'Correspondence Address Line 1',
+            'corr_address_line2' => 'Correspondence Address Line 2',
+            'corr_city' => 'Correspondence City',
+            'corr_state' => 'Correspondence State',
+            'corr_district' => 'Correspondence District',
+            'corr_pincode' => 'Correspondence Pin Code',
+            'corr_country' => 'Correspondence Country',
+            'school_name' => 'School Name',
+            'school_address' => 'School Address',
+            'board' => 'Board',
+            'class' => 'Class',
+            'academic_session' => 'Academic Session',
+            'discount_type' => 'Discount Type',
+            'discount_value' => 'Discount Value',
+            'mode' => 'Payment Mode',
+            'installments' => 'Number of Installments',
+            'fee_total' => 'Total Fee',
+            'photo_upload' => 'Photo Upload',
+            'aadhaar_upload' => 'Aadhaar Document',
+        ];
+
+        return $labels[$field] ?? ucwords(str_replace('_', ' ', $field));
+    }
+
     /** Full rules (used on final save) */
     public function rules(): array
     {
@@ -463,8 +569,10 @@ class NewForm extends Component
                 function ($attribute, $value, $fail) {
                     if ($this->mode === 'installment' && !empty($this->plan)) {
                         $total = array_sum(array_column($this->plan, 'amount'));
-                        if (abs($total - $this->fee_total) > 0.01) {
-                            $fail('Installment amounts must equal the total fee amount.');
+                        $difference = abs($total - $this->fee_total);
+                        // Allow for small floating point differences (up to 1 rupee)
+                        if ($difference > 1.00) {
+                            $fail("Installment amounts (₹{$total}) must equal the total fee amount (₹{$this->fee_total}). Difference: ₹{$difference}");
                         }
                     }
                 },
@@ -536,7 +644,21 @@ class NewForm extends Component
     {
         try {
             $this->validate($this->stepRules($this->step));
+            // Clear any previous validation errors on successful validation
+            $this->clearValidationErrors();
         } catch (ValidationException $e) {
+            // Display validation errors in user-friendly format
+            $this->displayValidationErrors($e->errors());
+            
+            // Log step validation errors
+            Log::info('Step validation failed', [
+                'step' => $this->step,
+                'errors' => $e->errors(),
+            ]);
+            
+            // Add a general error message
+            $this->addError('step', "Please fix the validation errors in Step {$this->step} before proceeding.");
+            
             // bail out so we stay on the current step
             throw $e;
         }
@@ -560,7 +682,14 @@ class NewForm extends Component
     {
         // Prevent jumping ahead without validating current step
         if ($to > $this->step) {
-            $this->validate($this->stepRules($this->step));
+            try {
+                $this->validate($this->stepRules($this->step));
+                $this->clearValidationErrors();
+            } catch (ValidationException $e) {
+                $this->displayValidationErrors($e->errors());
+                $this->addError('step', "Please fix the validation errors in Step {$this->step} before proceeding.");
+                throw $e;
+            }
         }
         $this->step = max(1, min(2, $to));
         $this->dispatch('stepChanged', step: $this->step);
@@ -833,8 +962,10 @@ class NewForm extends Component
     {
         if ($this->mode === 'installment' && !empty($this->plan)) {
             $total = array_sum(array_column($this->plan, 'amount'));
-            if (abs($total - $this->fee_total) > 0.01) {
-                $this->addError('plan', 'Installment amounts must equal the total fee amount.');
+            $difference = abs($total - $this->fee_total);
+            // Allow for small floating point differences (up to 1 rupee)
+            if ($difference > 1.00) {
+                $this->addError('plan', "Installment amounts (₹{$total}) must equal the total fee amount (₹{$this->fee_total}). Difference: ₹{$difference}");
             } else {
                 $this->resetErrorBag('plan');
             }
@@ -891,19 +1022,22 @@ class NewForm extends Component
 
         try {
             $data = $this->validate();
+            // Clear any previous validation errors on successful validation
+            $this->clearValidationErrors();
         } catch (\Illuminate\Validation\ValidationException $e) {
+            // Display validation errors in user-friendly format
+            $this->displayValidationErrors($e->errors());
+            
             // Log validation errors for server-side debugging
             Log::warning('Admission save validation failed', [
                 'errors' => $e->errors(),
                 'input' => request()->all(),
+                'step' => $this->step,
+                'same_as_permanent' => $this->same_as_permanent,
             ]);
 
-            // Dispatch a client event so frontend can show debug info
-            try {
-                $this->dispatch('validationFailed', errors: $e->errors());
-            } catch (\Throwable $ex) {
-                Log::debug('Failed to dispatch validationFailed event: ' . $ex->getMessage());
-            }
+            // Add a general error message
+            $this->addError('general', $this->validationMessage);
 
             // Re-throw so Livewire shows validation errors in the UI as well
             throw $e;
@@ -1146,6 +1280,9 @@ class NewForm extends Component
                 2 => 100,
                 default => 0,
             },
+            'formattedValidationErrors' => $this->getFormattedValidationErrors(),
+            'hasValidationErrors' => $this->showValidationErrors,
+            'validationSummary' => $this->validationMessage,
         ]);
     }
 }
