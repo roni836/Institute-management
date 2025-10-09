@@ -130,6 +130,15 @@ class NewForm extends Component
             $this->custom_installments = false;
         }
 
+        // Handle same_as_permanent address copying
+        if ($name === 'same_as_permanent') {
+            if ($value) {
+                $this->copyPermanentToCorrespondence();
+            } else {
+                $this->clearCorrespondenceAddress();
+            }
+        }
+
         // Notify frontend (Alpine) about property changes so Alpine can sync
         try {
             $this->dispatch('propertyChanged', property: $name, value: $value);
@@ -334,6 +343,48 @@ class NewForm extends Component
         $this->resetStudentForm();
     }
 
+    /**
+     * Copy permanent address to correspondence address
+     */
+    public function copyPermanentToCorrespondence()
+    {
+        $this->corr_address_line1 = $this->address_line1;
+        $this->corr_address_line2 = $this->address_line2;
+        $this->corr_city = $this->city;
+        $this->corr_state = $this->state;
+        $this->corr_district = $this->district;
+        $this->corr_pincode = $this->pincode;
+        $this->corr_country = $this->country;
+    }
+
+    /**
+     * Clear correspondence address fields
+     */
+    public function clearCorrespondenceAddress()
+    {
+        $this->corr_address_line1 = '';
+        $this->corr_address_line2 = '';
+        $this->corr_city = '';
+        $this->corr_state = '';
+        $this->corr_district = '';
+        $this->corr_pincode = '';
+        $this->corr_country = 'India';
+    }
+
+    /**
+     * Toggle same as permanent address
+     */
+    public function toggleSameAsPermanent()
+    {
+        $this->same_as_permanent = !$this->same_as_permanent;
+        
+        if ($this->same_as_permanent) {
+            $this->copyPermanentToCorrespondence();
+        } else {
+            $this->clearCorrespondenceAddress();
+        }
+    }
+
     /** Full rules (used on final save) */
     public function rules(): array
     {
@@ -378,21 +429,18 @@ class NewForm extends Component
             'same_as_permanent' => ['boolean'],
             'photo_upload' => ['nullable', 'image', 'max:2048'],
             'aadhaar_upload' => ['nullable', 'mimes:jpeg,jpg,png,pdf', 'max:4096'],
-            'corr_address_line1' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'string', 'max:255'],
+            'corr_address_line1' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'nullable', 'string', 'max:255'],
             'corr_address_line2' => ['nullable', 'string', 'max:255'],
             'corr_city' => ['nullable', 'string', 'max:100'],
             'corr_state' => ['nullable', 'string', 'max:100'],
             'corr_district' => ['nullable', 'string', 'max:100'],
-            'corr_pincode' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'digits:6'],
+            'corr_pincode' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'nullable', 'digits:6'],
             'corr_country' => ['nullable', 'string', 'max:100'],
 
             // step 2 - Admission details
             'course_id' => [
                 'required',
                 'exists:courses,id',
-                'school_name' => ['nullable', 'string', 'max:255'],
-                'school_address' => ['nullable', 'string', 'max:255'],
-                'board' => ['nullable', 'string', 'max:100'],
             ],
             'batch_id' => [
                 'required',
@@ -458,7 +506,7 @@ class NewForm extends Component
                 'photo_upload' => ['nullable', 'image', 'max:2048'],
                 'aadhaar_upload' => ['nullable', 'mimes:jpeg,jpg,png,pdf', 'max:4096'],
                 'pincode' => ['required', 'digits:6'],
-                'corr_pincode' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'digits:6'],
+                'corr_pincode' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'nullable', 'digits:6'],
             ],
             2 => [
                 'stream' => ['required', 'string', 'in:Engineering,Foundation,Medical,Other'],
@@ -836,6 +884,11 @@ class NewForm extends Component
 
     public function save()
     {
+        // Ensure correspondence address is populated if same_as_permanent is true
+        if ($this->same_as_permanent) {
+            $this->copyPermanentToCorrespondence();
+        }
+
         try {
             $data = $this->validate();
         } catch (\Illuminate\Validation\ValidationException $e) {
