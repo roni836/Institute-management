@@ -134,23 +134,6 @@
             </thead>
             <tbody>
                 @forelse($transactions as $i=>$t)
-                    @php
-                        // Get consolidated data for this receipt if it has multiple transactions
-                        $consolidatedData = null;
-                        if ($t->receipt_number) {
-                            $consolidatedTransactions = \App\Models\Transaction::where('receipt_number', $t->receipt_number)
-                                ->where('admission_id', $t->admission_id)
-                                ->get();
-                            
-                            if ($consolidatedTransactions->count() > 1) {
-                                $consolidatedData = [
-                                    'total_amount' => $consolidatedTransactions->sum('amount'),
-                                    'total_gst' => $consolidatedTransactions->sum('gst'),
-                                    'count' => $consolidatedTransactions->count()
-                                ];
-                            }
-                        }
-                    @endphp
                     <tr class="border-t">
                         <td class="p-3">{{ $i+1 }}.</td>
                         <td class="p-3">{{ $t->date?->format('d-M-Y') }}</td>
@@ -158,33 +141,39 @@
                         <td class="p-3">{{ $t->admission?->student?->enrollment_id}}</td>
                         <td class="p-3">{{ $t->admission?->batch?->batch_name }}</td>
                         <td class="p-3 font-medium">
-                            @if ($consolidatedData)
+                            @if ($t->total_amount && $t->transaction_count > 1)
                                 <div class="flex flex-col">
-                                    <span>₹ {{ number_format($consolidatedData['total_amount'], 2) }}</span>
-                                    <span class="text-xs text-gray-500">({{ $consolidatedData['count'] }} transactions)</span>
+                                    <span>₹ {{ number_format($t->total_amount, 2) }}</span>
+                                    <span class="text-xs text-gray-500">({{ $t->transaction_count }} installments)</span>
                                 </div>
                             @else
                                 ₹ {{ number_format($t->amount, 2) }}
                             @endif
                         </td>
                         <td class="p-3">
-                            @if ($consolidatedData)
-                                @if ($consolidatedData['total_gst'] > 0)
-                                    <span class="text-blue-600 font-medium">₹ {{ number_format($consolidatedData['total_gst'], 2) }}</span>
-                                @else
-                                    <span class="text-gray-400">—</span>
-                                @endif
+                            @php
+                                $gstAmount = $t->total_gst ?? $t->gst;
+                            @endphp
+                            @if ($gstAmount > 0)
+                                <span class="text-blue-600 font-medium">₹ {{ number_format($gstAmount, 2) }}</span>
                             @else
-                                @if ($t->gst > 0)
-                                    <span class="text-blue-600 font-medium">₹ {{ number_format($t->gst, 2) }}</span>
-                                @else
-                                    <span class="text-gray-400">—</span>
-                                @endif
+                                <span class="text-gray-400">—</span>
                             @endif
                         </td>
-                        <td class="p-3 capitalize">{{ $t->mode }}</td>
+                        <td class="p-3 capitalize">
+                            @if ($t->modes && str_contains($t->modes, ','))
+                                <span class="text-xs bg-gray-100 px-2 py-1 rounded">Mixed</span>
+                            @else
+                                {{ $t->mode }}
+                            @endif
+                        </td>
                         <td class="p-3">
-                            <span class="font-mono text-sm text-blue-600">{{ $t->receipt_number ?? '—' }}</span>
+                            <div class="flex flex-col">
+                                <span class="font-mono text-sm text-blue-600">{{ $t->receipt_number ?? '—' }}</span>
+                                @if ($t->transaction_count > 1)
+                                    <span class="text-xs text-green-600">Consolidated Receipt</span>
+                                @endif
+                            </div>
                         </td>
                         <td class="p-3 no-print gap-2">
                             <a href="{{ route('admin.payments.receipt', $t->id) }}"

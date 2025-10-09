@@ -14,6 +14,7 @@ class Receipts extends Component
 {
      public Transaction $transaction;
     public $consolidatedTransactions = [];
+    public $allPaymentSchedules = [];
     public bool $isConsolidatedReceipt = false;
 
     // Email modal state
@@ -26,14 +27,24 @@ class Receipts extends Component
         $transaction->load(['admission.student', 'admission.batch.course', 'schedule']);
         $this->transaction = $transaction;
         
-        // Check if this transaction is part of a consolidated payment (multiple transactions with same receipt number)
+        // Get all transactions with the same receipt number for this admission
         $this->consolidatedTransactions = Transaction::where('receipt_number', $transaction->receipt_number)
             ->where('admission_id', $transaction->admission_id)
             ->with(['schedule'])
-            ->orderBy('id')
+            ->orderBy('date', 'asc')
+            ->orderBy('id', 'asc')
             ->get();
             
         $this->isConsolidatedReceipt = $this->consolidatedTransactions->count() > 1;
+        
+        // If this is a consolidated receipt, get all payment schedules for this admission
+        // to show both paid and due installments
+        if ($this->isConsolidatedReceipt) {
+            $this->allPaymentSchedules = \App\Models\PaymentSchedule::where('admission_id', $transaction->admission_id)
+                ->with(['transactions'])
+                ->orderBy('installment_no')
+                ->get();
+        }
     }
 
     public function openEmailModal()
@@ -55,6 +66,7 @@ class Receipts extends Component
         return view('pdf.receipt', [
             'tx' => $this->transaction,
             'consolidatedTransactions' => $this->consolidatedTransactions,
+            'allPaymentSchedules' => $this->allPaymentSchedules,
             'isConsolidatedReceipt' => $this->isConsolidatedReceipt,
             'org' => [
                 'name'    => 'Antra Institutions',
@@ -101,6 +113,7 @@ class Receipts extends Component
         $data = [
             'tx' => $this->transaction,
             'consolidatedTransactions' => $this->consolidatedTransactions,
+            'allPaymentSchedules' => $this->allPaymentSchedules,
             'isConsolidatedReceipt' => $this->isConsolidatedReceipt,
             'org' => [
                 'name'    => 'Antra Institutions',

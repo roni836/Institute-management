@@ -276,7 +276,7 @@
                                             </td>
                                             <td class="px-4 py-3 font-semibold" colspan="4">Total {{ $flexiblePayment ? 'due' : 'of selected' }}</td>
                                             <td class="px-4 py-3 text-right font-semibold">
-                                                <span class="text-lg">₹{{ number_format($flexiblePayment ? array_sum(array_column($schedules, 'left')) : $this->selected_total, 2) }}</span>
+                                                <span class="text-lg">₹{{ number_format((float) $flexiblePayment ? array_sum(array_column($schedules, 'left')) : $this->selected_total, 2) }}</span>
                                             </td>
                                         </tr>
                                     </tfoot>
@@ -366,7 +366,7 @@
                                                             <span>Installment #{{ $item['installment_no'] }}</span>
                                                             <span class="text-gray-500 ml-1">(Due: {{ $item['due_date'] }})</span>
                                                         </div>
-                                                        <span class="font-medium">₹{{ number_format($item['amount'], 2) }}</span>
+                                                        <span class="font-medium">₹{{ number_format((float) $item['amount'], 2) }}</span>
                                                     </div>
                                                 @endforeach
 
@@ -705,7 +705,7 @@
                                 <div class="flex justify-between text-base">
                                     <span class="font-medium text-gray-700">Total Amount:</span>
                                     <span class="font-bold text-primary-700">
-                                        ₹{{ number_format($applyGst ? (($flexiblePayment ? $flexibleAmount : $amount) + $gstAmount) : ($flexiblePayment ? $flexibleAmount : $amount), 2) }}
+                                        ₹{{ number_format((float) $applyGst ? (($flexiblePayment ? $flexibleAmount : $amount) + $gstAmount) : ($flexiblePayment ? $flexibleAmount : $amount), 2) }}
                                     </span>
                                 </div>
                             </div>

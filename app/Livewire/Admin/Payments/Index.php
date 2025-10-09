@@ -123,19 +123,32 @@ class Index extends Component
 
     private function getTransactionsQuery()
     {
-        // Get the earliest transaction ID for each receipt number to avoid duplicates
-        $subQuery = Transaction::select('receipt_number', FacadesDB::raw('MIN(id) as min_id'))
+        // Get consolidated receipt data - one entry per receipt number per admission
+        $subQuery = Transaction::select(
+                'receipt_number', 
+                'admission_id',
+                FacadesDB::raw('MIN(id) as representative_id'),
+                FacadesDB::raw('SUM(amount) as total_amount'),
+                FacadesDB::raw('SUM(gst) as total_gst'),
+                FacadesDB::raw('COUNT(*) as transaction_count'),
+                FacadesDB::raw('MIN(date) as earliest_date'),
+                FacadesDB::raw('GROUP_CONCAT(DISTINCT mode) as modes'),
+                FacadesDB::raw('GROUP_CONCAT(DISTINCT status) as statuses')
+            )
             ->whereNotNull('receipt_number')
-            ->groupBy('receipt_number');
+            ->groupBy('receipt_number', 'admission_id');
 
         return Transaction::query()
             ->with(['admission.student', 'admission.batch'])
+            ->leftJoinSub($subQuery, 'consolidated', function($join) {
+                $join->on('transactions.id', '=', 'consolidated.representative_id');
+            })
             ->where(function($q) use ($subQuery) {
                 // Include transactions that are either:
-                // 1. The first transaction of each receipt number group, OR
+                // 1. Representative transactions from consolidated groups, OR
                 // 2. Transactions without receipt numbers (null receipt_number)
-                $q->whereIn('id', $subQuery->pluck('min_id'))
-                  ->orWhereNull('receipt_number');
+                $q->whereIn('transactions.id', $subQuery->pluck('representative_id'))
+                  ->orWhereNull('transactions.receipt_number');
             })
             ->when($this->search, fn($q) => $q->where(function($qq) {
                 $term = "%{$this->search}%";
@@ -144,14 +157,22 @@ class Index extends Component
                       ->orWhere('email', 'like', $term)
                       ->orWhere('phone', 'like', $term)
                 )
-                ->orWhere('transaction_id', 'like', $term)
-                ->orWhere('receipt_number', 'like', $term);
+                ->orWhere('transactions.transaction_id', 'like', $term)
+                ->orWhere('transactions.receipt_number', 'like', $term);
             }))
-            ->when($this->status, fn($q) => $q->where('status', $this->status))
-            ->when($this->mode, fn($q) => $q->where('mode', $this->mode))
-            ->when($this->fromDate, fn($q) => $q->whereDate('date', '>=', $this->fromDate))
-            ->when($this->toDate, fn($q) => $q->whereDate('date', '<=', $this->toDate))
-            ->latest('date');
+            ->when($this->status, fn($q) => $q->where('transactions.status', $this->status))
+            ->when($this->mode, fn($q) => $q->where('transactions.mode', $this->mode))
+            ->when($this->fromDate, fn($q) => $q->whereDate('transactions.date', '>=', $this->fromDate))
+            ->when($this->toDate, fn($q) => $q->whereDate('transactions.date', '<=', $this->toDate))
+            ->select('transactions.*', 
+                'consolidated.total_amount', 
+                'consolidated.total_gst', 
+                'consolidated.transaction_count',
+                'consolidated.earliest_date',
+                'consolidated.modes',
+                'consolidated.statuses'
+            )
+            ->latest('transactions.date');
     }
 
     private function getPaymentStats()
