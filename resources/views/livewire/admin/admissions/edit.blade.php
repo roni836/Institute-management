@@ -12,19 +12,22 @@
             @endphp
 
             <div class="flex items-center w-full">
-                @foreach ($steps as $i => $label)
+                @foreach ($steps as $index => $stepName)
+                    <div class="flex items-center {{ !$loop->last ? 'flex-1' : '' }}">
+                        <div class="flex items-center justify-center w-8 h-8 rounded-full 
+                                    {{ $step >= $index ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600' }}">
+                            {{ $index }}
+                        </div>
+                        <span class="ml-2 text-sm font-medium 
+                                    {{ $step >= $index ? 'text-gray-900' : 'text-gray-500' }}">{{ $stepName }}</span>
+                    </div>
+                    @if (!$loop->last)
+                        <div class="flex-1 h-0.5 mx-4 
+                                    {{ $step > $index ? 'bg-blue-600' : 'bg-gray-300' }}">
+                        </div>
+                    @endif
+                @endforeach
             </div>
-            <span
-                class="ml-2 text-sm font-medium 
-                        {{ $step >= $index + 1 ? 'text-gray-900' : 'text-gray-500' }}">{{ $stepName }}</span>
-            @if (!$loop->last)
-                <div
-                    class="flex-1 h-0.5 mx-4 
-                            {{ $step > $index + 1 ? 'bg-green-500' : 'bg-gray-300' }}">
-                </div>
-            @endif
-        </div>
-        @endforeach
     </div>
 </div>
 
@@ -740,7 +743,7 @@
                                             {{ $index + 1 }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ \Carbon\Carbon::parse($installment['due_date'])->format('d M Y') }}
+                                            {{ \Carbon\Carbon::parse($installment['due_on'])->format('d M Y') }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             ₹{{ number_format($installment['amount'], 2) }}

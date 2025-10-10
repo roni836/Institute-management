@@ -123,16 +123,22 @@ class Edit extends Component
         $this->selected_course = $this->admission->batch->course ?? null;
         $this->selected_batch  = $this->admission->batch ?? null;
         $this->admission_date  = $this->admission->admission_date->toDateString();
-        $this->discount        = $this->admission->discount;
+        $this->discount_type   = $this->admission->discount_type ?? 'fixed';
+        $this->discount_value  = $this->admission->discount_value ?? 0;
         $this->mode            = $this->admission->mode;
         $this->fee_total       = $this->admission->fee_total;
         $this->status          = $this->admission->status;
         $this->reason          = $this->admission->reason ?? '';
-        $this->applyGst        = $this->admission->apply_gst ?? false;
+        $this->applyGst        = $this->admission->is_gst ?? false;
+        $this->gstAmount       = $this->admission->gst_amount ?? 0;
+        $this->gstRate         = $this->admission->gst_rate ?? 18;
 
         // Calculate fee breakdown
         $this->tuitionFee = $this->admission->batch->course->fee ?? 0;
-        $this->subtotal   = $this->tuitionFee + $this->otherFee + $this->lateFee;
+        $this->otherFee = $this->otherFee ?? 0;
+        $this->lateFee = $this->lateFee ?? 0;
+        $this->discount = $this->discount ?? 0;
+        $this->subtotal = $this->tuitionFee + $this->otherFee + $this->lateFee;
 
         if ($this->applyGst) {
             $this->gstAmount = ($this->subtotal * $this->gstRate) / 100;
@@ -140,6 +146,8 @@ class Edit extends Component
         } else {
             $this->fee_total = $this->subtotal - $this->discount;
         }
+        
+        $this->fee_total = max(0, $this->fee_total);
 
         // Load payment schedule data
         $schedules = $this->admission->schedules;
@@ -176,7 +184,7 @@ class Edit extends Component
     public function recalculate(): void
     {
         $batch     = $this->batch_id ? Batch::with('course')->find($this->batch_id) : null;
-        $courseFee = $batch?->course?->gross_fee ?? 0.00;
+        $courseFee = $batch?->course?->fee ?? 0.00;
         $discount  = max(0.00, (float) $this->discount);
 
         $total = max(0.00, round(((float) $courseFee) - $discount, 2));
@@ -270,14 +278,14 @@ class Edit extends Component
             'father_name'        => 'required|string|max:255',
             'mother_name'        => 'required|string|max:255',
             'email'              => 'required|email|unique:students,email,' . $this->admission->student->id,
-            'phone'              => 'required|string|max:15',
-            'whatsapp_no'        => 'nullable|string|max:15',
+            'phone'              => 'required|string|max:20',
+            'whatsapp_no'        => 'nullable|string|max:20',
             'dob'                => 'nullable|date',
             'session'            => 'nullable|string|max:255',
             'academic_session'   => 'nullable|string|max:255',
             'gender'             => 'required|in:male,female,other',
             'category'           => 'required|in:General,OBC,SC,ST,EWS',
-            'alt_phone'          => 'nullable|string|max:15',
+            'alt_phone'          => 'nullable|string|max:20',
             'mother_occupation'  => 'nullable|string|max:255',
             'father_occupation'  => 'nullable|string|max:255',
             'school_name'        => 'nullable|string|max:255',
@@ -308,8 +316,9 @@ class Edit extends Component
             'course_id'          => 'required|exists:courses,id',
             'batch_id'           => 'required|exists:batches,id',
             'admission_date'     => 'required|date',
-            'discount_type'      => 'required|in:fixed,percentage',
+            'discount_type'      => 'nullable|in:fixed,percentage',
             'discount_value'     => 'nullable|numeric|min:0',
+            'discount'           => 'nullable|numeric|min:0',
             'mode'               => 'required|in:full,installment',
             'fee_total'          => 'required|numeric|min:0',
             'status'             => 'required|in:active,inactive,suspended',
@@ -321,7 +330,7 @@ class Edit extends Component
             $rules['installments']    = 'required|integer|min:2|max:12';
             $rules['plan']            = 'required|array|min:2';
             $rules['plan.*.amount']   = 'required|numeric|min:0';
-            $rules['plan.*.due_date'] = 'required|date';
+            $rules['plan.*.due_on'] = 'required|date';
         }
 
         return $rules;
@@ -336,8 +345,8 @@ class Edit extends Component
                 'father_name'   => ['required', 'string', 'max:255'],
                 'mother_name'   => ['required', 'string', 'max:255'],
                 'email'         => ['required', 'email', 'unique:students,email,' . $this->admission->student->id],
-                'phone'         => ['required', 'string', 'max:15'],
-                'whatsapp_no'   => ['nullable', 'string', 'max:15'],
+                'phone'         => ['required', 'string', 'max:20'],
+                'whatsapp_no'   => ['nullable', 'string', 'max:20'],
                 'gender'        => ['required', 'in:male,female,other'],
                 'category'      => ['required', 'in:General,OBC,SC,ST,EWS'],
                 'dob'           => ['nullable', 'date'],
@@ -390,17 +399,23 @@ class Edit extends Component
         }
     }
 
-    public function updatedDiscountType()
-    {
-        $this->calculateDiscount();
-    }
-
     public function updatedDiscountValue()
     {
         $this->calculateDiscount();
     }
+    
+    public function updatedOtherFee()
+    {
+        $this->calculateTotal();
+    }
+    
 
-    public function updatedApplyGst()
+    public function updatedLateFee()
+    {
+        $this->calculateTotal();
+    }
+
+    public function updatedGstRate()
     {
         $this->calculateTotal();
     }
@@ -431,8 +446,9 @@ class Edit extends Component
         if ($this->discount_type === 'percentage') {
             $this->discount = ($this->subtotal * $this->discount_value) / 100;
         } else {
-            $this->discount = $this->discount_value;
+            $this->discount = $this->discount_value ?? 0;
         }
+        $this->discount = max(0, (float) $this->discount);
         $this->calculateTotal();
     }
 
@@ -527,11 +543,14 @@ class Edit extends Component
                     'batch_id'       => $this->batch_id,
                     'admission_date' => $this->admission_date,
                     'mode'           => $this->mode,
-                    'discount'       => $this->discount,
+                    'discount_type'  => $this->discount_type,
+                    'discount_value' => $this->discount_value,
                     'fee_total'      => $this->fee_total,
                     'status'         => $this->status,
                     'reason'         => $this->reason,
-                    'apply_gst'      => $this->applyGst ?? false,
+                    'is_gst'         => $this->applyGst ?? false,
+                    'gst_amount'     => $this->gstAmount ?? 0,
+                    'gst_rate'       => $this->gstRate ?? 0,
                 ]);
 
                 // Smart payment schedule update - preserve existing schedules with transactions
@@ -543,7 +562,9 @@ class Edit extends Component
 
         } catch (\Exception $e) {
             Log::error('Error updating admission: ' . $e->getMessage());
-            session()->flash('error', 'Failed to update admission. Please try again.');
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+            session()->flash('error', 'Failed to update admission: ' . $e->getMessage());
+            throw $e; // Re-throw for debugging
         }
     }
 
@@ -600,7 +621,7 @@ class Edit extends Component
                 if ($existingSchedule && $existingSchedule->transactions->count() > 0) {
                     // Preserve existing schedule with transactions, only update safe fields
                     $existingSchedule->update([
-                        'due_date' => $p['date'],
+                        'due_date' => $p['due_on'],
                         'remarks'  => $p['remarks'] ?? null,
                         // Don't update amount if there are transactions to preserve data integrity
                     ]);
@@ -612,7 +633,7 @@ class Edit extends Component
                             'installment_no' => $p['no'],
                         ],
                         [
-                            'due_date'    => $p['date'],
+                            'due_date'    => $p['due_on'],
                             'amount'      => $p['amount'],
                             'paid_amount' => $existingSchedule->paid_amount ?? 0,
                             'status'      => $existingSchedule->status ?? 'pending',
