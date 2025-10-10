@@ -1,185 +1,259 @@
-<div class="p-4 md:p-6 space-y-6">
-    {{-- Top Stepper --}}
-    <div class="bg-white border rounded-xl p-4">
-        <div class="flex items-center justify-between">
-            @php
-                $steps = [
-                    1 => 'Student',
-                    2 => 'Education',
-                    3 => 'Admission',
-                    4 => 'Plan & Review',
-                ];
-            @endphp
+<div
+    data-step="{{ $step ?? 1 }}"
+    data-mode="{{ $mode ?? 'full' }}"
+    data-same="{{ $same_as_permanent ? 1 : 0 }}"
+    x-data="{
+        step: Number($el.dataset.step) || 1,
+        mode: $el.dataset.mode || 'full',
+        same_as_permanent: $el.dataset.same === '1',
+        init() {
+            const setupLivewireListeners = () => {
+                if (typeof Livewire === 'undefined' || !Livewire.on) return;
+                Livewire.on('stepChanged', (event) => { 
+                    console.debug('Livewire.on stepChanged', event); 
+                    this.step = event.step || event || 1;
+                });
+                Livewire.on('courseDataLoaded', (event) => { 
+                    console.debug('Livewire.on courseDataLoaded', event); 
+                    this.showNotification(`Selected course: ${event.name}`, 'info'); 
+                });
+                Livewire.on('feeRecalculated', (data) => { /* no-op */ });
+                Livewire.on('discountApplied', (event) => { 
+                    console.debug('Livewire.on discountApplied', event); 
+                    this.showNotification(`Discount of ₹${event.amount} applied successfully`, 'success'); 
+                });
+                Livewire.on('gstToggled', (event) => { 
+                    console.debug('Livewire.on gstToggled', event); 
+                    const message = event.applied ? `GST applied at ${event.rate}% (₹${event.amount})` : 'GST removed'; 
+                    this.showNotification(message, 'info'); 
+                });
+                Livewire.on('propertyChanged', (event) => {
+                    console.debug('Livewire.on propertyChanged', event);
+                    const property = event.property;
+                    const value = event.value;
+                    if (property === 'mode') this.mode = value;
+                    if (property === 'same_as_permanent') this.same_as_permanent = Boolean(value);
+                    if (property === 'step') this.step = Number(value);
+                });
+            };
 
-            <div class="flex items-center w-full">
-                @foreach ($steps as $index => $stepName)
-                    <div class="flex items-center {{ !$loop->last ? 'flex-1' : '' }}">
-                        <div class="flex items-center justify-center w-8 h-8 rounded-full 
-                                    {{ $step >= $index ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600' }}">
-                            {{ $index }}
-                        </div>
-                        <span class="ml-2 text-sm font-medium 
-                                    {{ $step >= $index ? 'text-gray-900' : 'text-gray-500' }}">{{ $stepName }}</span>
+            if (typeof Livewire !== 'undefined') {
+                setupLivewireListeners();
+            } else {
+                document.addEventListener('livewire:load', setupLivewireListeners);
+            }
+
+            // Also listen for browser events dispatched by the component
+            window.addEventListener('step-changed', (e) => {
+                console.debug('window step-changed', e && e.detail);
+                if (e && e.detail && typeof e.detail.step !== 'undefined') this.step = Number(e.detail.step);
+            });
+            window.addEventListener('livewire-property-changed', (e) => {
+                console.debug('window livewire-property-changed', e && e.detail);
+                if (!e || !e.detail) return;
+                const { property, value } = e.detail;
+                if (property === 'mode') this.mode = value;
+                if (property === 'same_as_permanent') this.same_as_permanent = Boolean(value);
+                if (property === 'step') this.step = Number(value);
+            });
+        },
+        showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg text-white z-50 ${type === 'error' ? 'bg-red-500' : type === 'success' ? 'bg-green-500' : 'bg-primary-500'}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+    }" x-init="init()" x-cloak>
+    <style>
+        .step-indicator {
+            transition: all 0.3s ease;
+        }
+        .step-indicator.active {
+            background-color: var(--primary-600, #3b82f6);
+            color: white;
+        }
+        .step-indicator.completed {
+            background-color: var(--primary-600, #10b981);
+            color: white;
+        }
+        .form-section {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        /* Fade transition for Alpine.js */
+        [x-cloak] { display: none !important; }
+    </style>
+    
+<div class=" mx-auto px-3 py-4">
+        <div class="max-w-5xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+            <!-- Header -->
+            <div class="bg-white p-4">
+                <h1 class="text-2xl font-bold text-primary-700 text-center">Edit Student Admission</h1>
+                
+                <!-- Step Indicator -->
+                <div class="flex justify-center mt-3">
+                    <div class="flex items-center space-x-3">
+                        <div id="step1-indicator" class="step-indicator flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm" :class="{ 'active': step === 1, 'completed': step > 1 }">1</div>
+                        <div class="w-12 h-1 bg-primary-300"></div>
+                        <div id="step2-indicator" class="step-indicator flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm" :class="{ 'active': step === 2 }">2</div>
                     </div>
-                    @if (!$loop->last)
-                        <div class="flex-1 h-0.5 mx-4 
-                                    {{ $step > $index ? 'bg-blue-600' : 'bg-gray-300' }}">
-                        </div>
-                    @endif
-                @endforeach
-            </div>
-    </div>
-</div>
-
-{{-- MAIN FORM --}}
-<form wire:submit.prevent="save" class="space-y-6">
-    {{-- STEP 1: Student --}}
-    @if ($step === 1)
-        <div class="p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-6">Personal Information</h3>
-
-            <!-- Basic Information -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-                    <input type="text" wire:model="name"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    @error('name')
-                        <span class="text-red-500 text-sm">{{ $message }}</span>
-                    @enderror
                 </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Father's Name *</label>
-                    <input type="text" wire:model="father_name"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    @error('father_name')
-                        <span class="text-red-500 text-sm">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Mother's Name *</label>
-                    <input type="text" wire:model="mother_name"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    @error('mother_name')
-                        <span class="text-red-500 text-sm">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                    <input type="email" wire:model="email"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    @error('email')
-                        <span class="text-red-500 text-sm">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
-                    <input type="tel" wire:model="phone"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    @error('phone')
-                        <span class="text-red-500 text-sm">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">WhatsApp Number</label>
-                    <input type="tel" wire:model="whatsapp_no"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    @error('whatsapp_no')
-                        <span class="text-red-500 text-sm">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Alternative Phone</label>
-                    <input type="tel" wire:model="alt_phone"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    @error('alt_phone')
-                        <span class="text-red-500 text-sm">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
-                    <input type="date" wire:model="dob"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    @error('dob')
-                        <span class="text-red-500 text-sm">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Gender *</label>
-                    <select wire:model="gender"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Select Gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                    </select>
-                    @error('gender')
-                        <span class="text-red-500 text-sm">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Category *</label>
-                    <select wire:model="category"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Select Category</option>
-                        <option value="General">General</option>
-                        <option value="OBC">OBC</option>
-                        <option value="SC">SC</option>
-                        <option value="ST">ST</option>
-                        <option value="EWS">EWS</option>
-                    </select>
-                    @error('category')
-                        <span class="text-red-500 text-sm">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Father's Occupation</label>
-                    <input type="text" wire:model="father_occupation"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    @error('father_occupation')
-                        <span class="text-red-500 text-sm">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Mother's Occupation</label>
-                    <input type="text" wire:model="mother_occupation"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    @error('mother_occupation')
-                        <span class="text-red-500 text-sm">{{ $message }}</span>
-                    @enderror
+                
+                <div class="text-center mt-2">
+                    <span class="text-primary-500 text-sm font-medium" id="step-title">Student Information</span>
                 </div>
             </div>
 
-            <!-- Address Section -->
-            <div class="mt-8">
-                <h4 class="text-md font-semibold text-gray-900 mb-4">Address Information</h4>
-
-                <!-- Permanent Address -->
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <h5 class="text-sm font-medium text-gray-700 mb-3">Permanent Address</h5>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Address Line 1 *</label>
-                            <input type="text" wire:model="address_line1"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            @error('address_line1')
-                                <span class="text-red-500 text-sm">{{ $message }}</span>
-                            @enderror
+            <!-- Form Content -->
+            <div class="p-4">
+                <form id="admissionForm" wire:submit.prevent="save" enctype="multipart/form-data">
+                    <!-- Step 1: Student Information -->
+                    <div id="step1" class="form-section" x-show="step === 1" x-cloak>
+                        <!-- Admission Info -->
+                        <div class="mb-3 p-3 border border-primary-100 rounded bg-primary-50">
+                            <h3 class="text-lg font-semibold text-primary-800 mb-3">Admission Information</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">Admission Date *</label>
+                                    <input wire:model="admission_date" type="date" name="admission_date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    @error('admission_date') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">Stream *</label>
+                                    <select wire:model.live="stream" name="stream" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                        <option value="">Select Stream</option>
+                                        <option value="Engineering">Engineering</option>
+                                        <option value="Foundation">Foundation</option>
+                                        <option value="Medical">Medical</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                    @error('stream') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">Academic Session *</label>
+                                    <select wire:model.live="academic_session" name="academic_session" required class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                        <option value="">Select Academic Session</option>
+                                        <option value="2024-25">2024-25</option>
+                                        <option value="2025-26">2025-26</option>
+                                    </select>
+                                    @error('academic_session') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">Course *</label>
+                                    <select wire:model="course_id" wire:change="onCourseChange" name="course" required class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                        <option value="">Select Course</option>
+                                        @foreach($courses as $course)
+                                            <option value="{{ $course->id }}">{{ $course->name }} (₹{{ number_format($course->net_fee, 2) }})</option>
+                                        @endforeach
+                                    </select>
+                                    @error('course_id') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">Batch *</label>
+                                    <select wire:model="batch_id" wire:change="recalculate" name="batch" required class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-primary-500" {{ empty($course_id) ? 'disabled' : '' }}>
+                                        <option value="">Select Batch</option>
+                                        @foreach($batches->where('course_id', $course_id ?? 0) as $batch)
+                                            <option value="{{ $batch->id }}">{{ $batch->batch_name }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('batch_id') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Address Line 2</label>
+                        <!-- Student Info -->
+                        <div class="mb-3 p-3 border border-primary-100 rounded bg-primary-50">
+                            <h3 class="text-lg font-semibold text-primary-800 mb-3">Student Information</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="md:col-span-2">
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">Name *</label>
+                                    <input wire:model="name" type="text" name="name" required class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    @error('name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">Father Name</label>
+                                    <input wire:model="father_name" type="text" name="father_name" class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    @error('father_name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">Mother Name</label>
+                                    <input wire:model="mother_name" type="text" name="mother_name" class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    @error('mother_name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Mobile No.</label>
+                                    <input wire:model="phone" type="tel" name="phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    @error('phone') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">WhatsApp No.</label>
+                                    <input wire:model="whatsapp_no" type="tel" name="whatsapp_no" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    @error('whatsapp_no') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Email ID</label>
+                                    <input wire:model="email" type="email" name="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    @error('email') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                                    <input wire:model="dob" type="date" name="dob" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    @error('dob') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                                    <select wire:model="gender" name="gender" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                        <option value="">Select Gender</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="others">Other</option>
+                                    </select>
+                                    @error('gender') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                                    <select wire:model="category" name="category" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                        <option value="">Select Category</option>
+                                        <option value="general">General</option>
+                                        <option value="obc">OBC</option>
+                                        <option value="sc">SC</option>
+                                        <option value="st">ST</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                    @error('category') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Father Occupation</label>
+                                    <input wire:model="father_occupation" type="text" name="father_occupation" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    @error('father_occupation') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Mother Occupation</label>
+                                    <input wire:model="mother_occupation" type="text" name="mother_occupation" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    @error('mother_occupation') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Address Information -->
+                        <div class="mb-3 p-3 border border-primary-100 rounded bg-primary-50">
+                            <h3 class="text-lg font-semibold text-primary-800 mb-3">Address Information</h3>
+                            
+                            <!-- Permanent Address -->
+                            <div class="mb-6">
+                                <h4 class="text-base font-medium text-gray-700 mb-2">Permanent Address</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Address Line 1 *</label>
+                                        <input wire:model="address_line1" type="text" name="address_line1" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                        @error('address_line1') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Address Line 2</label>
                             <input type="text" wire:model="address_line2"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                             @error('address_line2')

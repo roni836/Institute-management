@@ -19,7 +19,7 @@ class Edit extends Component
     public Admission $admission;
 
                           // Stepper
-    public int $step = 1; // 1: Student, 2: Education, 3: Admission, 4: Plan & Review
+    public int $step = 1; // 1: Student, 2: Admission & Payment
 
     // Student fields (matching new-form)
     public $name, $father_name, $mother_name, $email, $phone, $whatsapp_no, $address;
@@ -47,20 +47,27 @@ class Edit extends Component
     public $fee_total                        = 0.00, $installments                        = 2, $plan                        = [];
 
                                       // Discount fields (matching new-form)
-    public $discount_type  = 'fixed'; // fixed or percentage
+    public $discount_type = 'fixed';  // fixed or percentage
     public $discount_value = 0.00;    // Amount or percentage value
-    public $discount       = 0.00;    // Calculated discount amount
+    public $discount = 0.00;          // Calculated discount amount
+    
+    public $subtotal = 0.00;          // Amount before GST
+    public $lateFee = 0.00;           // Any late fees
+    public $tuitionFee = 0.00;        // Base tuition fee
+    public $otherFee = 0.00;          // Other fees
+    
+    public $custom_installments = false; // Flag to track if user has customized installments
 
-    public $subtotal   = 0.00; // Amount before GST
-    public $lateFee    = 0.00; // Any late fees
-    public $tuitionFee = 0.00; // Base tuition fee
-    public $otherFee   = 0.00; // Other fees
-
-    public $status               = 'active', $reason               = '';
-    public $applyGst             = false;
-    public $gstAmount            = 0.00;  // Amount of GST
-    public $gstRate              = 18.00; // GST rate in percentage
+    public $status = 'active', $reason = '';
+    public $applyGst = false;         // Flag to track if GST should be applied
+    public $gstAmount = 0.00;         // Amount of GST
+    public $gstRate = 18.00;          // GST rate in percentage
     public $editableInstallments = false;
+
+    // Validation error tracking
+    public array $validationErrors = [];
+    public bool $showValidationErrors = false;
+    public string $validationMessage = '';
 
     public function mount(Admission $admission)
     {
@@ -171,34 +178,123 @@ class Edit extends Component
 
     public function updated($name, $value)
     {
-        if (in_array($name, ['batch_id', 'discount', 'mode', 'installments', 'admission_date', 'applyGst'], true)) {
+        // Properties that trigger fee recalculation
+        if (in_array($name, [
+            'course_id', 'batch_id', 'discount_type', 'discount_value', 
+            'mode', 'installments', 'admission_date', 'applyGst', 'gstRate'
+        ], true)) {
             $this->recalculate();
+        }
+
+        // Load course data when course is selected
+        if ($name === 'course_id' && $value) {
+            $this->loadCourseData($value);
+            $this->resetBatch(); // Reset batch when course changes
+        }
+
+        if ($name === 'batch_id') {
+            $this->loadBatchData($value);
+        }
+
+        // Reset custom installments flag when mode changes
+        if ($name === 'mode') {
+            $this->custom_installments = false;
+        }
+
+        // Reset custom installments flag when number of installments changes
+        if ($name === 'installments') {
+            $this->custom_installments = false;
+        }
+
+        // Handle same_as_permanent address copying
+        if ($name === 'same_as_permanent') {
+            if ($value) {
+                $this->copyPermanentToCorrespondence();
+            } else {
+                $this->clearCorrespondenceAddress();
+            }
         }
 
         // Handle individual installment updates
         if (str_starts_with($name, 'plan.')) {
             $this->validateInstallmentTotals();
         }
+
+        // Notify frontend (Alpine) about property changes so Alpine can sync
+        try {
+            $this->dispatch('propertyChanged', property: $name, value: $value);
+        } catch (\Throwable $e) {
+            // Ignore dispatch failures to avoid breaking server flow
+            Log::debug('Failed to dispatch propertyChanged: ' . $e->getMessage());
+        }
     }
 
     public function recalculate(): void
     {
-        $batch     = $this->batch_id ? Batch::with('course')->find($this->batch_id) : null;
-        $courseFee = $batch?->course?->fee ?? 0.00;
-        $discount  = max(0.00, (float) $this->discount);
+        // Get course information from selected course or batch->course
+        if ($this->selected_course) {
+            $courseFee = $this->selected_course->gross_fee ?? 0.00;
+        } else {
+            $batch = $this->batch_id ? Batch::with('course')->find($this->batch_id) : null;
+            $courseFee = $batch?->course?->gross_fee ?? 0.00;
+            
+            // Update selected_course if batch is selected but course is not
+            if ($batch && $batch->course && !$this->selected_course) {
+                $this->selected_course = $batch->course;
+                $this->course_id = $batch->course->id;
+            }
+        }
+        
+        // Calculate discount based on type and value
+        $this->tuitionFee = $this->selected_course->tution_fee ?? 0.00;
+        $this->otherFee = $this->selected_course->other_fee ?? 0.00;
+        
+        // Calculate discount based on discount type and value
+        if ($this->discount_type === 'percentage' && $this->discount_value > 0) {
+            $discount = min(100, max(0, (float)$this->discount_value)); // Ensure percentage is between 0-100
+            $this->discount = round(($courseFee * $discount) / 100, 2);
+        } else {
+            // Fixed amount discount
+            $this->discount = min($courseFee, max(0, (float)$this->discount_value)); // Can't discount more than course fee
+        }
 
-        $total = max(0.00, round(((float) $courseFee) - $discount, 2));
+        $this->subtotal = max(0.00, round(((float)$courseFee) - $this->discount, 2));
 
-        // Apply GST if enabled
+        // Calculate GST if applicable
         if ($this->applyGst) {
-            $gst = $total * 0.18; // 18% GST
-            $total += $gst;
+            $this->gstAmount = round(($this->subtotal * $this->gstRate) / 100, 2);
+            $total = $this->subtotal + $this->gstAmount;
+        } else {
+            $this->gstAmount = 0.00;
+            $total = $this->subtotal;
         }
 
         $this->fee_total = $total;
+        
+        // Dispatch events for UI updates
+        $this->dispatch('feeRecalculated', 
+            subtotal: $this->subtotal,
+            discount: $this->discount,
+            gstAmount: $this->gstAmount,
+            total: $this->fee_total
+        );
+        
+        // Dispatch GST toggled event if GST status changed
+        if ($this->applyGst) {
+            $this->dispatch('gstToggled', 
+                applied: true,
+                rate: $this->gstRate,
+                amount: $this->gstAmount
+            );
+        }
+
+        // Don't recalculate if user has customized installments
+        if ($this->custom_installments && $this->mode === 'installment') {
+            return;
+        }
 
         $this->plan = [];
-        $n          = ($this->mode === 'installment') ? max(2, (int) $this->installments) : 1;
+        $n = ($this->mode === 'installment') ? max(2, (int)$this->installments) : 1;
 
         $anchor = $this->admission_date ? Carbon::parse($this->admission_date) : now();
 
@@ -212,8 +308,8 @@ class Edit extends Component
         $rem = round($total - $sum, 2); // first installment carries rounding
 
         for ($i = 1; $i <= $n; $i++) {
-            $amt          = $per + ($i === 1 ? $rem : 0.00);
-            $due          = $anchor->copy()->addMonths($i - 1)->toDateString();
+            $amt = $per + ($i === 1 ? $rem : 0.00);
+            $due = $anchor->copy()->addMonths($i - 1)->toDateString();
             $this->plan[] = ['no' => $i, 'amount' => $amt, 'due_on' => $due];
         }
     }
@@ -340,132 +436,235 @@ class Edit extends Component
     protected function stepRules(int $step): array
     {
         return match ($step) {
-            1       => [
-                'name'          => ['required', 'string', 'max:255'],
-                'father_name'   => ['required', 'string', 'max:255'],
-                'mother_name'   => ['required', 'string', 'max:255'],
-                'email'         => ['required', 'email', 'unique:students,email,' . $this->admission->student->id],
-                'phone'         => ['required', 'string', 'max:20'],
-                'whatsapp_no'   => ['nullable', 'string', 'max:20'],
-                'gender'        => ['required', 'in:male,female,other'],
-                'category'      => ['required', 'in:General,OBC,SC,ST,EWS'],
-                'dob'           => ['nullable', 'date'],
-                'address_line1' => ['required', 'string', 'max:255'],
-                'city'          => ['required', 'string', 'max:100'],
-                'state'         => ['required', 'string', 'max:100'],
-                'district'      => ['required', 'string', 'max:100'],
-                'pincode'       => ['required', 'string', 'max:10'],
-                'country'       => ['required', 'string', 'max:100'],
+            1 => [
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['nullable', 'email', 'max:255'],
+                'phone' => ['nullable', 'string', 'max:20'],
+                'school_name' => ['nullable', 'string', 'max:255'],
+                'school_address' => ['nullable', 'string', 'max:255'],
+                'board' => ['nullable', 'string', 'max:100'],
+                'class' => ['nullable', 'string', 'max:255'],
+                'pincode' => ['required', 'digits:6'],
+                'corr_pincode' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'nullable', 'digits:6'],
             ],
-            2       => [
-                'school_name'      => ['nullable', 'string', 'max:255'],
-                'school_address'   => ['nullable', 'string'],
-                'board'            => ['nullable', 'string', 'max:255'],
-                'class'            => ['required', 'string', 'max:50'],
-                'stream'           => ['required', 'in:Foundation,Engineering,Medical,Other'],
-                'session'          => ['nullable', 'string', 'max:255'],
-                'academic_session' => ['nullable', 'string', 'max:255'],
-            ],
-            3       => [
-                'course_id'      => ['required', 'exists:courses,id'],
-                'batch_id'       => ['required', 'exists:batches,id'],
+            2 => [
+                'stream' => ['required', 'string', 'in:Engineering,Foundation,Medical,Other'],
+                'course_id' => [
+                    'required',
+                    'exists:courses,id',
+                ],
+                'batch_id' => [
+                    'required',
+                    'exists:batches,id',
+                ],
                 'admission_date' => ['required', 'date'],
-                'mode'           => ['required', 'in:full,installment'],
-                'fee_total'      => ['required', 'numeric', 'min:0'],
+                'discount_type' => ['required', 'in:fixed,percentage'],
+                'discount_value' => ['nullable', 'numeric', 'min:0'],
+                'mode' => ['required', 'in:full,installment'],
+                'installments' => [
+                    Rule::requiredIf(fn() => $this->mode === 'installment'),
+                    'integer', 'min:2',
+                ],
+                'fee_total' => ['required', 'numeric', 'min:0'],
             ],
-            4       => [
-                'status' => ['required', 'in:active,inactive,suspended'],
-            ],
-            default => []
+            default => [],
         };
     }
 
-    // Helper methods from new-form
-    public function updatedCourseId()
+    /**
+     * Load course data when a course is selected
+     */
+    public function loadCourseData($courseId)
+    {
+        $this->selected_course = Course::find($courseId);
+        if ($this->selected_course) {
+            $this->tuitionFee = $this->selected_course->tution_fee ?? 0;
+            $this->otherFee = $this->selected_course->other_fee ?? 0;
+            
+            // Count how many batches are available for this course
+            $batchCount = Batch::where('course_id', $this->selected_course->id)->count();
+            
+            // Dispatch event to notify UI that course data is loaded
+            $this->dispatch('courseDataLoaded', 
+                course_id: $this->selected_course->id,
+                name: $this->selected_course->name,
+                gross_fee: $this->selected_course->gross_fee,
+                net_fee: $this->selected_course->net_fee,
+                batch_count: $batchCount
+            );
+        }
+    }
+    
+    /**
+     * Handle course change event
+     */
+    public function onCourseChange()
     {
         if ($this->course_id) {
-            $this->selected_course = Course::find($this->course_id);
-            $this->tuitionFee      = $this->selected_course->fee ?? 0;
-            $this->calculateTotal();
-            $this->batch_id       = null;
-            $this->selected_batch = null;
+            $this->loadCourseData($this->course_id);
+        } else {
+            $this->selected_course = null;
+            $this->resetBatch();
         }
-    }
-
-    public function updatedBatchId()
-    {
-        if ($this->batch_id) {
-            $this->selected_batch = Batch::find($this->batch_id);
-        }
-    }
-
-    public function updatedDiscountValue()
-    {
-        $this->calculateDiscount();
+        $this->recalculate();
     }
     
-    public function updatedOtherFee()
+    /**
+     * Reset batch selection when course changes
+     */
+    public function resetBatch()
     {
-        $this->calculateTotal();
-    }
-    
-
-    public function updatedLateFee()
-    {
-        $this->calculateTotal();
+        $this->batch_id = null;
+        $this->selected_batch = null;
     }
 
-    public function updatedGstRate()
+    /**
+     * Load batch details for summary display
+     */
+    public function loadBatchData($batchId): void
     {
-        $this->calculateTotal();
+        $this->selected_batch = $batchId ? Batch::find($batchId) : null;
     }
 
-    public function updatedSameAsPermanent()
+    /**
+     * Copy permanent address to correspondence address
+     */
+    public function copyPermanentToCorrespondence()
     {
+        $this->corr_address_line1 = $this->address_line1;
+        $this->corr_address_line2 = $this->address_line2;
+        $this->corr_city = $this->city;
+        $this->corr_state = $this->state;
+        $this->corr_district = $this->district;
+        $this->corr_pincode = $this->pincode;
+        $this->corr_country = $this->country;
+    }
+
+    /**
+     * Clear correspondence address fields
+     */
+    public function clearCorrespondenceAddress()
+    {
+        $this->corr_address_line1 = '';
+        $this->corr_address_line2 = '';
+        $this->corr_city = '';
+        $this->corr_state = '';
+        $this->corr_district = '';
+        $this->corr_pincode = '';
+        $this->corr_country = 'India';
+    }
+
+    /**
+     * Toggle same as permanent address
+     */
+    public function toggleSameAsPermanent()
+    {
+        $this->same_as_permanent = !$this->same_as_permanent;
+        
         if ($this->same_as_permanent) {
-            $this->corr_address_line1 = $this->address_line1;
-            $this->corr_address_line2 = $this->address_line2;
-            $this->corr_city          = $this->city;
-            $this->corr_state         = $this->state;
-            $this->corr_district      = $this->district;
-            $this->corr_pincode       = $this->pincode;
-            $this->corr_country       = $this->country;
+            $this->copyPermanentToCorrespondence();
         } else {
-            $this->corr_address_line1 = '';
-            $this->corr_address_line2 = '';
-            $this->corr_city          = '';
-            $this->corr_state         = '';
-            $this->corr_district      = '';
-            $this->corr_pincode       = '';
-            $this->corr_country       = 'India';
+            $this->clearCorrespondenceAddress();
         }
     }
 
-    private function calculateDiscount()
+    /**
+     * Clear validation errors
+     */
+    public function clearValidationErrors()
     {
-        if ($this->discount_type === 'percentage') {
-            $this->discount = ($this->subtotal * $this->discount_value) / 100;
-        } else {
-            $this->discount = $this->discount_value ?? 0;
-        }
-        $this->discount = max(0, (float) $this->discount);
-        $this->calculateTotal();
+        $this->validationErrors = [];
+        $this->showValidationErrors = false;
+        $this->validationMessage = '';
+        $this->resetErrorBag();
     }
 
-    private function calculateTotal()
+    /**
+     * Display validation errors in a user-friendly format
+     */
+    public function displayValidationErrors(array $errors)
     {
-        $this->subtotal = $this->tuitionFee + $this->otherFee + $this->lateFee;
+        $this->validationErrors = $errors;
+        $this->showValidationErrors = true;
+        
+        // Create a summary message
+        $errorCount = count($errors);
+        $fieldCount = array_sum(array_map('count', $errors));
+        
+        $this->validationMessage = "Please fix {$fieldCount} validation error(s) in {$errorCount} field(s) before submitting.";
+        
+        // Dispatch to frontend for additional UI feedback
+        $this->dispatch('showValidationErrors', [
+            'errors' => $errors,
+            'message' => $this->validationMessage,
+            'count' => $fieldCount
+        ]);
+    }
 
-        if ($this->applyGst) {
-            $this->gstAmount = ($this->subtotal * $this->gstRate) / 100;
-            $this->fee_total = $this->subtotal + $this->gstAmount - $this->discount;
-        } else {
-            $this->gstAmount = 0;
-            $this->fee_total = $this->subtotal - $this->discount;
+    /**
+     * Get formatted validation errors for display
+     */
+    public function getFormattedValidationErrors(): array
+    {
+        $formatted = [];
+        foreach ($this->validationErrors as $field => $messages) {
+            $fieldLabel = $this->getFieldLabel($field);
+            $formatted[] = [
+                'field' => $field,
+                'label' => $fieldLabel,
+                'messages' => $messages
+            ];
         }
+        return $formatted;
+    }
 
-        // Ensure fee_total is not negative
-        $this->fee_total = max(0, $this->fee_total);
+    /**
+     * Get user-friendly field labels
+     */
+    private function getFieldLabel(string $field): string
+    {
+        $labels = [
+            'name' => 'Student Name',
+            'father_name' => 'Father Name',
+            'mother_name' => 'Mother Name',
+            'email' => 'Email Address',
+            'phone' => 'Phone Number',
+            'whatsapp_no' => 'WhatsApp Number',
+            'address' => 'Address',
+            'dob' => 'Date of Birth',
+            'gender' => 'Gender',
+            'category' => 'Category',
+            'stream' => 'Stream',
+            'course_id' => 'Course',
+            'batch_id' => 'Batch',
+            'admission_date' => 'Admission Date',
+            'address_line1' => 'Permanent Address Line 1',
+            'address_line2' => 'Permanent Address Line 2',
+            'city' => 'Permanent City',
+            'state' => 'Permanent State',
+            'district' => 'Permanent District',
+            'pincode' => 'Permanent Pin Code',
+            'country' => 'Permanent Country',
+            'corr_address_line1' => 'Correspondence Address Line 1',
+            'corr_address_line2' => 'Correspondence Address Line 2',
+            'corr_city' => 'Correspondence City',
+            'corr_state' => 'Correspondence State',
+            'corr_district' => 'Correspondence District',
+            'corr_pincode' => 'Correspondence Pin Code',
+            'corr_country' => 'Correspondence Country',
+            'school_name' => 'School Name',
+            'school_address' => 'School Address',
+            'board' => 'Board',
+            'class' => 'Class',
+            'academic_session' => 'Academic Session',
+            'discount_type' => 'Discount Type',
+            'discount_value' => 'Discount Value',
+            'mode' => 'Payment Mode',
+            'installments' => 'Number of Installments',
+            'fee_total' => 'Total Fee',
+        ];
+
+        return $labels[$field] ?? ucwords(str_replace('_', ' ', $field));
     }
 
     private function getSessionYearStart($session): string
@@ -481,9 +680,31 @@ class Edit extends Component
 
     public function next()
     {
-        $this->validate($this->stepRules($this->step));
-        if ($this->step < 4) {
+        try {
+            $this->validate($this->stepRules($this->step));
+            // Clear any previous validation errors on successful validation
+            $this->clearValidationErrors();
+        } catch (ValidationException $e) {
+            // Display validation errors in user-friendly format
+            $this->displayValidationErrors($e->errors());
+            
+            // Log step validation errors
+            Log::info('Step validation failed', [
+                'step' => $this->step,
+                'errors' => $e->errors(),
+            ]);
+            
+            // Add a general error message
+            $this->addError('step', "Please fix the validation errors in Step {$this->step} before proceeding.");
+            
+            // bail out so we stay on the current step
+            throw $e;
+        }
+
+        if ($this->step < 2) {
             $this->step++;
+            // Dispatch via Livewire's client dispatch for Alpine
+            $this->dispatch('stepChanged', step: $this->step);
         }
     }
 
@@ -491,16 +712,25 @@ class Edit extends Component
     {
         if ($this->step > 1) {
             $this->step--;
+            $this->dispatch('stepChanged', step: $this->step);
         }
-    }
+     }
 
     public function goToStep(int $to)
     {
         // Prevent jumping ahead without validating current step
         if ($to > $this->step) {
-            $this->validate($this->stepRules($this->step));
+            try {
+                $this->validate($this->stepRules($this->step));
+                $this->clearValidationErrors();
+            } catch (ValidationException $e) {
+                $this->displayValidationErrors($e->errors());
+                $this->addError('step', "Please fix the validation errors in Step {$this->step} before proceeding.");
+                throw $e;
+            }
         }
-        $this->step = max(1, min(4, $to));
+        $this->step = max(1, min(2, $to));
+        $this->dispatch('stepChanged', step: $this->step);
     }
 
     public function save()
