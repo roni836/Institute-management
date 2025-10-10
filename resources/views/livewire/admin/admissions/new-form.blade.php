@@ -366,7 +366,7 @@ function addressDropdown(prefix) {
         selectedDistrict: '',
         selectedCity: '',
         async init() {
-            const res = await fetch('/india-states-cities.json');
+            const res = await fetch('/india.json');
             this.states = await res.json();
             // Set initial values from Livewire
             if (prefix === 'perm') {
