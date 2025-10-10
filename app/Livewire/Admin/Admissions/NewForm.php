@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -27,10 +28,67 @@ class NewForm extends Component
     public int $step = 1; // 1: Student, 2: Admission & Payment
 
     // Student fields (new student at admission time)
-    public $name, $father_name, $mother_name, $email, $phone, $whatsapp_no, $address, $admission;
-    public $gender, $category, $alt_phone, $dob, $session, $academic_session, $mother_occupation, $father_occupation;
-    public $school_name, $school_address, $board, $class;
+    #[Validate('required|min:3|max:100')] 
+    public $name;
+    
+    #[Validate('required|min:3|max:100')] 
+    public $father_name;
+    
+    #[Validate('required|min:3|max:100')] 
+    public $mother_name;
+    
+    #[Validate('required|email')] 
+    public $email;
+    
+    #[Validate('required|digits:10')] 
+    public $phone;
+    
+    #[Validate('nullable|digits:10')] 
+    public $whatsapp_no;
+    
+    #[Validate('nullable')] 
+    public $address;
+    
+    #[Validate('nullable')] 
+    public $admission;
+    
+    #[Validate('required|in:male,female,other')] 
+    public $gender;
+    
+    #[Validate('required')] 
+    public $category;
+    
+    #[Validate('nullable|digits:10')] 
+    public $alt_phone;
+    
+    #[Validate('required|date')] 
+    public $dob;
+    
+    #[Validate('required')] 
+    public $academic_session;
+    
+    #[Validate('nullable|max:100')] 
+    public $mother_occupation;
+    
+    #[Validate('nullable|max:100')] 
+    public $father_occupation;
+    
+    #[Validate('required|min:3|max:200')] 
+    public $school_name;
+    
+    #[Validate('required|min:3|max:200')] 
+    public $school_address;
+    
+    #[Validate('required')] 
+    public $board;
+    
+    #[Validate('required')] 
+    public $class;
+    
+    #[Validate('required')]
     public $stream;
+    
+    #[Validate('required|in:active,inactive,alumni')]
     public string $student_status = 'active';
     public ?string $module1 = null;
     public ?string $module2 = null;
@@ -40,16 +98,64 @@ class NewForm extends Component
     public bool $id_card_required = false;
     
     // Address fields
+    #[Validate('required|in:permanent,correspondence')]
     public $address_type = 'permanent';
-    public $address_line1, $address_line2, $city, $state, $district, $pincode, $country = 'India';
-    public $corr_address_line1, $corr_address_line2, $corr_city, $corr_state, $corr_district, $corr_pincode, $corr_country = 'India';
+
+    #[Validate('required|min:3|max:200')]
+    public $address_line1;
+
+    #[Validate('nullable|max:200')]
+    public $address_line2;
+
+    #[Validate('required|min:2|max:100')]
+    public $city;
+
+    #[Validate('required')]
+    public $state;
+
+    #[Validate('required')]
+    public $district;
+
+    #[Validate('required|digits:6')]
+    public $pincode;
+
+    #[Validate('required')]
+    public $country = 'India';
+
+    #[Validate('required_if:same_as_permanent,false')]
+    public $corr_address_line1;
+
+    #[Validate('nullable|max:200')]
+    public $corr_address_line2;
+
+    #[Validate('required_if:same_as_permanent,false')]
+    public $corr_city;
+
+    #[Validate('required_if:same_as_permanent,false')]
+    public $corr_state;
+
+    #[Validate('required_if:same_as_permanent,false')]
+    public $corr_district;
+
+    #[Validate('required_if:same_as_permanent,false')]
+    public $corr_pincode;
+
+    #[Validate('required')]
+    public $corr_country = 'India';
     public $same_as_permanent = false;
 
     // Course and Admission fields
     public $course_id = null;
     public $selected_course = null;
     public $selected_batch = null;
-    public $batch_id, $admission_date, $mode = 'full';
+    #[Validate('required|exists:batches,id')]
+    public $batch_id;
+
+    #[Validate('required|date')]
+    public $admission_date;
+
+    public $mode = 'full';
+
     public $fee_total = 0.00, $installments = 2, $plan = [];
     
     // Discount fields
@@ -256,7 +362,6 @@ class NewForm extends Component
             $this->mother_name = $student->mother_name;
             $this->address = $student->address;
             $this->dob = $student->dob;
-            $this->session = $student->session;
             $this->academic_session = $student->academic_session;
             $this->school_name = $student->school_name;
             $this->school_address = $student->school_address;
@@ -322,7 +427,7 @@ class NewForm extends Component
     {
         $this->reset([
             'name', 'email', 'father_name', 'mother_name', 'address', 'gender', 'category', 
-            'dob', 'session', 'academic_session', 'alt_phone', 'whatsapp_no', 'mother_occupation', 
+            'dob', 'academic_session', 'alt_phone', 'whatsapp_no', 'mother_occupation', 
             'father_occupation', 'stream', 'address_line1', 'address_line2', 'city', 'state', 
             'district', 'pincode', 'country', 'corr_address_line1', 'corr_address_line2', 
             'corr_city', 'corr_state', 'corr_district', 'corr_pincode', 'corr_country', 'same_as_permanent',
@@ -415,11 +520,18 @@ class NewForm extends Component
         
         $this->validationMessage = "Please fix {$fieldCount} validation error(s) in {$errorCount} field(s) before submitting.";
         
+        // Format errors for display
+        $formattedErrors = [];
+        foreach ($errors as $field => $messages) {
+            foreach ($messages as $message) {
+                $formattedErrors[] = $message;
+            }
+        }
+        
         // Dispatch to frontend for additional UI feedback
-        $this->dispatch('showValidationErrors', [
-            'errors' => $errors,
-            'message' => $this->validationMessage,
-            'count' => $fieldCount
+        $this->dispatch('notify', [
+            'type' => 'error',
+            'message' => $this->validationMessage
         ]);
     }
 
@@ -491,96 +603,96 @@ class NewForm extends Component
         return $labels[$field] ?? ucwords(str_replace('_', ' ', $field));
     }
 
-    /** Full rules (used on final save) */
-    public function rules(): array
-    {
-        $rules = [
-            // step 1 - Student details
-            'name' => ['required', 'string', 'max:255'],
-            'father_name' => ['nullable', 'string', 'max:255'],
-            'mother_name' => ['nullable', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:20'],
-            'whatsapp_no' => ['nullable', 'string', 'max:20'],
-            'address' => ['nullable', 'string'],
-            'dob' => ['nullable'],
-            'session' => ['nullable'],
-            'academic_session' => ['nullable', 'string', 'max:10'],
-            'gender' => ['nullable', 'string', 'in:male,female,others'],
-            'category' => ['nullable', 'string', 'in:sc,st,obc,general,other'],
-            'alt_phone' => ['nullable', 'string', 'max:20'],
-            'mother_occupation' => ['nullable', 'string', 'max:255'],
-            'father_occupation' => ['nullable', 'string', 'max:255'],
-            'stream' => ['required', 'string', 'in:Engineering,Foundation,Medical,Other'],
-            'student_status' => ['nullable', 'in:active,inactive,alumni'],
-            'school_name' => ['nullable', 'string', 'max:255'],
-            'school_address' => ['nullable', 'string', 'max:255'],
-            'board' => ['nullable', 'string', 'max:100'],
-            'class' => ['nullable', 'string', 'max:255'],
-            'module1' => ['nullable', 'string', 'max:255'],
-            'module2' => ['nullable', 'string', 'max:255'],
-            'module3' => ['nullable', 'string', 'max:255'],
-            'module4' => ['nullable', 'string', 'max:255'],
-            'module5' => ['nullable', 'string', 'max:255'],
-            'id_card_required' => ['boolean'],
+    // /** Full rules (used on final save) */
+    // public function rules(): array
+    // {
+    //     $rules = [
+    //         // step 1 - Student details
+    //         'name' => ['required', 'string', 'max:255'],
+    //         'father_name' => ['nullable', 'string', 'max:255'],
+    //         'mother_name' => ['nullable', 'string', 'max:255'],
+    //         'email' => ['nullable', 'email', 'max:255'],
+    //         'phone' => ['nullable', 'string', 'max:20'],
+    //         'whatsapp_no' => ['nullable', 'string', 'max:20'],
+    //         'address' => ['nullable', 'string'],
+    //         'dob' => ['nullable'],
+    //         'session' => ['nullable'],
+    //         'academic_session' => ['nullable', 'string', 'max:10'],
+    //         'gender' => ['nullable', 'string', 'in:male,female,others'],
+    //         'category' => ['nullable', 'string', 'in:sc,st,obc,general,other'],
+    //         'alt_phone' => ['nullable', 'string', 'max:20'],
+    //         'mother_occupation' => ['nullable', 'string', 'max:255'],
+    //         'father_occupation' => ['nullable', 'string', 'max:255'],
+    //         'stream' => ['required', 'string', 'in:Engineering,Foundation,Medical,Other'],
+    //         'student_status' => ['nullable', 'in:active,inactive,alumni'],
+    //         'school_name' => ['nullable', 'string', 'max:255'],
+    //         'school_address' => ['nullable', 'string', 'max:255'],
+    //         'board' => ['nullable', 'string', 'max:100'],
+    //         'class' => ['nullable', 'string', 'max:255'],
+    //         'module1' => ['nullable', 'string', 'max:255'],
+    //         'module2' => ['nullable', 'string', 'max:255'],
+    //         'module3' => ['nullable', 'string', 'max:255'],
+    //         'module4' => ['nullable', 'string', 'max:255'],
+    //         'module5' => ['nullable', 'string', 'max:255'],
+    //         'id_card_required' => ['boolean'],
             
-            // Address fields
-            'address_line1' => ['required', 'string', 'max:255'],
-            'address_line2' => ['nullable', 'string', 'max:255'],
-            'city' => ['nullable', 'string', 'max:100'],
-            'state' => ['nullable', 'string', 'max:100'],
-            'district' => ['nullable', 'string', 'max:100'],
-            'pincode' => ['required', 'digits:6'],
-            'country' => ['nullable', 'string', 'max:100'],
-            'same_as_permanent' => ['boolean'],
-            'photo_upload' => ['nullable', 'image', 'max:2048'],
-            'aadhaar_upload' => ['nullable', 'mimes:jpeg,jpg,png,pdf', 'max:4096'],
-            'corr_address_line1' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'nullable', 'string', 'max:255'],
-            'corr_address_line2' => ['nullable', 'string', 'max:255'],
-            'corr_city' => ['nullable', 'string', 'max:100'],
-            'corr_state' => ['nullable', 'string', 'max:100'],
-            'corr_district' => ['nullable', 'string', 'max:100'],
-            'corr_pincode' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'nullable', 'digits:6'],
-            'corr_country' => ['nullable', 'string', 'max:100'],
+    //         // Address fields
+    //         'address_line1' => ['required', 'string', 'max:255'],
+    //         'address_line2' => ['nullable', 'string', 'max:255'],
+    //         'city' => ['nullable', 'string', 'max:100'],
+    //         'state' => ['nullable', 'string', 'max:100'],
+    //         'district' => ['nullable', 'string', 'max:100'],
+    //         'pincode' => ['required', 'digits:6'],
+    //         'country' => ['nullable', 'string', 'max:100'],
+    //         'same_as_permanent' => ['boolean'],
+    //         'photo_upload' => ['nullable', 'image', 'max:2048'],
+    //         'aadhaar_upload' => ['nullable', 'mimes:jpeg,jpg,png,pdf', 'max:4096'],
+    //         'corr_address_line1' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'nullable', 'string', 'max:255'],
+    //         'corr_address_line2' => ['nullable', 'string', 'max:255'],
+    //         'corr_city' => ['nullable', 'string', 'max:100'],
+    //         'corr_state' => ['nullable', 'string', 'max:100'],
+    //         'corr_district' => ['nullable', 'string', 'max:100'],
+    //         'corr_pincode' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'nullable', 'digits:6'],
+    //         'corr_country' => ['nullable', 'string', 'max:100'],
 
-            // step 2 - Admission details
-            'course_id' => [
-                'required',
-                'exists:courses,id',
-            ],
-            'batch_id' => [
-                'required',
-                'exists:batches,id',
-            ],
-            'admission_date' => ['required', 'date'],
-            'discount_type' => ['required', 'in:fixed,percentage'],
-            'discount_value' => ['nullable', 'numeric', 'min:0'],
-            'discount' => ['nullable', 'numeric', 'min:0'],
-            'mode' => ['required', 'in:full,installment'],
-            'fee_total' => ['required', 'numeric', 'min:0'],
-            'applyGst' => ['boolean'],
-            'gstRate' => [Rule::requiredIf(fn() => $this->applyGst), 'numeric', 'min:0', 'max:100'],
-            'gstAmount' => [Rule::requiredIf(fn() => $this->applyGst), 'numeric', 'min:0'],
-            'installments' => [
-                Rule::requiredIf(fn() => $this->mode === 'installment'),
-                'integer', 'min:2',
-            ],
-            'plan' => [
-                function ($attribute, $value, $fail) {
-                    if ($this->mode === 'installment' && !empty($this->plan)) {
-                        $total = array_sum(array_column($this->plan, 'amount'));
-                        $difference = abs($total - $this->fee_total);
-                        // Allow for small floating point differences (up to 1 rupee)
-                        if ($difference > 1.00) {
-                            $fail("Installment amounts (₹{$total}) must equal the total fee amount (₹{$this->fee_total}). Difference: ₹{$difference}");
-                        }
-                    }
-                },
-            ],
-        ];
+    //         // step 2 - Admission details
+    //         'course_id' => [
+    //             'required',
+    //             'exists:courses,id',
+    //         ],
+    //         'batch_id' => [
+    //             'required',
+    //             'exists:batches,id',
+    //         ],
+    //         'admission_date' => ['required', 'date'],
+    //         'discount_type' => ['required', 'in:fixed,percentage'],
+    //         'discount_value' => ['nullable', 'numeric', 'min:0'],
+    //         'discount' => ['nullable', 'numeric', 'min:0'],
+    //         'mode' => ['required', 'in:full,installment'],
+    //         'fee_total' => ['required', 'numeric', 'min:0'],
+    //         'applyGst' => ['boolean'],
+    //         'gstRate' => [Rule::requiredIf(fn() => $this->applyGst), 'numeric', 'min:0', 'max:100'],
+    //         'gstAmount' => [Rule::requiredIf(fn() => $this->applyGst), 'numeric', 'min:0'],
+    //         'installments' => [
+    //             Rule::requiredIf(fn() => $this->mode === 'installment'),
+    //             'integer', 'min:2',
+    //         ],
+    //         'plan' => [
+    //             function ($attribute, $value, $fail) {
+    //                 if ($this->mode === 'installment' && !empty($this->plan)) {
+    //                     $total = array_sum(array_column($this->plan, 'amount'));
+    //                     $difference = abs($total - $this->fee_total);
+    //                     // Allow for small floating point differences (up to 1 rupee)
+    //                     if ($difference > 1.00) {
+    //                         $fail("Installment amounts (₹{$total}) must equal the total fee amount (₹{$this->fee_total}). Difference: ₹{$difference}");
+    //                     }
+    //                 }
+    //             },
+    //         ],
+    //     ];
 
-        return $rules;
-    }
+    //     return $rules;
+    // }
 
     protected function normalizeModule(?string $value): ?string
     {
@@ -643,30 +755,30 @@ class NewForm extends Component
     public function next()
     {
         try {
-            $this->validate($this->stepRules($this->step));
-            // Clear any previous validation errors on successful validation
             $this->clearValidationErrors();
+            
+            // Validate based on current step
+            if ($this->step === 1) {
+                $this->validate(); // This will use the attribute-based validation
+                
+                // Show success message
+                $this->dispatch('notify', [
+                    'type' => 'success',
+                    'message' => 'Student information validated successfully'
+                ]);
+            }
+            
+            if ($this->step < 2) {
+                $this->step++;
+                $this->dispatch('stepChanged', step: $this->step);
+            }
         } catch (ValidationException $e) {
-            // Display validation errors in user-friendly format
             $this->displayValidationErrors($e->errors());
-            
-            // Log step validation errors
-            Log::info('Step validation failed', [
-                'step' => $this->step,
-                'errors' => $e->errors(),
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => 'Please fix the validation errors before proceeding'
             ]);
-            
-            // Add a general error message
-            $this->addError('step', "Please fix the validation errors in Step {$this->step} before proceeding.");
-            
-            // bail out so we stay on the current step
-            throw $e;
-        }
-
-        if ($this->step < 2) {
-            $this->step++;
-            // Dispatch via Livewire's client dispatch for Alpine
-            $this->dispatch('stepChanged', step: $this->step);
+            return;
         }
     }
 
