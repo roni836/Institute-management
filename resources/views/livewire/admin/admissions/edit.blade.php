@@ -409,75 +409,229 @@
                         </div>
                     </div>
 
-    <!-- Step 2: Payment & Course Details -->
+    <!-- Step 2: Fee Structure -->
     <div id="step2" class="form-section" x-show="step === 2" x-cloak>
         <div class="mb-3 p-3 border border-primary-100 rounded bg-primary-50">
-            <h3 class="text-lg font-semibold text-primary-800 mb-3">Course & Payment Details</h3>
+            <h3 class="text-lg font-semibold text-primary-800 mb-3">Fee Structure & Payment</h3>
             
-            <!-- Course Selection -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Course *</label>
-                    <select wire:model.live="course_id" wire:change="onCourseChange" name="course" required class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                        <option value="">Select Course</option>
-                        @foreach($courses as $course)
-                            <option value="{{ $course->id }}">{{ $course->name }} (₹{{ number_format($course->net_fee, 2) }})</option>
-                        @endforeach
-                    </select>
-                    @error('course_id') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+            <!-- Contact Info Section -->
+            <div class="mb-3 p-3 bg-white rounded">
+                <h4 class="font-semibold text-sm text-gray-700 mb-2">Contact Information</h4>
+                @php
+                    $contactSummary = [
+                        ['icon' => '👤', 'label' => 'Student', 'value' => $name ?: '—'],
+                        ['icon' => '📘', 'label' => 'Course', 'value' => data_get($selected_course, 'name', '—')],
+                        ['icon' => '📅', 'label' => 'Academic Session', 'value' => $academic_session ?: '—'],
+                        ['icon' => '👨‍👧', 'label' => 'Father Name', 'value' => $father_name ?: '—'],
+                        ['icon' => '🎓', 'label' => 'Stream', 'value' => $stream ?: '—'],
+                        ['icon' => '🗓️', 'label' => 'Batch Type', 'value' => data_get($selected_batch, 'batch_name', '—')],
+                        ['icon' => '🆔', 'label' => 'Admission Number', 'value' => $generated_enrollment_id ?: $enrollment_id ?: '—'],
+                        ['icon' => '🏷️', 'label' => 'Category', 'value' => $category ? strtoupper($category) : '—'],
+                    ];
+                @endphp
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    @foreach($contactSummary as $item)
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mr-2">
+                                <span class="text-xs">{{ $item['icon'] }}</span>
+                            </div>
+                            <div>
+                                <div class="font-medium">{{ $item['label'] }}</div>
+                                <div class="text-gray-600">{{ $item['value'] }}</div>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
+            </div>
+
+            <!-- GST Application -->
+            <div class="mb-3 p-3 bg-primary-600 text-white rounded">
+                <h4 class="font-bold text-base mb-1">GST Application</h4>
+                <div class="flex items-center space-x-4 mt-2">
+                    <label class="inline-flex items-center">
+                        <input wire:model.live="applyGst" type="radio" name="gstOption" value="1" class="form-radio h-5 w-5 text-white border-white">
+                        <span class="ml-2 text-white">Apply 18% GST</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input wire:model.live="applyGst" type="radio" name="gstOption" value="0" class="form-radio h-5 w-5 text-white border-white" checked>
+                        <span class="ml-2 text-white">No GST</span>
+                    </label>
+                </div>
+                <div class="text-sm text-primary-100 mt-2" wire:loading wire:target="applyGst">
+                    Recalculating fees...
+                </div>
+            </div>
+
+            <!-- Fee Breakdown -->
+            <div class="mb-6">
+                <h4 class="font-semibold text-gray-700 mb-4">Fee Details</h4>
                 
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Batch *</label>
-                    <select wire:model.live="batch_id" wire:change="recalculate" name="batch" required class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-primary-500" {{ empty($course_id) ? 'disabled' : '' }}>
-                        <option value="">Select Batch</option>
-                        @foreach($batches->where('course_id', $course_id ?? 0) as $batch)
-                            <option value="{{ $batch->id }}">{{ $batch->batch_name }}</option>
-                        @endforeach
-                    </select>
-                    @error('batch_id') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                </div>
-            </div>
+                <!-- Left side - Fee inputs -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center p-3 border rounded-lg">
+                            <label class="text-sm font-medium text-gray-700">Admission Type</label>
+                            <select name="admissionType" class="px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-primary-500">
+                                <option value="Regular">Regular</option>
+                                <option value="Late">Late Admission</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex justify-between items-center p-3 border rounded-lg">
+                            <span class="text-sm font-medium text-gray-700">Payment Mode</span>
+                            <div class="flex space-x-4">
+                                <label class="inline-flex items-center">
+                                    <input wire:model.live="mode" type="radio" name="paymentMode" value="full" class="form-radio h-4 w-4 text-primary-600" checked>
+                                    <span class="ml-2 text-sm">Full</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input wire:model.live="mode" type="radio" name="paymentMode" value="installment" class="form-radio h-4 w-4 text-primary-600">
+                                    <span class="ml-2 text-sm">Installment</span>
+                                </label>
+                            </div>
+                        </div>
 
-            <!-- Payment Mode -->
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Payment Mode *</label>
-                <select wire:model.live="mode" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
-                    <option value="full">Full Payment</option>
-                    <option value="installment">Installment</option>
-                </select>
-                @error('mode') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-            </div>
+                        <!-- Discount Section -->
+                        <div class="p-3 border rounded-lg">
+                            <div class="mb-3">
+                                <h5 class="text-sm font-medium text-gray-700 mb-2">Discount</h5>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-xs text-gray-500">Type</label>
+                                        <select wire:model="discount_type" wire:change="recalculate" class="w-full px-2 py-1 text-sm border rounded">
+                                            <option value="fixed">Fixed Amount (₹)</option>
+                                            <option value="percentage">Percentage (%)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-gray-500">Value</label>
+                                        <div class="flex items-center">
+                                            <input wire:model="discount_value" wire:change="recalculate" type="number" min="0" step="0.01" class="w-full px-2 py-1 text-sm text-right border rounded" placeholder="0.00">
+                                            <span class="ml-1 text-xs font-medium">{{ $discount_type == 'percentage' ? '%' : '₹' }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-700">Discount Amount</span>
+                                <div class="flex items-center">
+                                    <span class="text-sm font-medium">₹{{ number_format($discount, 2) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Installment Section - only visible when installment mode is selected -->
+                        <div x-show="mode === 'installment'" class="bg-white border rounded-lg p-4">
+                            <div class="bg-primary-600 text-white p-3 rounded-t-lg -m-4 mb-4">
+                                <h4 class="font-semibold text-lg">Add Installment</h4>
+                            </div>
+                            
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-sm font-medium text-gray-700">Select No. Installment</label>
+                                    <div class="flex items-center space-x-2">
+                                        <input wire:model="installments" type="number" min="2" max="12" class="w-16 px-2 py-1 border border-gray-300 rounded text-center" placeholder="3">
+                                        <button type="button" wire:click="recalculate" class="px-3 py-1 bg-primary-500 text-white text-xs rounded hover:bg-primary-600">
+                                            Generate
+                                        </button>
+                                    </div>
+                                </div>
 
-            <!-- Fee Calculation -->
-            @if ($course_id)
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <h4 class="text-md font-semibold text-gray-900 mb-4">Fee Calculation</h4>
+                                <!-- Installment Plan Table -->
+                                @if($mode == 'installment' && !empty($plan))
+                                <div class="mt-4">
+                                    <div class="bg-gray-50 rounded-lg p-3">
+                                        @foreach($plan as $index => $p)
+                                        <div class="flex items-center justify-between py-2 {{ $index > 0 ? 'border-t border-gray-200' : '' }}">
+                                            <span class="text-sm font-medium">{{ $p['no'] }}</span>
+                                            <div class="flex items-center space-x-2">
+                                                <input 
+                                                    type="date" 
+                                                    value="{{ $p['due_on'] }}" 
+                                                    wire:change="updateInstallmentDate({{ $index }}, $event.target.value)"
+                                                    class="px-2 py-1 border border-gray-300 rounded text-xs"
+                                                >
+                                                <input 
+                                                    type="number" 
+                                                    value="{{ $p['amount'] }}" 
+                                                    wire:change="updateInstallmentAmount({{ $index }}, $event.target.value)"
+                                                    class="w-20 px-2 py-1 border border-gray-300 rounded text-right text-xs" 
+                                                    step="0.01"
+                                                >
+                                            </div>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                    
+                                    @error('plan')
+                                    <div class="text-red-500 text-xs mt-1">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Tuition Fee</label>
-                            <input type="number" wire:model.live="tuitionFee" step="0.01" readonly
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100">
+                    <!-- Right side - Fee Structure -->
+                    <div class="bg-white border rounded-lg">
+                        <div class="bg-primary-600 text-white p-3 rounded-t-lg">
+                            <h4 class="font-semibold text-lg">Fee Structure</h4>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Other Fee</label>
-                            <input type="number" wire:model.live="otherFee" step="0.01"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Discount (₹)</label>
-                            <input type="number" wire:model.live="discount_value" step="0.01"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Total Fee</label>
-                            <input type="number" wire:model="fee_total" step="0.01" readonly
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 font-bold text-primary-600">
+                        
+                        <div class="p-4 space-y-3">
+                            <!-- Fee breakdown -->
+                            @if($selected_course)
+                                <div class="space-y-2">
+                                    <div class="flex justify-between py-2">
+                                        <span class="text-sm text-gray-700">Tuition Fee</span>
+                                        <span class="font-medium">{{ number_format($selected_course->tution_fee ?? 18000, 0) }}</span>
+                                    </div>
+                                    
+                                    <div class="flex justify-between py-2">
+                                        <span class="text-sm text-gray-700">Other Fee</span>
+                                        <span class="font-medium">{{ number_format($selected_course->other_fee ?? 17000, 0) }}</span>
+                                    </div>
+                                    
+                                    <div class="flex justify-between py-2">
+                                        <span class="text-sm text-gray-700">Discount</span>
+                                        <span class="font-medium text-red-600">{{ number_format($discount ?? 0, 2) }}</span>
+                                    </div>
+                                    
+                                    <div class="flex justify-between py-2">
+                                        <span class="text-sm text-gray-700">Late Fine + Pre charge</span>
+                                        <span class="font-medium">{{ number_format($lateFee ?? 0, 2) }}</span>
+                                    </div>
+                                    
+                                    <hr class="border-gray-200 my-2">
+                                    
+                                    <div class="flex justify-between py-2">
+                                        <span class="text-sm font-medium text-gray-700">Taxable Amt.</span>
+                                        <span class="font-semibold">{{ number_format($subtotal ?? 35000, 2) }}</span>
+                                    </div>
+                                    
+                                    @if($applyGst)
+                                    <div class="flex justify-between py-2">
+                                        <span class="text-sm text-gray-700">Total Tax</span>
+                                        <span class="font-medium">{{ number_format($gstAmount ?? 6300, 0) }}</span>
+                                    </div>
+                                    @endif
+                                    
+                                    <hr class="border-gray-200 my-2">
+                                    
+                                    <div class="flex justify-between py-3 bg-primary-50 px-3 rounded">
+                                        <span class="text-lg font-bold text-gray-800">Total</span>
+                                        <span class="text-lg font-bold text-primary-600">{{ number_format($fee_total ?? 41300, 0) }}</span>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="text-center py-8">
+                                    <p class="text-gray-500">Please select a course to view fee details</p>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
-            @endif
+            </div>
         </div>
         
         <!-- Navigation Buttons for Step 2 -->

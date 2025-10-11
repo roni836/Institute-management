@@ -990,4 +990,27 @@ class Edit extends Component
     {
         $this->updateGeneratedEnrollmentId();
     }
+
+    /**
+     * Update installment amount
+     */
+    public function updateInstallmentAmount($index, $amount)
+    {
+        if (isset($this->plan[$index])) {
+            $this->plan[$index]['amount'] = (float)$amount;
+            $this->custom_installments = true;
+            $this->validateInstallmentTotals();
+        }
+    }
+
+    /**
+     * Update installment due date
+     */
+    public function updateInstallmentDate($index, $date)
+    {
+        if (isset($this->plan[$index])) {
+            $this->plan[$index]['due_on'] = $date;
+            $this->custom_installments = true;
+        }
+    }
 }
