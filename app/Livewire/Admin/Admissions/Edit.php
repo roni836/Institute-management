@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -25,6 +26,8 @@ class Edit extends Component
     public $name, $father_name, $mother_name, $email, $phone, $whatsapp_no, $address;
     public $gender, $category, $alt_phone, $dob, $session, $academic_session, $mother_occupation, $father_occupation;
     public $school_name, $school_address, $board, $class, $stream;
+    public $enrollment_id;
+    public $generated_enrollment_id = null;
     public string $student_status = 'active';
     public ?string $module1       = null;
     public ?string $module2       = null;
@@ -94,10 +97,11 @@ class Edit extends Component
         $this->school_address    = $student->school_address;
         $this->board             = $student->board;
         $this->class             = $student->class;
-        
-        // Debug: Log the class value to understand the format
-        \Log::info('Student class value loaded: ' . $student->class);
+        $this->enrollment_id     = $student->enrollment_id;
         $this->stream            = $student->stream;
+        
+        // Generate enrollment ID based on current values
+        $this->updateGeneratedEnrollmentId();
         $this->student_status    = $student->status;
 
         // Load address data if available
@@ -763,6 +767,7 @@ class Edit extends Component
                     'board'             => $this->board,
                     'class'             => $this->class,
                     'stream'            => $this->stream,
+                    'enrollment_id'     => $this->generated_enrollment_id ?: $this->enrollment_id,
                     'status'            => $this->student_status,
                 ]);
 
@@ -893,9 +898,96 @@ class Edit extends Component
 
     public function render()
     {
+        $courses = Course::all();
+        $batches = Batch::where('course_id', $this->course_id)->get();
+        
         return view('livewire.admin.admissions.edit', [
-            'courses' => Course::all(),
-            'batches' => Batch::all(), // Get all batches, filtering is done in the template
+            'courses' => $courses,
+            'batches' => $batches,
         ]);
+    }
+
+    /**
+     * Update generated enrollment ID when class, stream, or academic_session changes
+     */
+    public function updateGeneratedEnrollmentId()
+    {
+        if ($this->class && $this->stream && $this->academic_session) {
+            try {
+                $this->generated_enrollment_id = $this->generateEnrollmentId();
+            } catch (\Exception $e) {
+                $this->generated_enrollment_id = null;
+            }
+        } else {
+            $this->generated_enrollment_id = null;
+        }
+    }
+
+    /**
+     * Generate unique enrollment ID based on stream and class (F25AE260001, E25AE270001, etc.)
+     * Format: [Stream Letter][Session Year]AE[Class][Sequence]
+     */
+    private function generateEnrollmentId(): string
+    {
+    if (!$this->stream) {
+        throw new \Exception('Stream is required to generate enrollment ID');
+    }
+    
+    if (!$this->class) {
+        throw new \Exception('Class is required to generate enrollment ID');
+    }
+
+    // Get session year start (e.g., "2024-25" -> "24", "2025-26" -> "25")
+    $sessionYear = $this->academic_session ? $this->getSessionYearStart($this->academic_session) : date('y');
+    
+    $streamPrefix = match ($this->stream) {
+        'Foundation' => 'F',
+        'Engineering' => 'E',
+        'Medical' => 'M',
+        'Other' => 'O',
+        default => 'O'
+    };
+    
+    // Use class number directly (5, 6, 7, 8, 9, 10, 11, 12)
+    $classNumber = $this->class;
+
+    // Build the pattern to search for: F24AE6, E25AE11, etc.
+    $pattern = $streamPrefix . $sessionYear . 'AE2' . $classNumber;
+    
+    // Find the last enrollment ID for this stream, year, and class (excluding current student)
+    $lastStudent = \App\Models\Student::where('stream', $this->stream)
+        ->where('enrollment_id', 'like', $pattern . '%')
+        ->where('id', '!=', $this->admission->student->id) // Exclude current student
+        ->orderBy('enrollment_id', 'desc')
+        ->first();
+
+    if ($lastStudent && $lastStudent->enrollment_id) {
+        // Extract the sequence number from the last enrollment ID
+        $lastNumber = (int)substr($lastStudent->enrollment_id, -4);
+        $nextNumber = $lastNumber + 1;
+    } else {
+        $nextNumber = 1;
+    }
+
+    return $pattern . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+    }
+
+
+    /**
+     * Livewire listeners for field changes
+     */
+    public function updatedClass()
+    {
+        $this->updateGeneratedEnrollmentId();
+    }
+
+    public function updatedStream()
+    {
+        $this->updateGeneratedEnrollmentId();
+    }
+
+    public function updatedAcademicSession()
+    {
+        $this->updateGeneratedEnrollmentId();
     }
 }

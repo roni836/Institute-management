@@ -238,9 +238,7 @@
                                     @error('mother_occupation') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Class * 
-                                        <small class="text-gray-500">(Current: "{{ $class }}")</small>
-                                    </label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Class *</label>
                                     <select wire:model.live="class" name="class" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                                         <option value="">Select Class</option>
                                         <option value="5">5th</option>
@@ -253,6 +251,21 @@
                                         <option value="12">12th</option>
                                     </select>
                                     @error('class') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Enrollment Number</label>
+                                    <div class="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-700">
+                                        @if($generated_enrollment_id)
+                                            <span class="font-medium text-green-600">{{ $generated_enrollment_id }}</span>
+                                            <small class="text-gray-500 ml-2">(Auto-generated based on Class, Stream & Session)</small>
+                                        @elseif($enrollment_id)
+                                            <span class="font-medium">{{ $enrollment_id }}</span>
+                                            <small class="text-gray-500 ml-2">(Current enrollment)</small>
+                                        @else
+                                            <span class="text-gray-400">Select Class, Stream & Academic Session to generate</span>
+                                        @endif
+                                    </div>
+                                    <small class="text-gray-500 text-xs mt-1">Enrollment number will be updated automatically when you change Class, Stream, or Academic Session</small>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">School Name</label>
