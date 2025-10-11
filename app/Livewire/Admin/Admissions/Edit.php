@@ -96,9 +96,12 @@ class Edit extends Component
         $this->school_name       = $student->school_name;
         $this->school_address    = $student->school_address;
         $this->board             = $student->board;
-        $this->class             = $student->class;
+        $this->class             = $student->class ?? '';
         $this->enrollment_id     = $student->enrollment_id;
         $this->stream            = $student->stream;
+        
+        // Debug: Log the class value being loaded
+        Log::info('Edit form - Loading class value: ' . ($this->class ?? 'NULL'));
         
         // Generate enrollment ID based on current values
         $this->updateGeneratedEnrollmentId();
@@ -224,7 +227,7 @@ class Edit extends Component
 
         // Handle individual installment updates
         if (str_starts_with($name, 'plan.')) {
-            $this->validateInstallmentTotals();
+            $this->validateInstallmentTotal();
         }
 
         // Notify frontend (Alpine) about property changes so Alpine can sync
@@ -233,6 +236,16 @@ class Edit extends Component
         } catch (\Throwable $e) {
             // Ignore dispatch failures to avoid breaking server flow
             Log::debug('Failed to dispatch propertyChanged: ' . $e->getMessage());
+        }
+        
+        // Dispatch notification events like new-form
+        try {
+            $this->dispatch('notify', [
+                'type' => 'info',
+                'message' => 'Field updated successfully'
+            ]);
+        } catch (\Throwable $e) {
+            Log::debug('Failed to dispatch notify: ' . $e->getMessage());
         }
     }
 
@@ -686,30 +699,42 @@ class Edit extends Component
     public function next()
     {
         try {
-            $this->validate($this->stepRules($this->step));
-            // Clear any previous validation errors on successful validation
             $this->clearValidationErrors();
-        } catch (ValidationException $e) {
-            // Display validation errors in user-friendly format
-            $this->displayValidationErrors($e->errors());
             
-            // Log step validation errors
-            Log::info('Step validation failed', [
-                'step' => $this->step,
+            // Validate based on current step
+            if ($this->step === 1) {
+                $this->validate($this->stepRules($this->step));
+                
+                // Show success message
+                $this->dispatch('notify', [
+                    'type' => 'success',
+                    'message' => 'Student information validated successfully'
+                ]);
+            }
+            
+            if ($this->step < 2) {
+                $this->step++;
+                $this->dispatch('stepChanged', step: $this->step);
+            }
+        } catch (ValidationException $e) {
+            $this->displayValidationErrors($e->errors());
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => 'Please fix the validation errors before proceeding'
+            ]);
+            
+            // Log validation errors for server-side debugging
+            Log::warning('Admission edit validation failed', [
                 'errors' => $e->errors(),
+                'input' => request()->all(),
+                'step' => $this->step,
+                'same_as_permanent' => $this->same_as_permanent,
             ]);
             
             // Add a general error message
             $this->addError('step', "Please fix the validation errors in Step {$this->step} before proceeding.");
             
-            // bail out so we stay on the current step
-            throw $e;
-        }
-
-        if ($this->step < 2) {
-            $this->step++;
-            // Dispatch via Livewire's client dispatch for Alpine
-            $this->dispatch('stepChanged', step: $this->step);
+            return;
         }
     }
 
@@ -719,7 +744,7 @@ class Edit extends Component
             $this->step--;
             $this->dispatch('stepChanged', step: $this->step);
         }
-     }
+    }
 
     public function goToStep(int $to)
     {
@@ -737,6 +762,7 @@ class Edit extends Component
         $this->step = max(1, min(2, $to));
         $this->dispatch('stepChanged', step: $this->step);
     }
+
 
     public function save()
     {
@@ -999,7 +1025,7 @@ class Edit extends Component
         if (isset($this->plan[$index])) {
             $this->plan[$index]['amount'] = (float)$amount;
             $this->custom_installments = true;
-            $this->validateInstallmentTotals();
+            $this->validateInstallmentTotal();
         }
     }
 
@@ -1011,6 +1037,45 @@ class Edit extends Component
         if (isset($this->plan[$index])) {
             $this->plan[$index]['due_on'] = $date;
             $this->custom_installments = true;
+        }
+    }
+
+    /**
+     * Validate that installment amounts match total
+     */
+    public function validateInstallmentTotal()
+    {
+        if ($this->mode === 'installment' && !empty($this->plan)) {
+            $total = array_sum(array_column($this->plan, 'amount'));
+            $difference = abs($total - $this->fee_total);
+            // Allow for small floating point differences (up to 1 rupee)
+            if ($difference > 1.00) {
+                $this->addError('plan', "Installment amounts (₹{$total}) must equal the total fee amount (₹{$this->fee_total}). Difference: ₹{$difference}");
+            } else {
+                $this->resetErrorBag('plan');
+            }
+        }
+    }
+
+    /**
+     * Reset to auto-calculated installments
+     */
+    public function resetInstallments()
+    {
+        $this->custom_installments = false;
+        $this->recalculate();
+        $this->resetErrorBag('plan');
+    }
+
+    /**
+     * Generate installment plan
+     */
+    public function generateInstallmentPlan()
+    {
+        if ($this->mode === 'installment' && $this->installments >= 2) {
+            $this->custom_installments = false;
+            $this->recalculate();
+            $this->resetErrorBag('plan');
         }
     }
 }

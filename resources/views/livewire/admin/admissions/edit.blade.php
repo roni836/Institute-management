@@ -110,7 +110,86 @@
 
             <!-- Form Content -->
             <div class="p-4">
-                <form id="admissionForm" wire:submit.prevent="save" enctype="multipart/form-data">
+                @php
+                    // Helper function to generate input classes
+                    function getInputClass($hasError) {
+                        $baseClasses = "w-full px-4 py-2 border rounded-lg transition-colors duration-200";
+                        $errorClasses = $hasError 
+                            ? "border-red-500 bg-red-50 focus:border-red-500 focus:ring-2 focus:ring-red-200" 
+                            : "border-gray-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-200";
+                        return $baseClasses . " " . $errorClasses;
+                    }
+
+                    function getFormGroupClass() {
+                        return "form-group space-y-1";
+                    }
+
+                    function getLabelClass() {
+                        return "block text-sm font-medium text-gray-700";
+                    }
+
+                    function getErrorClass() {
+                        return "mt-1 text-xs text-red-500";
+                    }
+                @endphp
+
+                <style>
+                    .form-group:has(input:invalid),
+                    .form-group:has(select:invalid) {
+                        animation: shake 0.2s ease-in-out 0s 2;
+                    }
+                    
+                    @keyframes shake {
+                        0%, 100% { transform: translateX(0); }
+                        25% { transform: translateX(-1px); }
+                        75% { transform: translateX(1px); }
+                    }
+                </style>
+
+                <!-- Validation Error Messages -->
+                @if ($showValidationErrors && !empty($validationErrors))
+                    <div class="mb-4 p-4 border border-red-200 bg-red-50 rounded-lg">
+                        <h3 class="text-red-700 font-semibold mb-2">{{ $validationMessage }}</h3>
+                        <ul class="list-disc list-inside text-sm text-red-600">
+                            @foreach($validationErrors as $field => $messages)
+                                @foreach((array)$messages as $message)
+                                    <li>{{ $message }}</li>
+                                @endforeach
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <!-- Livewire Validation Error Messages -->
+                @error('*')
+                    <div class="mb-4 p-4 border border-red-200 bg-red-50 rounded-lg">
+                        <h3 class="text-red-700 font-semibold mb-2">Please fix the following errors:</h3>
+                        <ul class="list-disc list-inside text-sm text-red-600">
+                            <li>{{ $message }}</li>
+                        </ul>
+                    </div>
+                @enderror
+
+                <!-- Listen for validation notification events -->
+                <div x-data="{
+                    init() {
+                        if (typeof Livewire !== 'undefined') {
+                            Livewire.on('notify', (event) => {
+                                console.debug('Notification:', event);
+                                this.showNotification(event.message, event.type || 'error');
+                            });
+                        }
+                    },
+                    showNotification(message, type = 'info') {
+                        const notification = document.createElement('div');
+                        notification.className = `fixed top-4 right-4 p-4 rounded-lg text-white z-50 ${type === 'error' ? 'bg-red-500' : type === 'success' ? 'bg-green-500' : 'bg-primary-500'}`;
+                        notification.textContent = message;
+                        document.body.appendChild(notification);
+                        setTimeout(() => notification.remove(), 3000);
+                    }
+                }" x-init="init()"></div>
+
+                <form id="admissionForm" wire:submit.prevent="save" enctype="multipart/form-data" novalidate>
                     <!-- Step 1: Student Information -->
                     <div id="step1" class="form-section" x-show="step === 1" x-cloak>
                         <!-- Admission Info -->
@@ -135,10 +214,15 @@
                                 </div>
                                 <div>
                                     <label class="block text-xs font-medium text-gray-700 mb-1">Academic Session *</label>
-                                    <select wire:model.live="academic_session" name="academic_session" required class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    <select wire:model.live="academic_session" name="academic_session" class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-primary-500 @error('academic_session') border-red-500 bg-red-50 @enderror">
                                         <option value="">Select Academic Session</option>
                                         <option value="2024-25">2024-25</option>
                                         <option value="2025-26">2025-26</option>
+                                        <option value="2026-27">2026-27</option>
+                                        <option value="2027-28">2027-28</option>
+                                        <option value="2028-29">2028-29</option>
+                                        <option value="2029-30">2029-30</option>
+                                        <option value="2030-31">2030-31</option>
                                     </select>
                                     @error('academic_session') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                 </div>
@@ -239,18 +323,21 @@
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Class *</label>
-                                    <select wire:model.live="class" name="class" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    <select wire:model.live="class" name="class" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 @error('class') border-red-500 bg-red-50 @enderror">
                                         <option value="">Select Class</option>
-                                        <option value="5">5th</option>
-                                        <option value="6">6th</option>
-                                        <option value="7">7th</option>
-                                        <option value="8">8th</option>
-                                        <option value="9">9th</option>
-                                        <option value="10">10th</option>
-                                        <option value="11">11th</option>
-                                        <option value="12">12th</option>
+                                        <option value="5" {{ $class == '5' ? 'selected' : '' }}>5th</option>
+                                        <option value="6" {{ $class == '6' ? 'selected' : '' }}>6th</option>
+                                        <option value="7" {{ $class == '7' ? 'selected' : '' }}>7th</option>
+                                        <option value="8" {{ $class == '8' ? 'selected' : '' }}>8th</option>
+                                        <option value="9" {{ $class == '9' ? 'selected' : '' }}>9th</option>
+                                        <option value="10" {{ $class == '10' ? 'selected' : '' }}>10th</option>
+                                        <option value="11" {{ $class == '11' ? 'selected' : '' }}>11th</option>
+                                        <option value="12" {{ $class == '12' ? 'selected' : '' }}>12th</option>
                                     </select>
                                     @error('class') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    @if($class)
+                                        <small class="text-gray-500 text-xs mt-1">Current: {{ $class }}</small>
+                                    @endif
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Enrollment Number</label>
