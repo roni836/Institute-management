@@ -94,6 +94,9 @@ class Edit extends Component
         $this->school_address    = $student->school_address;
         $this->board             = $student->board;
         $this->class             = $student->class;
+        
+        // Debug: Log the class value to understand the format
+        \Log::info('Student class value loaded: ' . $student->class);
         $this->stream            = $student->stream;
         $this->student_status    = $student->status;
 
@@ -374,13 +377,13 @@ class Edit extends Component
             'father_name'        => 'required|string|max:255',
             'mother_name'        => 'required|string|max:255',
             'email'              => 'required|email|unique:students,email,' . $this->admission->student->id,
-            'phone'              => 'required|string|max:20',
-            'whatsapp_no'        => 'nullable|string|max:20',
+            'phone'              => 'required|string|min:10|max:15|regex:/^[0-9+\-\s()]+$/',
+            'whatsapp_no'        => 'nullable|string|min:10|max:15|regex:/^[0-9+\-\s()]+$/',
             'dob'                => 'nullable|date',
             'session'            => 'nullable|string|max:255',
             'academic_session'   => 'nullable|string|max:255',
-            'gender'             => 'required|in:male,female,other',
-            'category'           => 'required|in:General,OBC,SC,ST,EWS',
+            'gender'             => 'required|in:male,female,others',
+            'category'           => 'required|in:general,obc,sc,st,other',
             'alt_phone'          => 'nullable|string|max:20',
             'mother_occupation'  => 'nullable|string|max:255',
             'father_occupation'  => 'nullable|string|max:255',
@@ -438,33 +441,31 @@ class Edit extends Component
         return match ($step) {
             1 => [
                 'name' => ['required', 'string', 'max:255'],
+                'father_name' => ['required', 'string', 'max:255'],
+                'mother_name' => ['required', 'string', 'max:255'],
                 'email' => ['nullable', 'email', 'max:255'],
-                'phone' => ['nullable', 'string', 'max:20'],
-                'school_name' => ['nullable', 'string', 'max:255'],
-                'school_address' => ['nullable', 'string', 'max:255'],
-                'board' => ['nullable', 'string', 'max:100'],
-                'class' => ['nullable', 'string', 'max:255'],
+                'phone' => ['required', 'string', 'min:10', 'max:15', 'regex:/^[0-9+\-\s()]+$/'],
+                'address_line1' => ['required', 'string', 'max:255'],
+                'city' => ['required', 'string', 'max:100'],
+                'state' => ['required', 'string', 'max:100'],
+                'district' => ['required', 'string', 'max:100'],
                 'pincode' => ['required', 'digits:6'],
+                'country' => ['required', 'string', 'max:100'],
+                'corr_address_line1' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'nullable', 'string', 'max:255'],
+                'corr_city' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'nullable', 'string', 'max:100'],
+                'corr_state' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'nullable', 'string', 'max:100'],
+                'corr_district' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'nullable', 'string', 'max:100'],
                 'corr_pincode' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'nullable', 'digits:6'],
+                'corr_country' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'nullable', 'string', 'max:100'],
             ],
             2 => [
                 'stream' => ['required', 'string', 'in:Engineering,Foundation,Medical,Other'],
-                'course_id' => [
-                    'required',
-                    'exists:courses,id',
-                ],
-                'batch_id' => [
-                    'required',
-                    'exists:batches,id',
-                ],
+                'course_id' => ['required', 'exists:courses,id'],
+                'batch_id' => ['required', 'exists:batches,id'],
                 'admission_date' => ['required', 'date'],
-                'discount_type' => ['required', 'in:fixed,percentage'],
+                'discount_type' => ['nullable', 'in:fixed,percentage'],
                 'discount_value' => ['nullable', 'numeric', 'min:0'],
                 'mode' => ['required', 'in:full,installment'],
-                'installments' => [
-                    Rule::requiredIf(fn() => $this->mode === 'installment'),
-                    'integer', 'min:2',
-                ],
                 'fee_total' => ['required', 'numeric', 'min:0'],
             ],
             default => [],
@@ -894,7 +895,7 @@ class Edit extends Component
     {
         return view('livewire.admin.admissions.edit', [
             'courses' => Course::all(),
-            'batches' => Batch::where('course_id', $this->course_id)->get(),
+            'batches' => Batch::all(), // Get all batches, filtering is done in the template
         ]);
     }
 }
