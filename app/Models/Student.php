@@ -26,6 +26,7 @@ class Student extends Model
         'school_name',
         'school_address',
         'board',
+        'class',
         'roll_no',
         'student_uid',
         'admission_date',
