@@ -188,7 +188,7 @@
                                 class="px-3 py-1 text-sm rounded bg-indigo-600 text-white hover:bg-indigo-700">
                                 Full Receipt
                             </a>
-                            <a href="{{ route('admin.payments.edit', $t->id) }}"
+                            <a href="{{ route('admin.payments.edit', $t->admission_id) }}"
                                 class="px-3 py-1 text-sm rounded bg-indigo-600 text-white hover:bg-indigo-700">
                                 Edit
                             </a>
