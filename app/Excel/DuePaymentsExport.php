@@ -1,50 +1,29 @@
 <?php
 
-namespace App\Livewire\Admin\Payments;
+namespace App\Excel;
 
-use App\Excel\DuePaymentsExport;
 use App\Models\Admission;
-use App\Models\Course;
 use App\Models\PaymentSchedule;
-use App\Models\Batch;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use Livewire\Attributes\Layout;
-use Livewire\Attributes\Url;
-use Livewire\Component;
-use Livewire\WithPagination;
-use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-#[Layout('components.layouts.admin')]
-class DuePayments extends Component
+class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSize, WithStyles
 {
-     use WithPagination;
+    public function __construct(
+        public ?string $q = null,
+        public ?string $status = 'overdue',
+        public ?int $days = 7,
+        public ?int $courseId = null,
+        public ?int $batchId = null,
+    ) {}
 
-    // Query string-powered filters
-    #[Url(as: 'q', except: '')]
-    public string $q = '';
-
-    #[Url(except: 'overdue')]
-    public string $status = 'overdue'; // overdue|upcoming|all
-
-    #[Url(except: 7)]
-    public int $days = 7;
-
-    #[Url(as: 'course_id', except: null)]
-    public ?int $courseId = null;
-
-    #[Url(as: 'batch_id', except: null)]
-    public ?int $batchId = null;
-
-    public int $perPage = 20;
-
-    // Reset to page 1 whenever a filter changes
-    public function updating($name, $value)
-    {
-        $this->resetPage();
-    }
-
-    protected function baseQuery()
+    public function query()
     {
         $today = Carbon::today()->toDateString();
 
@@ -58,6 +37,8 @@ class DuePayments extends Component
                 'students.id as student_id',
                 'students.name as student_name',
                 'students.phone as student_phone',
+                'students.email as student_email',
+                'students.enrollment_id',
 
                 'batches.id as batch_id',
                 'batches.batch_name',
@@ -92,7 +73,7 @@ class DuePayments extends Component
             ->where('admissions.fee_due', '>', 0);
 
         // Search by student name/phone
-        if ($this->q !== '') {
+        if ($this->q !== null && $this->q !== '') {
             $q = trim($this->q);
             $base->where(function ($w) use ($q) {
                 $w->where('students.name', 'like', "%{$q}%")
@@ -135,37 +116,75 @@ class DuePayments extends Component
         return $base;
     }
 
-    public function exportToExcel()
+    public function headings(): array
     {
-        $fileName = 'due_payments_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+        return [
+            'S.No',
+            'Student Name',
+            'Phone',
+            'Email',
+            'Enrollment ID',
+            'Course',
+            'Batch',
+            'Fee Total (₹)',
+            'Fee Due (₹)',
+            'Next Due Date',
+            'Next Due Amount (₹)',
+            'Pending Installments',
+            'Status',
+            'Days Overdue/Remaining',
+        ];
+    }
+
+    public function map($row): array
+    {
+        static $counter = 0;
+        $counter++;
+
+        $nextDueDate = $row->next_due_date ? Carbon::parse($row->next_due_date) : null;
+        $isOverdue = $nextDueDate && $nextDueDate->isPast();
         
-        return Excel::download(
-            new DuePaymentsExport(
-                q: $this->q,
-                status: $this->status,
-                days: $this->days,
-                courseId: $this->courseId,
-                batchId: $this->batchId
-            ),
-            $fileName
-        );
+        // Calculate days overdue or remaining
+        $daysCalculation = '';
+        if ($nextDueDate) {
+            $daysDiff = $nextDueDate->diffInDays(Carbon::today());
+            if ($isOverdue) {
+                $daysCalculation = $daysDiff . ' days overdue';
+            } else {
+                $daysCalculation = $daysDiff . ' days remaining';
+            }
+        }
+
+        return [
+            $counter,
+            $row->student_name,
+            $row->student_phone,
+            $row->student_email ?? 'N/A',
+            $row->enrollment_id ?? 'N/A',
+            $row->course_name,
+            $row->batch_name,
+            number_format($row->fee_total, 2),
+            number_format($row->fee_due, 2),
+            $nextDueDate ? $nextDueDate->format('d M Y') : 'N/A',
+            $row->next_due_amount ? number_format(max(0, $row->next_due_amount), 2) : 'N/A',
+            $row->pending_installments ?? 0,
+            $isOverdue ? 'Overdue' : 'Pending',
+            $daysCalculation,
+        ];
     }
 
-    public function render()
+    public function styles(Worksheet $sheet)
     {
-        $dues = $this->baseQuery()->paginate($this->perPage);
-
-        // Simple dropdown sources (optional)
-        $courses = Course::select('id','name')->orderBy('name')->get();
-        $batches = Batch::select('id','batch_name')
-            ->when($this->courseId, fn($q) => $q->where('course_id', $this->courseId))
-            ->orderBy('batch_name')->get();
-
-        return view('livewire.admin.payments.due-payments', [
-            'dues'    => $dues,
-            'courses' => $courses,
-            'batches' => $batches,
-        ]);
+        return [
+            // Style the first row as bold
+            1 => ['font' => ['bold' => true]],
+            
+            // Auto-fit columns
+            'A:N' => ['alignment' => ['horizontal' => 'left']],
+            
+            // Right align numeric columns
+            'H:K' => ['alignment' => ['horizontal' => 'right']],
+            'L' => ['alignment' => ['horizontal' => 'center']],
+        ];
     }
-
 }
