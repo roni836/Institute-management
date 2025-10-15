@@ -20,16 +20,9 @@
         />
 
         <select wire:model.live="status" class="border rounded px-3 py-2">
-            <option value="overdue">Overdue</option>
-            <option value="upcoming">Due in next N days</option>
-            <option value="all">All with dues</option>
+            <option value="overdue">Overdue Only</option>
+            <option value="all">All Due (up to today)</option>
         </select>
-
-        <input
-            type="number" min="0" wire:model.live="days"
-            class="border rounded px-3 py-2"
-            title="Only used when 'Due in next N days' is selected"
-        />
 
         <select wire:model.live="courseId" class="border rounded px-3 py-2">
             <option value="">All Courses</option>

@@ -39,6 +39,7 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
                 'students.father_name',
                 'students.phone as student_phone',
                 'students.alt_phone',
+                'students.whatsapp_no',
                 'students.email as student_email',
                 'students.enrollment_id',
 
@@ -70,6 +71,21 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
                 'pending_installments' => PaymentSchedule::selectRaw('COUNT(*)')
                     ->whereColumn('admissions.id', 'payment_schedules.admission_id')
                     ->whereIn('status', ['pending','partial']),
+
+                // last transaction date and amount
+                'last_transaction_date' => DB::table('transactions')
+                    ->whereColumn('transactions.admission_id', 'admissions.id')
+                    ->where('transactions.status', 'success')
+                    ->orderBy('transactions.date', 'desc')
+                    ->limit(1)
+                    ->select('date'),
+
+                'last_transaction_amount' => DB::table('transactions')
+                    ->whereColumn('transactions.admission_id', 'admissions.id')
+                    ->where('transactions.status', 'success')
+                    ->orderBy('transactions.date', 'desc')
+                    ->limit(1)
+                    ->select('amount'),
             ])
             ->where('admissions.status', 'active')
             ->where('admissions.fee_due', '>', 0);
@@ -140,6 +156,8 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
             'Pending Installments',
             'Status',
             'Days Overdue/Remaining',
+            'Last Transaction Date',
+            'Last Transaction Amount (₹)',
         ];
     }
 
@@ -168,7 +186,7 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
             $row->father_name ?? 'N/A',
             $row->enrollment_id ?? 'N/A',
             $row->student_phone,
-            $row->alt_phone ?? 'N/A',
+            $row->alt_phone ?: ($row->whatsapp_no ?? 'N/A'),
             $row->batch_name,
             $nextDueDate ? $nextDueDate->format('d M Y') : 'N/A',
             $row->next_due_amount ? number_format(max(0, $row->next_due_amount), 2) : 'N/A',
@@ -182,6 +200,8 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
             $row->pending_installments ?? 0,
             $isOverdue ? 'Overdue' : 'Pending',
             $daysCalculation,
+            $row->last_transaction_date ? \Carbon\Carbon::parse($row->last_transaction_date)->format('d M Y') : 'N/A',
+            $row->last_transaction_amount ? number_format($row->last_transaction_amount, 2) : 'N/A',
         ];
     }
 
@@ -198,6 +218,7 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
             'H:K' => ['alignment' => ['horizontal' => 'right']],
             'M:P' => ['alignment' => ['horizontal' => 'right']],
             'Q' => ['alignment' => ['horizontal' => 'center']],
+            'U' => ['alignment' => ['horizontal' => 'right']],
         ];
     }
 }

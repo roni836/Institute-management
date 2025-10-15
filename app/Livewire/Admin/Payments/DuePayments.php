@@ -25,10 +25,7 @@ class DuePayments extends Component
     public string $q = '';
 
     #[Url(except: 'overdue')]
-    public string $status = 'overdue'; // overdue|upcoming|all
-
-    #[Url(except: 7)]
-    public int $days = 7;
+    public string $status = 'overdue'; // overdue|all
 
     #[Url(as: 'course_id', except: null)]
     public ?int $courseId = null;
@@ -108,7 +105,7 @@ class DuePayments extends Component
             $base->where('batches.id', $this->batchId);
         }
 
-        // Status filter
+        // Status filter - only show dues up to today
         if ($this->status === 'overdue') {
             $base->whereExists(function ($q2) {
                 $q2->select(DB::raw(1))
@@ -117,14 +114,14 @@ class DuePayments extends Component
                    ->whereIn('ps.status', ['pending','partial'])
                    ->where('ps.due_date', '<', Carbon::today()->toDateString());
             });
-        } elseif ($this->status === 'upcoming') {
-            $to = Carbon::today()->addDays(max(0, (int)$this->days))->toDateString();
-            $base->whereExists(function ($q2) use ($to) {
+        } else {
+            // For 'all' status, show all dues up to today (including today)
+            $base->whereExists(function ($q2) {
                 $q2->select(DB::raw(1))
                    ->from('payment_schedules as ps')
                    ->whereColumn('ps.admission_id', 'admissions.id')
                    ->whereIn('ps.status', ['pending','partial'])
-                   ->whereBetween('ps.due_date', [Carbon::today()->toDateString(), $to]);
+                   ->where('ps.due_date', '<=', Carbon::today()->toDateString());
             });
         }
 

@@ -116,7 +116,7 @@ class PaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldAuto
             $student?->father_name ?? 'N/A',
             $student?->enrollment_id ?? 'N/A',
             $student?->phone ?? 'N/A',
-            $student?->alt_phone ?? 'N/A',
+            $student?->alt_phone ?: ($student?->whatsapp_no ?? 'N/A'),
             $batch?->batch_name ?? 'N/A',
             $transaction->date ? $transaction->date->format('d M Y') : 'N/A',
             number_format($transaction->total_amount ?? $transaction->amount, 2),
