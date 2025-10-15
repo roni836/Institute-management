@@ -18,7 +18,6 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
     public function __construct(
         public ?string $q = null,
         public ?string $status = 'overdue',
-        public ?int $days = 7,
         public ?int $courseId = null,
         public ?int $batchId = null,
     ) {}

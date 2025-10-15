@@ -140,7 +140,6 @@ class DuePayments extends Component
             new DuePaymentsExport(
                 q: $this->q,
                 status: $this->status,
-                days: $this->days,
                 courseId: $this->courseId,
                 batchId: $this->batchId
             ),
