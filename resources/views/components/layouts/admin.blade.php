@@ -173,6 +173,16 @@
                             </div>
                             Students
                         </a>
+                        <a href="{{ route('admin.manage-media') }}"
+                            class="nav-item flex items-center px-4 py-1 rounded-xl text-sm font-medium">
+                            <div class="w-5 h-5 mr-3">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                                </svg>
+                            </div>
+                            Manage media
+                        </a>
                     @endif
                     <div class="text-primary-200 text-xs uppercase tracking-wider font-semibold mb-4 px-3 pt-6">
                         Academic

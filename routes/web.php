@@ -22,6 +22,7 @@ use App\Livewire\Admin\Payments\Edit as PaymentEdit;
 use App\Livewire\Admin\Payments\Index as PaymentsIndex;
 use App\Livewire\Admin\Payments\Receipts as PaymentReceipt;
 use App\Livewire\Admin\Payments\Edit as PaymentsEdit;
+use App\Livewire\Admin\ManageMedia;
 use App\Livewire\Admin\Profile\Edit as ProfileEdit;
 use App\Livewire\Admin\Students\Edit as StudentEdit;
 use App\Livewire\Admin\Students\Index as StudentsIndex;
@@ -39,6 +40,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/', Dashboard::class)->name('admin.dashboard');
     // Students
     Route::get('/students', StudentsIndex::class)->name('admin.students.index');
+    Route::get('/manage-media', ManageMedia::class)->name('admin.manage-media');
 
     // Admissions
     Route::get('/admissions', AdmissionsIndex::class)->name('admin.admissions.index');
