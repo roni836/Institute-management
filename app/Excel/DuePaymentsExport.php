@@ -36,7 +36,9 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
 
                 'students.id as student_id',
                 'students.name as student_name',
+                'students.father_name',
                 'students.phone as student_phone',
+                'students.alt_phone',
                 'students.email as student_email',
                 'students.enrollment_id',
 
@@ -120,12 +122,17 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
     {
         return [
             'S.No',
-            'Student Name',
-            'Phone',
-            'Email',
-            'Enrollment ID',
-            'Course',
+            'Name',
+            'Father Name',
+            'Enrollment',
+            'Mobile',
+            'Alt Mobile',
             'Batch',
+            'Inst Date',
+            'Inst Amount (₹)',
+            'Paid Amount (₹)',
+            'Due Amount (₹)',
+            'Course',
             'Fee Total (₹)',
             'Fee Due (₹)',
             'Next Due Date',
@@ -158,11 +165,16 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
         return [
             $counter,
             $row->student_name,
-            $row->student_phone,
-            $row->student_email ?? 'N/A',
+            $row->father_name ?? 'N/A',
             $row->enrollment_id ?? 'N/A',
-            $row->course_name,
+            $row->student_phone,
+            $row->alt_phone ?? 'N/A',
             $row->batch_name,
+            $nextDueDate ? $nextDueDate->format('d M Y') : 'N/A',
+            $row->next_due_amount ? number_format(max(0, $row->next_due_amount), 2) : 'N/A',
+            number_format($row->fee_total - $row->fee_due, 2), // Paid amount
+            number_format($row->fee_due, 2),
+            $row->course_name,
             number_format($row->fee_total, 2),
             number_format($row->fee_due, 2),
             $nextDueDate ? $nextDueDate->format('d M Y') : 'N/A',
@@ -184,7 +196,8 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
             
             // Right align numeric columns
             'H:K' => ['alignment' => ['horizontal' => 'right']],
-            'L' => ['alignment' => ['horizontal' => 'center']],
+            'M:P' => ['alignment' => ['horizontal' => 'right']],
+            'Q' => ['alignment' => ['horizontal' => 'center']],
         ];
     }
 }

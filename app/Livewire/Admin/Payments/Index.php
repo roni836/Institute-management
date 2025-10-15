@@ -1,6 +1,7 @@
 <?php
 namespace App\Livewire\Admin\Payments;
 
+use App\Excel\PaymentsExport;
 use App\Models\Transaction;
 use App\Models\PaymentSchedule;
 use Illuminate\Support\Facades\Cache;
@@ -10,6 +11,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
+use Maatwebsite\Excel\Facades\Excel;
 
 #[Layout('components.layouts.admin')]
 class Index extends Component
@@ -68,57 +70,18 @@ class Index extends Component
 
     public function exportExcel()
     {
-        $transactions = $this->getTransactionsQuery()->get();
-
-        // Company details (customize as needed)
-        $company = [
-            ['Institute Name', 'Ahantra Edu Ventures Private Limited ((A franchisee of Mentors Eduserv)'],
-            ['Address', "Purnea Bihar-854301"],
-            ['Phone', '   9155588414, 9798986029'],
-            ['Email', 'info@myinstitute.com'],
-            [],
-        ];
-
-        $header = [
-            'Date', 'Student', 'Batch', 'Amount', 'GST', 'Mode', 'Ref', 'Receipt No', 'Status'
-        ];
-
-        $rows = $transactions->map(function($t) {
-            return [
-                optional($t->date)->format('d-M-Y'),
-                optional($t->admission?->student)->name,
-                optional($t->admission?->batch)->batch_name,
-                $t->amount,
-                $t->gst,
-                $t->mode,
-                $t->reference_no,
-                $t->receipt_number,
-                $t->status,
-            ];
-        })->toArray();
-
-        $data = array_merge($company, [$header], $rows);
-
-        // Use PhpSpreadsheet to generate Excel
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        foreach ($data as $rowIdx => $row) {
-            foreach ($row as $colIdx => $value) {
-                $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIdx + 1);
-                $sheet->setCellValue($colLetter . ($rowIdx + 1), $value);
-            }
-        }
-
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-        $filename = 'payments.xlsx';
-
-        // Output to browser
-        return response()->streamDownload(function() use ($writer) {
-            $writer->save('php://output');
-        }, $filename, [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Cache-Control' => 'max-age=0',
-        ]);
+        $fileName = 'payments_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+        
+        return Excel::download(
+            new PaymentsExport(
+                search: $this->search,
+                status: $this->status,
+                mode: $this->mode,
+                fromDate: $this->fromDate,
+                toDate: $this->toDate
+            ),
+            $fileName
+        );
     }
 
     private function getTransactionsQuery()
