@@ -113,6 +113,7 @@ class Index extends Component
                     $s->where('name', 'like', $term)
                       ->orWhere('email', 'like', $term)
                       ->orWhere('phone', 'like', $term)
+                      ->orWhere('enrollment_id', 'like', $term)
                 )
                 ->orWhere('transactions.transaction_id', 'like', $term)
                 ->orWhere('transactions.receipt_number', 'like', $term);
