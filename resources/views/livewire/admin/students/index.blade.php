@@ -64,10 +64,10 @@
                         <td class="p-3">{{ $s->email ?? '—' }}<br>{{ $s->phone ?? '—' }}</td>
                         {{-- <td class="p-3">{{ ucfirst($s->status) }}</td> --}}
                         <td class=" text-center p-3 space-x-2">
-                            <a href="{{ route('student.edit', $s->id) }}"
+                            {{-- <a href="{{ route('student.edit', $s->id) }}"
                                 class="text-green-600  bg-green-50 hover:bg-green-100 px-2 py-1 rounded">
                                 Edit
-                            </a>
+                            </a> --}}
                             <a href="{{ route('student.profile', $s->id) }}"
                                 class="text-blue-600  bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded">
                                 View
