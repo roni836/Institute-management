@@ -46,7 +46,7 @@
                     <th class="text-left p-3">S.no</th>
                     <th class="text-left p-3">Name</th>
                     <th class="text-left p-3">Entrollement Id</th>
-                    <th class="text-left p-3">Roll No.</th>
+                    <th class="text-left p-3">Batch & Course</th>
                     <th class="text-left p-3">Email / Phone</th>
                     {{-- <th class="text-left p-3">Status</th> --}}
                     <th class=" p-3">Actions</th>
@@ -57,8 +57,13 @@
                     <tr class="border-t">
                         <td class="p-3">{{ $i + 1 }}.</td>
                         <td class="p-3">{{ $s->name }}</td>
-                        <td class="p-3">{{ $s->student_uid }}</td>
-                        <td class="p-3">{{ $s->roll_no }}</td>
+                        <td class="p-3">
+                            <div class="font-medium">{{ $admission->student->enrollment_id }}</div>
+                        </td>
+                        <td class="p-3">
+                            <div>{{ $admission->batch->batch_name }}</div>
+                            <div class="text-xs text-gray-500">{{ $admission->batch->course->name }}</div>
+                        </td>
                         <td class="p-3">{{ $s->email ?? '—' }}<br>{{ $s->phone ?? '—' }}</td>
                         {{-- <td class="p-3">{{ ucfirst($s->status) }}</td> --}}
                         <td class=" text-center p-3 space-x-2">
