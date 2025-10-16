@@ -26,7 +26,7 @@ class Create extends Component
     public string $mode          = 'cash';
     public ?string $reference_no = null;
     public string $status        = 'success';
-    public $amount;
+    public ?float $amount = null;
     public bool $applyGst = false;
     public $gstAmount = 0.00;
     public string $receipt_number = '';
@@ -39,7 +39,7 @@ class Create extends Component
     public array $selectedScheduleIds = [];
     public ?Transaction $lastTransaction = null;
     public bool $flexiblePayment = false; // New flag for flexible payment mode
-    public $flexibleAmount = 0.00; // Amount for flexible payment
+    public ?float $flexibleAmount = null; // Amount for flexible payment
 
     public function updated($name, $value): void
     {
@@ -136,8 +136,8 @@ class Create extends Component
 
     private function updateGstAmount(): void
     {
-        $baseAmount = $this->flexiblePayment ? $this->flexibleAmount : $this->amount;
-        if ($this->applyGst && $baseAmount && (float)$baseAmount > 0) {
+        $baseAmount = $this->flexiblePayment ? ($this->flexibleAmount ?? 0) : ($this->amount ?? 0);
+        if ($this->applyGst && $baseAmount > 0) {
             $this->gstAmount = round((float) $baseAmount * 0.18, 2);
         } else {
             $this->gstAmount = 0.00;
@@ -361,7 +361,7 @@ class Create extends Component
             'amount'                => ['required', 'numeric', 'min:0.01'],
             'applyGst'              => ['boolean'],
             'flexiblePayment'       => ['boolean'],
-            'flexibleAmount'        => $this->flexiblePayment ? ['required', 'numeric', 'min:0.01'] : ['nullable', 'numeric'],
+            'flexibleAmount'        => $this->flexiblePayment ? ['required', 'numeric', 'min:0.01'] : ['nullable'],
         ]);
 
         // Auto-set status to success and generate receipt number
