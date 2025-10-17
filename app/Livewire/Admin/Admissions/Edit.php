@@ -150,18 +150,27 @@ class Edit extends Component
         $this->gstAmount       = $this->admission->gst_amount ?? 0;
         $this->gstRate         = $this->admission->gst_rate ?? 18;
 
-        // Calculate fee breakdown
-        $this->tuitionFee = $this->admission->batch->course->fee ?? 0;
-        $this->otherFee = $this->otherFee ?? 0;
+        // Calculate fee breakdown - use gross_fee as primary source
+        $courseFee = $this->admission->batch->course->gross_fee ?? $this->admission->batch->course->fee ?? 0;
+        $this->tuitionFee = $this->admission->batch->course->tution_fee ?? $courseFee;
+        $this->otherFee = $this->admission->batch->course->other_fee ?? 0;
         $this->lateFee = $this->lateFee ?? 0;
-        $this->discount = $this->discount ?? 0;
-        $this->subtotal = $this->tuitionFee + $this->otherFee + $this->lateFee;
+        
+        // Calculate discount based on existing admission data
+        if ($this->discount_type === 'percentage' && $this->discount_value > 0) {
+            $this->discount = round(($courseFee * $this->discount_value) / 100, 2);
+        } else {
+            $this->discount = $this->discount_value ?? 0;
+        }
+        
+        $this->subtotal = max(0, $courseFee - $this->discount);
 
         if ($this->applyGst) {
-            $this->gstAmount = ($this->subtotal * $this->gstRate) / 100;
-            $this->fee_total = $this->subtotal + $this->gstAmount - $this->discount;
+            $this->gstAmount = round(($this->subtotal * $this->gstRate) / 100, 2);
+            $this->fee_total = $this->subtotal + $this->gstAmount;
         } else {
-            $this->fee_total = $this->subtotal - $this->discount;
+            $this->gstAmount = 0;
+            $this->fee_total = $this->subtotal;
         }
         
         $this->fee_total = max(0, $this->fee_total);
@@ -254,9 +263,13 @@ class Edit extends Component
         // Get course information from selected course or batch->course
         if ($this->selected_course) {
             $courseFee = $this->selected_course->gross_fee ?? 0.00;
+            $this->tuitionFee = $this->selected_course->tution_fee ?? 0.00;
+            $this->otherFee = $this->selected_course->other_fee ?? 0.00;
         } else {
             $batch = $this->batch_id ? Batch::with('course')->find($this->batch_id) : null;
             $courseFee = $batch?->course?->gross_fee ?? 0.00;
+            $this->tuitionFee = $batch?->course?->tution_fee ?? 0.00;
+            $this->otherFee = $batch?->course?->other_fee ?? 0.00;
             
             // Update selected_course if batch is selected but course is not
             if ($batch && $batch->course && !$this->selected_course) {
@@ -265,9 +278,11 @@ class Edit extends Component
             }
         }
         
-        // Calculate discount based on type and value
-        $this->tuitionFee = $this->selected_course->tution_fee ?? 0.00;
-        $this->otherFee = $this->selected_course->other_fee ?? 0.00;
+        // Fallback: If no course fee is available, use the existing admission fee_total
+        if ($courseFee <= 0 && $this->admission && $this->admission->fee_total > 0) {
+            $courseFee = $this->admission->fee_total;
+            $this->tuitionFee = $courseFee; // Set tuition fee as the total fee for display
+        }
         
         // Calculate discount based on discount type and value
         if ($this->discount_type === 'percentage' && $this->discount_value > 0) {
