@@ -43,6 +43,7 @@ class PaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldAuto
             ->leftJoinSub($subQuery, 'student_summary', function($join) {
                 $join->on('transactions.id', '=', 'student_summary.representative_id');
             })
+            ->leftJoin('admissions', 'transactions.admission_id', '=', 'admissions.id')
             ->whereIn('transactions.id', $subQuery->pluck('representative_id'))
             ->when($this->search, fn($q) => $q->where(function($qq) {
                 $term = "%{$this->search}%";
@@ -66,7 +67,10 @@ class PaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldAuto
                 'student_summary.latest_date',
                 'student_summary.modes',
                 'student_summary.statuses',
-                'student_summary.receipt_numbers'
+                'student_summary.receipt_numbers',
+                'admissions.is_gst',
+                'admissions.gst_amount',
+                'admissions.gst_rate'
             )
             ->latest('student_summary.latest_date');
     }
@@ -127,7 +131,7 @@ class PaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldAuto
             $transaction->date ? $transaction->date->format('d M Y') : 'N/A',
             $transaction->receipt_numbers ?? $transaction->receipt_number ?? 'N/A',
             $transaction->statuses ?? $transaction->status ?? 'N/A',
-            number_format($transaction->total_gst ?? $transaction->gst ?? 0, 2),
+            $transaction->is_gst ? number_format($transaction->gst_amount ?? 0, 2) : '0.00',
             $transaction->transaction_count ?? 1,
         ];
     }
