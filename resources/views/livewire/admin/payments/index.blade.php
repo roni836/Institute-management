@@ -108,9 +108,12 @@
             <div class="flex-shrink-0">
                 <input type="date" wire:model="toDate" class="border rounded-lg px-4 py-2" placeholder="To date">
             </div>
-            <div class="flex-shrink-0">
+            <div class="flex-shrink-0 flex gap-2">
                 <button wire:click="exportExcel" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                    Export Excel
+                    Export Summary
+                </button>
+                <button wire:click="exportTransactions" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    Export Transactions
                 </button>
             </div>
         </div>

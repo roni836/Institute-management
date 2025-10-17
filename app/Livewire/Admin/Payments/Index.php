@@ -2,6 +2,7 @@
 namespace App\Livewire\Admin\Payments;
 
 use App\Excel\PaymentsExport;
+use App\Excel\TransactionsExport;
 use App\Models\Transaction;
 use App\Models\PaymentSchedule;
 use Illuminate\Support\Facades\Cache;
@@ -74,6 +75,22 @@ class Index extends Component
         
         return Excel::download(
             new PaymentsExport(
+                search: $this->search,
+                status: $this->status,
+                mode: $this->mode,
+                fromDate: $this->fromDate,
+                toDate: $this->toDate
+            ),
+            $fileName
+        );
+    }
+
+    public function exportTransactions()
+    {
+        $fileName = 'transactions_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+        
+        return Excel::download(
+            new TransactionsExport(
                 search: $this->search,
                 status: $this->status,
                 mode: $this->mode,
