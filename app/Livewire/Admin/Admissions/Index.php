@@ -137,6 +137,22 @@ class Index extends Component
         );
     }
 
+    public function exportAllDetails()
+    {
+        $fileName = 'all_admission_details_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+        
+        return Excel::download(
+            new AdmissionsDetailsExport(
+                search: null,
+                status: null,
+                batchId: null,
+                fromDate: null,
+                toDate: null
+            ),
+            $fileName
+        );
+    }
+
     public function import()
     {
         $this->validate([

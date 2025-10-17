@@ -50,26 +50,29 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
             ])
             ->join('students', 'students.id', '=', 'admissions.student_id')
             ->join('batches', 'batches.id', '=', 'admissions.batch_id')
-            ->join('courses', 'courses.id', '=', 'batches.course_id')
+            ->join('courses', 'courses.id', '=', 'admissions.course_id')
             ->addSelect([
                 // next pending/partial due date
                 'next_due_date' => PaymentSchedule::select('due_date')
                     ->whereColumn('admissions.id', 'payment_schedules.admission_id')
                     ->whereIn('status', ['pending','partial'])
+                    ->where('amount', '>', DB::raw('paid_amount'))
                     ->orderBy('due_date')
                     ->limit(1),
 
                 // amount remaining of the *next* installment (amount - paid_amount)
-                'next_due_amount' => PaymentSchedule::selectRaw('(amount - paid_amount)')
+                'next_due_amount' => PaymentSchedule::selectRaw('GREATEST(0, amount - paid_amount)')
                     ->whereColumn('admissions.id', 'payment_schedules.admission_id')
                     ->whereIn('status', ['pending','partial'])
+                    ->where('amount', '>', DB::raw('paid_amount'))
                     ->orderBy('due_date')
                     ->limit(1),
 
                 // how many installments still pending/partial
                 'pending_installments' => PaymentSchedule::selectRaw('COUNT(*)')
                     ->whereColumn('admissions.id', 'payment_schedules.admission_id')
-                    ->whereIn('status', ['pending','partial']),
+                    ->whereIn('status', ['pending','partial'])
+                    ->where('amount', '>', DB::raw('paid_amount')),
 
                 // last transaction date and amount
                 'last_transaction_date' => DB::table('transactions')
@@ -113,16 +116,18 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
                    ->from('payment_schedules as ps')
                    ->whereColumn('ps.admission_id', 'admissions.id')
                    ->whereIn('ps.status', ['pending','partial'])
+                   ->where('ps.amount', '>', DB::raw('ps.paid_amount'))
                    ->where('ps.due_date', '<', Carbon::today()->toDateString());
             });
-        } elseif ($this->status === 'upcoming') {
-            $to = Carbon::today()->addDays(max(0, (int)$this->days))->toDateString();
-            $base->whereExists(function ($q2) use ($to) {
+        } else {
+            // For 'all' status, show all dues up to today (including today)
+            $base->whereExists(function ($q2) {
                 $q2->select(DB::raw(1))
                    ->from('payment_schedules as ps')
                    ->whereColumn('ps.admission_id', 'admissions.id')
                    ->whereIn('ps.status', ['pending','partial'])
-                   ->whereBetween('ps.due_date', [Carbon::today()->toDateString(), $to]);
+                   ->where('ps.amount', '>', DB::raw('ps.paid_amount'))
+                   ->where('ps.due_date', '<=', Carbon::today()->toDateString());
             });
         }
 

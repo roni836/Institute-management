@@ -31,8 +31,14 @@
                 <button type="button" wire:click="exportDetails"
                     class="px-4 py-2 rounded-lg border bg-blue-500 hover:bg-blue-600 text-white"
                     wire:loading.attr="disabled" wire:target="exportDetails">
-                    <span wire:loading.remove wire:target="exportDetails">Export Details</span>
+                    <span wire:loading.remove wire:target="exportDetails">Export Filtered Details</span>
                     <span wire:loading wire:target="exportDetails">Exporting…</span>
+                </button>
+                <button type="button" wire:click="exportAllDetails"
+                    class="px-4 py-2 rounded-lg border bg-green-500 hover:bg-green-600 text-white"
+                    wire:loading.attr="disabled" wire:target="exportAllDetails">
+                    <span wire:loading.remove wire:target="exportAllDetails">Export All Details</span>
+                    <span wire:loading wire:target="exportAllDetails">Exporting…</span>
                 </button>
             </div>
             <a href="{{ route('admin.admissions.create') }}"
