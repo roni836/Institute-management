@@ -28,7 +28,7 @@ class PaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldAuto
                 'admission_id',
                 DB::raw('MIN(id) as representative_id'),
                 DB::raw('SUM(amount) as total_amount'),
-                DB::raw('SUM(gst) as total_gst'),
+                DB::raw('SUM(COALESCE(gst, 0)) as total_gst'),
                 DB::raw('COUNT(*) as transaction_count'),
                 DB::raw('MIN(date) as earliest_date'),
                 DB::raw('MAX(date) as latest_date'),
