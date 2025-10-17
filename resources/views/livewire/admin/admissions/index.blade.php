@@ -20,13 +20,21 @@
                     <span wire:loading wire:target="import">Importing…</span>
                 </button>
             </form> --}}
-            {{-- Export trigger --}}
-            <button type="button" wire:click="openExport"
-                class="px-4 py-2 rounded-lg border bg-orange-500 hover:bg-orange-600 text-white"
-                wire:loading.attr="disabled" wire:target="openExport">
-                <span wire:loading.remove wire:target="openExport">Export</span>
-                <span wire:loading wire:target="openExport">Opening…</span>
-            </button>
+            {{-- Export triggers --}}
+            <div class="flex gap-2">
+                <button type="button" wire:click="openExport"
+                    class="px-4 py-2 rounded-lg border bg-orange-500 hover:bg-orange-600 text-white"
+                    wire:loading.attr="disabled" wire:target="openExport">
+                    <span wire:loading.remove wire:target="openExport">Export Summary</span>
+                    <span wire:loading wire:target="openExport">Opening…</span>
+                </button>
+                <button type="button" wire:click="exportDetails"
+                    class="px-4 py-2 rounded-lg border bg-blue-500 hover:bg-blue-600 text-white"
+                    wire:loading.attr="disabled" wire:target="exportDetails">
+                    <span wire:loading.remove wire:target="exportDetails">Export Details</span>
+                    <span wire:loading wire:target="exportDetails">Exporting…</span>
+                </button>
+            </div>
             <a href="{{ route('admin.admissions.create') }}"
                 class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg flex items-center gap-2">
                 <span>+</span> New Admission

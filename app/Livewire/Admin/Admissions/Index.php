@@ -2,6 +2,7 @@
 namespace App\Livewire\Admin\Admissions;
 
 use App\Excel\AdmissionsExport;
+use App\Excel\AdmissionsDetailsExport;
 use App\Excel\AdmissionsImport;
 use App\Models\Admission;
 use App\Models\Batch;
@@ -118,6 +119,22 @@ class Index extends Component
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Cache-Control' => 'max-age=0',
         ]);
+    }
+
+    public function exportDetails()
+    {
+        $fileName = 'admission_details_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+        
+        return Excel::download(
+            new AdmissionsDetailsExport(
+                search: $this->q,
+                status: $this->status,
+                batchId: $this->batchId,
+                fromDate: $this->fromDate,
+                toDate: $this->toDate
+            ),
+            $fileName
+        );
     }
 
     public function import()
