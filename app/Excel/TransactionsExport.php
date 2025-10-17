@@ -42,7 +42,6 @@ class TransactionsExport implements FromQuery, WithHeadings, WithMapping, Should
                       ->orWhere('phone', 'like', $term)
                       ->orWhere('enrollment_id', 'like', $term)
                 )
-                ->orWhere('transactions.transaction_id', 'like', $term)
                 ->orWhere('transactions.receipt_number', 'like', $term)
                 ->orWhere('transactions.reference_no', 'like', $term);
             }))
@@ -59,7 +58,6 @@ class TransactionsExport implements FromQuery, WithHeadings, WithMapping, Should
     {
         return [
             'S.No',
-            'Transaction ID',
             'Student Name',
             'Enrollment ID',
             'Course',
@@ -89,7 +87,6 @@ class TransactionsExport implements FromQuery, WithHeadings, WithMapping, Should
 
         return [
             $counter,
-            $transaction->transaction_id ?? 'N/A',
             $student->name ?? 'N/A',
             $student->enrollment_id ?? 'N/A',
             $transaction->course_name ?? 'N/A',
@@ -114,7 +111,7 @@ class TransactionsExport implements FromQuery, WithHeadings, WithMapping, Should
             1 => ['font' => ['bold' => true]],
             
             // Right align amount columns
-            'I:K' => [
+            'H:J' => [
                 'alignment' => [
                     'horizontal' => Alignment::HORIZONTAL_RIGHT,
                 ]
@@ -126,7 +123,7 @@ class TransactionsExport implements FromQuery, WithHeadings, WithMapping, Should
                     'horizontal' => Alignment::HORIZONTAL_CENTER,
                 ]
             ],
-            'O:O' => [
+            'N:N' => [
                 'alignment' => [
                     'horizontal' => Alignment::HORIZONTAL_CENTER,
                 ]

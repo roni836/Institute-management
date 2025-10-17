@@ -50,8 +50,8 @@ class PaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldAuto
                     $s->where('name', 'like', $term)
                       ->orWhere('email', 'like', $term)
                       ->orWhere('phone', 'like', $term)
+                      ->orWhere('enrollment_id', 'like', $term)
                 )
-                ->orWhere('transactions.transaction_id', 'like', $term)
                 ->orWhere('transactions.receipt_number', 'like', $term);
             }))
             ->when($this->status, fn($q) => $q->where('transactions.status', $this->status))
