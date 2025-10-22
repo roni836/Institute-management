@@ -623,6 +623,48 @@
                                 @endif
                             </div>
                         </div>
+
+                        <!-- File Uploads -->
+                        <div class="mb-3 p-3 border border-primary-100 rounded bg-primary-50">
+                            <h3 class="text-lg font-semibold text-primary-800 mb-3">Documents</h3>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div class="bg-white border border-primary-100 rounded-lg p-4">
+                                    <h4 class="text-sm font-semibold text-primary-700 mb-3">Student Photo</h4>
+                                    <input type="file" wire:model.blur="photo_upload" accept="image/*" class="w-full text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" />
+                                    <div wire:loading wire:target="photo_upload" class="text-xs text-primary-600 mt-1">Uploading photo...</div>
+                                    @error('photo_upload') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                    <div class="mt-3">
+                                        @if($photo_upload)
+                                           <img src="{{ $photo_upload->temporaryUrl() }}" alt="Photo preview" class="h-32 w-32 object-cover rounded-lg shadow" />
+                                        @elseif($this->existingPhotoUrl)
+                                            <img src="{{ $this->existingPhotoUrl }}" alt="Current photo" class="h-32 w-32 object-cover rounded-lg shadow" />
+                                        @else
+                                            <p class="text-xs text-gray-500">No photo uploaded yet.</p>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="bg-white border border-primary-100 rounded-lg p-4">
+                                    <h4 class="text-sm font-semibold text-primary-700 mb-3">Aadhaar Card</h4>
+                                    <input type="file" wire:model.blur="aadhaar_upload" accept="image/*,.pdf" class="w-full text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" />
+                                    <div wire:loading wire:target="aadhaar_upload" class="text-xs text-primary-600 mt-1">Uploading Aadhaar...</div>
+                                    @error('aadhaar_upload') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                    <div class="mt-3 space-y-2 text-sm text-gray-700">
+                                        @if($aadhaar_upload)
+                                            <p class="font-medium">{{ $aadhaar_upload->getClientOriginalName() }}</p>
+                                            @if(str_contains($aadhaar_upload->getMimeType(), 'image'))
+                                                    <img src="{{ $aadhaar_upload->temporaryUrl() }}" alt="Aadhaar preview" class="h-32 w-32 object-cover rounded-lg shadow" />
+                                            @endif
+                                        @elseif($this->existingAadhaarUrl)
+                                            <a href="{{ $this->existingAadhaarUrl }}" target="_blank" rel="noopener" class="text-primary-600 underline">
+                                                View Aadhaar{{ $this->existingAadhaarFilename ? ' ('.$this->existingAadhaarFilename.')' : '' }}
+                                            </a>
+                                        @else
+                                            <p class="text-xs text-gray-500">No Aadhaar document uploaded yet.</p>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         
                         <!-- Navigation Buttons for Step 1 -->
                         <div class="mt-6 flex justify-end">

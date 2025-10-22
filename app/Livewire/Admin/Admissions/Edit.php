@@ -13,10 +13,12 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 #[Layout('components.layouts.admin')]
 class Edit extends Component
 {
+    use WithFileUploads;
     public Admission $admission;
 
                           // Stepper
@@ -35,6 +37,12 @@ class Edit extends Component
     public ?string $module4       = null;
     public ?string $module5       = null;
     public bool $id_card_required = false;
+
+    // File upload fields
+    public $photo_upload;
+    public $aadhaar_upload;
+    public ?string $existing_photo = null;
+    public ?string $existing_aadhaar = null;
 
     // Address fields
     public $address_type                                                                                                   = 'permanent';
@@ -102,6 +110,10 @@ class Edit extends Component
         
         // Debug: Log the class value being loaded
         Log::info('Edit form - Loading class value: ' . ($this->class ?? 'NULL'));
+        
+        // Load existing file paths
+        $this->existing_photo = $student->photo;
+        $this->existing_aadhaar = $student->aadhaar_document_path;
         
         // Generate enrollment ID based on current values
         $this->updateGeneratedEnrollmentId();
@@ -454,6 +466,8 @@ class Edit extends Component
             'fee_total'          => 'required|numeric|min:0',
             'status'             => 'required|in:active,inactive,suspended',
             'reason'             => 'nullable|string',
+            'photo_upload'       => 'nullable|image|max:2048',
+            'aadhaar_upload'     => 'nullable|mimes:jpeg,jpg,png,pdf|max:4096',
         ];
 
         // Add installment validation if mode is installment
@@ -489,6 +503,8 @@ class Edit extends Component
                 'corr_district' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'nullable', 'string', 'max:100'],
                 'corr_pincode' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'nullable', 'digits:6'],
                 'corr_country' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'nullable', 'string', 'max:100'],
+                'photo_upload' => ['nullable', 'image'],
+                'aadhaar_upload' => ['nullable'],
             ],
             2 => [
                 'stream' => ['required', 'string', 'in:Engineering,Foundation,Medical,Other'],
@@ -812,6 +828,9 @@ class Edit extends Component
                     'status'            => $this->student_status,
                 ]);
 
+                // Handle file uploads
+                $this->handleFileUploads($student);
+
                 // Update or create addresses
                 $this->updateStudentAddresses($student);
 
@@ -842,6 +861,37 @@ class Edit extends Component
             Log::error('Stack trace: ' . $e->getTraceAsString());
             session()->flash('error', 'Failed to update admission: ' . $e->getMessage());
             throw $e; // Re-throw for debugging
+        }
+    }
+
+    private function handleFileUploads($student)
+    {
+        // Handle photo upload
+        if ($this->photo_upload) {
+            // Delete old photo if exists
+            if (!empty($student->photo) && \Illuminate\Support\Facades\Storage::disk('public')->exists($student->photo)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($student->photo);
+            }
+            
+            // Store new photo
+            $photoPath = $this->photo_upload->store('students/photos', 'public');
+            $student->photo = $photoPath;
+            $this->existing_photo = $photoPath;
+            $this->photo_upload = null;
+        }
+
+        // Handle Aadhaar upload
+        if ($this->aadhaar_upload) {
+            // Delete old Aadhaar if exists
+            if (!empty($student->aadhaar_document_path) && \Illuminate\Support\Facades\Storage::disk('public')->exists($student->aadhaar_document_path)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($student->aadhaar_document_path);
+            }
+            
+            // Store new Aadhaar
+            $aadhaarPath = $this->aadhaar_upload->store('students/aadhaar', 'public');
+            $student->aadhaar_document_path = $aadhaarPath;
+            $this->existing_aadhaar = $aadhaarPath;
+            $this->aadhaar_upload = null;
         }
     }
 
@@ -1092,5 +1142,45 @@ class Edit extends Component
             $this->recalculate();
             $this->resetErrorBag('plan');
         }
+    }
+
+    /**
+     * Get existing photo URL for display
+     */
+    public function getExistingPhotoUrlProperty(): ?string
+    {
+        if (!$this->existing_photo) {
+            return null;
+        }
+
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($this->existing_photo)) {
+            return asset('storage/' . ltrim($this->existing_photo, '/'));
+        }
+
+        return null;
+    }
+
+    /**
+     * Get existing Aadhaar URL for display
+     */
+    public function getExistingAadhaarUrlProperty(): ?string
+    {
+        if (!$this->existing_aadhaar) {
+            return null;
+        }
+
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($this->existing_aadhaar)) {
+            return asset('storage/' . ltrim($this->existing_aadhaar, '/'));
+        }
+
+        return null;
+    }
+
+    /**
+     * Get existing Aadhaar filename for display
+     */
+    public function getExistingAadhaarFilenameProperty(): ?string
+    {
+        return $this->existing_aadhaar ? basename($this->existing_aadhaar) : null;
     }
 }
