@@ -866,6 +866,8 @@ class Edit extends Component
 
     private function handleFileUploads($student)
     {
+        $studentNeedsSave = false;
+
         // Handle photo upload
         if ($this->photo_upload) {
             // Delete old photo if exists
@@ -878,6 +880,7 @@ class Edit extends Component
             $student->photo = $photoPath;
             $this->existing_photo = $photoPath;
             $this->photo_upload = null;
+            $studentNeedsSave = true;
         }
 
         // Handle Aadhaar upload
@@ -892,6 +895,12 @@ class Edit extends Component
             $student->aadhaar_document_path = $aadhaarPath;
             $this->existing_aadhaar = $aadhaarPath;
             $this->aadhaar_upload = null;
+            $studentNeedsSave = true;
+        }
+
+        // Save student if files were uploaded
+        if ($studentNeedsSave) {
+            $student->save();
         }
     }
 
@@ -1149,15 +1158,16 @@ class Edit extends Component
      */
     public function getExistingPhotoUrlProperty(): ?string
     {
-        if (!$this->existing_photo) {
+        $path = $this->existing_photo ?? null;
+        if (!$path) {
             return null;
         }
 
-        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($this->existing_photo)) {
-            return asset('storage/' . ltrim($this->existing_photo, '/'));
+        if (!\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+            return null;
         }
 
-        return null;
+        return asset('storage/' . ltrim($path, '/'));
     }
 
     /**
@@ -1165,15 +1175,16 @@ class Edit extends Component
      */
     public function getExistingAadhaarUrlProperty(): ?string
     {
-        if (!$this->existing_aadhaar) {
+        $path = $this->existing_aadhaar ?? null;
+        if (!$path) {
             return null;
         }
 
-        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($this->existing_aadhaar)) {
-            return asset('storage/' . ltrim($this->existing_aadhaar, '/'));
+        if (!\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+            return null;
         }
 
-        return null;
+        return asset('storage/' . ltrim($path, '/'));
     }
 
     /**
@@ -1181,6 +1192,7 @@ class Edit extends Component
      */
     public function getExistingAadhaarFilenameProperty(): ?string
     {
-        return $this->existing_aadhaar ? basename($this->existing_aadhaar) : null;
+        $path = $this->existing_aadhaar ?? null;
+        return $path ? basename($path) : null;
     }
 }

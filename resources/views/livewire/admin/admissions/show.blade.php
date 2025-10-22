@@ -233,7 +233,7 @@
                         <div>
                             <span class="text-gray-500">Aadhaar:</span>
                             <a href="{{ $aadhaarUrl }}" target="_blank" rel="noopener" class="ml-1 text-primary-600 hover:underline">
-                                View Document{{ $aadhaarFilename ? ' ('.$aadhaarFilename.')' : '' }}
+                                View Document
                             </a>
                         </div>
                     @else
@@ -248,6 +248,18 @@
                     </div>
                 </div>
             </div>
+
+            {{-- Student Photo --}}
+            @if($photoUrl)
+            <div class="bg-white border rounded-xl p-4">
+                <h2 class="text-base font-semibold mb-3">Student Photo</h2>
+                <div class="flex justify-center">
+                    <a href="{{ $photoUrl }}" target="_blank" rel="noopener" class="ml-1 text-primary-600 hover:underline">
+                    <img src="{{ $photoUrl }}" alt="{{ $admission->student->name }}" class="h-48 w-48 object-cover rounded-lg shadow-md border">
+                    </a>
+                </div>
+            </div>
+            @endif
 
             {{-- Modules & ID Card --}}
             <div class="bg-white border rounded-xl p-4">
