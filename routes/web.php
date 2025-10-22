@@ -148,3 +148,8 @@ Route::get('/run-seeders', function () {
     return "Seeders ran successfully.";
 });
 
+Route::get('/storage-link', function () {
+    Artisan::call('storage:link');
+    return "Storage link created successfully.";
+});
+
