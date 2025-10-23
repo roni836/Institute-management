@@ -252,38 +252,96 @@
                     @php
                         $totalPaid = 0;
                         $transactionsToShow = $consolidatedTransactions;
+                        
+                        // Group transactions by receipt number
+                        $groupedTransactions = [];
+                        foreach ($transactionsToShow as $transaction) {
+                            $receiptNumber = $transaction->receipt_number ?? 'TX-' . $transaction->id;
+                            if (!isset($groupedTransactions[$receiptNumber])) {
+                                $groupedTransactions[$receiptNumber] = [];
+                            }
+                            $groupedTransactions[$receiptNumber][] = $transaction;
+                        }
                     @endphp
-                    @foreach ($transactionsToShow as $transaction)
+                    @foreach ($groupedTransactions as $receiptNumber => $transactions)
                         @php
-                            $totalPaid += (float) $transaction->amount;
+                            // Calculate merged data for this receipt group
+                            $mergedAmount = 0;
+                            $mergedDate = null;
+                            $mergedDueDates = [];
+                            $mergedModes = [];
+                            $mergedDetails = [];
+                            $mergedStatuses = [];
+                            $mergedRemarks = [];
+                            
+                            foreach ($transactions as $transaction) {
+                                $mergedAmount += (float) $transaction->amount;
+                                $totalPaid += (float) $transaction->amount;
+                                
+                                // Use the earliest date
+                                if (!$mergedDate || ($transaction->date && $transaction->date < $mergedDate)) {
+                                    $mergedDate = $transaction->date;
+                                }
+                                
+                                // Collect due dates
+                                if ($transaction->schedule?->due_date) {
+                                    $dueDate = $transaction->schedule->due_date->format('d-M-Y');
+                                    if (!in_array($dueDate, $mergedDueDates)) {
+                                        $mergedDueDates[] = $dueDate;
+                                    }
+                                }
+                                
+                                // Collect modes
+                                if ($transaction->mode && !in_array(strtoupper($transaction->mode), $mergedModes)) {
+                                    $mergedModes[] = strtoupper($transaction->mode);
+                                }
+                                
+                                // Collect details
+                                $detail = '';
+                                if ($transaction->mode === 'cheque') {
+                                    $detail = 'CHQ NO: ' . ($transaction->reference_no ?? '—') . ' DT: ' . ($transaction->date?->format('Y-m-d') ?? '—');
+                                } elseif ($transaction->mode === 'online') {
+                                    $detail = 'UTR ' . ($transaction->reference_no ?? '—');
+                                } else {
+                                    $detail = $transaction->reference_no ?? '—';
+                                }
+                                if ($detail && !in_array($detail, $mergedDetails)) {
+                                    $mergedDetails[] = $detail;
+                                }
+                                
+                                // Collect statuses
+                                $status = '';
+                                if ($transaction->mode === 'cheque') {
+                                    $status = strtoupper($transaction->status ?? 'PENDING');
+                                } else {
+                                    $status = strtoupper($transaction->status ?? 'SUCCESS');
+                                }
+                                if ($status && !in_array($status, $mergedStatuses)) {
+                                    $mergedStatuses[] = $status;
+                                }
+                                
+                                // Collect remarks
+                                if ($transaction->remarks && !in_array($transaction->remarks, $mergedRemarks)) {
+                                    $mergedRemarks[] = $transaction->remarks;
+                                }
+                            }
                         @endphp
                         <tr>
                             <td style="border:1px solid #000;padding:6px">
-                                {{ $transaction->date?->format('d-M-Y') ?? '—' }}</td>
+                                {{ $mergedDate?->format('d-M-Y') ?? '—' }}</td>
                             <td style="border:1px solid #000;padding:6px;text-align:right">
-                                {{ number_format($transaction->amount, 2) }}</td>
+                                {{ number_format($mergedAmount, 2) }}</td>
                             <td style="border:1px solid #000;padding:6px">
-                                {{ $transaction->schedule?->due_date?->format('d-M-Y') ?? '—' }}</td>
-                            <td style="border:1px solid #000;padding:6px">{{ $transaction->receipt_number ?? '—' }}</td>
-                            <td style="border:1px solid #000;padding:6px">{{ strtoupper($transaction->mode ?? '—') }}</td>
+                                {{ implode(', ', $mergedDueDates) ?: '—' }}</td>
+                            <td style="border:1px solid #000;padding:6px">{{ $receiptNumber }}</td>
+                            <td style="border:1px solid #000;padding:6px">{{ implode(', ', $mergedModes) ?: '—' }}</td>
                             <td style="border:1px solid #000;padding:6px">
-                                @if ($transaction->mode === 'cheque')
-                                    CHQ NO: {{ $transaction->reference_no ?? '—' }} DT:
-                                    {{ $transaction->date?->format('Y-m-d') ?? '—' }}
-                                @elseif($transaction->mode === 'online')
-                                    UTR {{ $transaction->reference_no ?? '—' }}
-                                @else
-                                    {{ $transaction->reference_no ?? '—' }}
-                                @endif
+                                {{ implode('; ', $mergedDetails) ?: '—' }}
                             </td>
                             <td style="border:1px solid #000;padding:6px">
-                                @if ($transaction->mode === 'cheque')
-                                    {{ strtoupper($transaction->status ?? 'PENDING') }}
-                                @else
-                                    {{ strtoupper($transaction->status ?? 'SUCCESS') }}
-                                @endif
+                                {{ implode(', ', $mergedStatuses) ?: '—' }}
                             </td>
-                            <td style="border:1px solid #000;padding:6px">{{ $transaction->remarks ?? '—' }}</td>
+                            <td style="border:1px solid #000;padding:6px">{{ implode('; ', $mergedRemarks) ?: '—' }}</td>
                         </tr>
                     @endforeach
                     <tr style="font-weight:700;background:#f5f5f5">
