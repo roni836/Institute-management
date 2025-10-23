@@ -161,6 +161,14 @@ class Edit extends Component
         $this->applyGst        = $this->admission->is_gst ?? false;
         $this->gstAmount       = $this->admission->gst_amount ?? 0;
         $this->gstRate         = $this->admission->gst_rate ?? 18;
+        
+        // Load module data from admission
+        $this->module1 = $this->admission->module1;
+        $this->module2 = $this->admission->module2;
+        $this->module3 = $this->admission->module3;
+        $this->module4 = $this->admission->module4;
+        $this->module5 = $this->admission->module5;
+        $this->id_card_required = $this->admission->id_card_required ?? false;
 
         // Calculate fee breakdown - use gross_fee as primary source
         $courseFee = $this->admission->batch->course->gross_fee ?? $this->admission->batch->course->fee ?? 0;
@@ -847,6 +855,12 @@ class Edit extends Component
                     'is_gst'         => $this->applyGst ?? false,
                     'gst_amount'     => $this->gstAmount ?? 0,
                     'gst_rate'       => $this->gstRate ?? 0,
+                    'module1'        => $this->module1,
+                    'module2'        => $this->module2,
+                    'module3'        => $this->module3,
+                    'module4'        => $this->module4,
+                    'module5'        => $this->module5,
+                    'id_card_required' => $this->id_card_required ?? false,
                 ]);
 
                 // Smart payment schedule update - preserve existing schedules with transactions
