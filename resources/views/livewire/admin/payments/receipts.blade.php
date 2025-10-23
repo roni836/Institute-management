@@ -22,7 +22,7 @@
                 $displayAddress->address_line1,
                 $displayAddress->address_line2,
                 $displayAddress->city,
-                $displayAddress->district,
+                // $displayAddress->district,
                 $displayAddress->state,
                 $displayAddress->pincode
             ]);
