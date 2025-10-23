@@ -30,7 +30,8 @@ class TransactionsExport implements FromQuery, WithHeadings, WithMapping, Should
 
     public function query()
     {
-        return Transaction::query()
+        // Get all transactions with filters applied
+        $baseQuery = Transaction::query()
             ->with(['admission.student', 'admission.batch'])
             ->leftJoin('admissions', 'transactions.admission_id', '=', 'admissions.id')
             ->leftJoin('courses', 'admissions.course_id', '=', 'courses.id')
@@ -52,6 +53,50 @@ class TransactionsExport implements FromQuery, WithHeadings, WithMapping, Should
             ->select('transactions.*', 'courses.name as course_name')
             ->orderBy('transactions.date', 'desc')
             ->orderBy('transactions.id', 'desc');
+
+        // Group by receipt number and get representative transaction with merged data
+        return Transaction::query()
+            ->with(['admission.student', 'admission.batch'])
+            ->leftJoin('admissions', 'transactions.admission_id', '=', 'admissions.id')
+            ->leftJoin('courses', 'admissions.course_id', '=', 'courses.id')
+            ->whereIn('transactions.id', function($subQuery) use ($baseQuery) {
+                // Get one representative transaction per receipt number (earliest transaction)
+                $subQuery->selectRaw('MIN(t.id)')
+                    ->from('transactions as t')
+                    ->whereIn('t.id', $baseQuery->pluck('transactions.id'))
+                    ->groupBy(\DB::raw('COALESCE(t.receipt_number, CONCAT("TX-", t.id))'));
+            })
+            ->selectRaw('
+                transactions.*,
+                courses.name as course_name,
+                (SELECT SUM(t2.amount) 
+                 FROM transactions t2 
+                 WHERE COALESCE(t2.receipt_number, CONCAT("TX-", t2.id)) = COALESCE(transactions.receipt_number, CONCAT("TX-", transactions.id))
+                ) as merged_amount,
+                (SELECT SUM(t2.gst) 
+                 FROM transactions t2 
+                 WHERE COALESCE(t2.receipt_number, CONCAT("TX-", t2.id)) = COALESCE(transactions.receipt_number, CONCAT("TX-", transactions.id))
+                ) as merged_gst,
+                (SELECT COUNT(*) 
+                 FROM transactions t2 
+                 WHERE COALESCE(t2.receipt_number, CONCAT("TX-", t2.id)) = COALESCE(transactions.receipt_number, CONCAT("TX-", transactions.id))
+                ) as transaction_count,
+                (SELECT GROUP_CONCAT(DISTINCT t2.mode SEPARATOR ", ") 
+                 FROM transactions t2 
+                 WHERE COALESCE(t2.receipt_number, CONCAT("TX-", t2.id)) = COALESCE(transactions.receipt_number, CONCAT("TX-", transactions.id))
+                ) as merged_modes,
+                (SELECT GROUP_CONCAT(DISTINCT t2.status SEPARATOR ", ") 
+                 FROM transactions t2 
+                 WHERE COALESCE(t2.receipt_number, CONCAT("TX-", t2.id)) = COALESCE(transactions.receipt_number, CONCAT("TX-", transactions.id))
+                ) as merged_statuses,
+                (SELECT GROUP_CONCAT(DISTINCT t2.reference_no SEPARATOR ", ") 
+                 FROM transactions t2 
+                 WHERE COALESCE(t2.receipt_number, CONCAT("TX-", t2.id)) = COALESCE(transactions.receipt_number, CONCAT("TX-", transactions.id))
+                 AND t2.reference_no IS NOT NULL
+                ) as merged_references
+            ')
+            ->orderBy('transactions.date', 'desc')
+            ->orderBy('transactions.id', 'desc');
     }
 
     public function headings(): array
@@ -65,12 +110,13 @@ class TransactionsExport implements FromQuery, WithHeadings, WithMapping, Should
             'Mobile',
             'Transaction Date',
             'Transaction Amount (₹)',
-            // 'GST Amount (₹)',
+            'GST Amount (₹)',
             'Total Amount (₹)',
-            'Payment Mode',
-            'Reference No',
+            'Payment Mode(s)',
+            'Reference No(s)',
             'Receipt Number',
             'Status',
+            'Transaction Count',
             'Created At'
         ];
     }
@@ -83,7 +129,16 @@ class TransactionsExport implements FromQuery, WithHeadings, WithMapping, Should
         $student = $transaction->admission->student ?? null;
         $batch = $transaction->admission->batch ?? null;
 
-        $totalAmount = $transaction->amount + ($transaction->gst ?? 0);
+        // Use merged amounts from the query
+        $mergedAmount = $transaction->merged_amount ?? $transaction->amount;
+        $mergedGst = $transaction->merged_gst ?? ($transaction->gst ?? 0);
+        $totalAmount = $mergedAmount + $mergedGst;
+
+        // Use merged data or fallback to individual transaction data
+        $modes = $transaction->merged_modes ?? ucfirst($transaction->mode ?? 'N/A');
+        $references = $transaction->merged_references ?? ($transaction->reference_no ?? 'N/A');
+        $statuses = $transaction->merged_statuses ?? ucfirst($transaction->status ?? 'N/A');
+        $transactionCount = $transaction->transaction_count ?? 1;
 
         return [
             $counter,
@@ -93,13 +148,14 @@ class TransactionsExport implements FromQuery, WithHeadings, WithMapping, Should
             $batch->name ?? 'N/A',
             $student->phone ?? 'N/A',
             $transaction->date ? $transaction->date->format('d M Y') : 'N/A',
-            number_format($transaction->amount, 2),
-            // number_format($transaction->gst ?? 0, 2),
+            number_format($mergedAmount, 2),
+            number_format($mergedGst, 2),
             number_format($totalAmount, 2),
-            ucfirst($transaction->mode ?? 'N/A'),
-            $transaction->reference_no ?? 'N/A',
+            $modes,
+            $references,
             $transaction->receipt_number ?? 'N/A',
-            ucfirst($transaction->status ?? 'N/A'),
+            $statuses,
+            $transactionCount,
             $transaction->created_at ? $transaction->created_at->format('d M Y H:i') : 'N/A'
         ];
     }
@@ -117,13 +173,13 @@ class TransactionsExport implements FromQuery, WithHeadings, WithMapping, Should
                 ]
             ],
             
-            // Center align S.No, Status columns
+            // Center align S.No, Status, Transaction Count columns
             'A:A' => [
                 'alignment' => [
                     'horizontal' => Alignment::HORIZONTAL_CENTER,
                 ]
             ],
-            'N:N' => [
+            'N:O' => [
                 'alignment' => [
                     'horizontal' => Alignment::HORIZONTAL_CENTER,
                 ]
