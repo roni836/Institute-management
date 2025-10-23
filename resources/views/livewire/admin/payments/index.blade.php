@@ -129,7 +129,7 @@
                     <th class="text-left p-3">Enrollment Id</th>
                     <th class="text-left p-3">Batch</th>
                     <th class="text-left p-3">Amount</th>
-                    <th class="text-left p-3">GST</th>
+                    {{-- <th class="text-left p-3">GST</th> --}}
                     <th class="text-left p-3">Mode</th>
                     <th class="text-left p-3">Receipt No</th>
                     <th class="text-left p-3">Action</th>
@@ -158,7 +158,7 @@
                                 @endif
                             </div>
                         </td>
-                        <td class="p-3">
+                        {{-- <td class="p-3">
                             @php
                                 $gstAmount = $t->total_gst ?? $t->gst;
                             @endphp
@@ -167,7 +167,7 @@
                             @else
                                 <span class="text-gray-400">—</span>
                             @endif
-                        </td>
+                        </td> --}}
                         <td class="p-3 capitalize">
                             @if ($t->modes && str_contains($t->modes, ','))
                                 <span class="text-xs bg-gray-100 px-2 py-1 rounded">Mixed</span>
@@ -186,7 +186,7 @@
                                 <span class="text-xs text-green-600">Student Summary</span>
                             </div>
                         </td>
-                        <td class="p-3 no-print gap-2">
+                        <td class="p-3 no-print gap-2 flex">
                             <a href="{{ route('admin.payments.receipt', $t->id) }}"
                                 class="px-3 py-1 text-sm rounded bg-indigo-600 text-white hover:bg-indigo-700">
                                 Full Receipt
