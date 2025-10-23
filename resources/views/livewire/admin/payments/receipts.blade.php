@@ -9,6 +9,26 @@
         $afterDue = (float) ($admission->fee_due ?? 0);
         $paid = (float) $tx->amount;
         $beforeDue = $afterDue + $paid;
+        
+        // Get student address - correspondence address first, fallback to permanent address
+        $correspondenceAddress = $student?->addresses?->where('type', 'correspondence')->first();
+        $permanentAddress = $student?->addresses?->where('type', 'permanent')->first();
+        $displayAddress = $correspondenceAddress ?? $permanentAddress;
+        
+        // Format the address for display
+        $formattedAddress = '';
+        if ($displayAddress) {
+            $addressParts = array_filter([
+                $displayAddress->address_line1,
+                $displayAddress->address_line2,
+                $displayAddress->city,
+                $displayAddress->district,
+                $displayAddress->state,
+                $displayAddress->pincode
+            ]);
+            $formattedAddress = implode(', ', $addressParts);
+        }
+        $formattedAddress = $formattedAddress ?: ($student->address ?? '—');
     @endphp
 
     <!-- Print Button -->
@@ -68,7 +88,7 @@
                     <div style="flex:1"> <strong>Roll No:</strong> {{ $student->enrollment_id ?? '—' }}</div>
                     <div style="flex:1"> <strong>UID:</strong> {{ $student->student_uid ?? '—' }}</div>
                     {{-- <div style="flex:1"> <strong>Plan:</strong> PLAN 1</div> --}}
-                    <div style="flex:1"> <strong>Address:</strong> {{ $student->address ?? '—' }}</div>
+                    <div style="flex:1"> <strong>Address:</strong> {{ $formattedAddress }}</div>
                 </div>
                 <div style="border-left:2px solid #000;padding:8px">
                     <div style="flex:1"> <strong>Admission Date:</strong>
