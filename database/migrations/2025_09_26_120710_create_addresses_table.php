@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->morphs('addressable'); // For polymorphic relationship
             $table->string('type')->default('permanent'); // permanent, correspondence, etc.
-            $table->string('address_line1');
+            $table->string('address_line1')->nullable();
             $table->string('address_line2')->nullable();
             $table->string('city')->nullable();
             $table->string('state')->nullable();

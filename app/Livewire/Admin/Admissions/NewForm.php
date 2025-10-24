@@ -98,49 +98,49 @@ class NewForm extends Component
     public bool $id_card_required = false;
     
     // Address fields
-    #[Validate('required|in:permanent,correspondence')]
+    #[Validate('nullable|in:permanent,correspondence')]
     public $address_type = 'permanent';
 
-    #[Validate('required|min:3|max:200')]
+    #[Validate('nullable|min:3|max:200')]
     public $address_line1;
 
     #[Validate('nullable|max:200')]
     public $address_line2;
 
-    #[Validate('required|min:2|max:100')]
+    #[Validate('nullable|min:2|max:100')]
     public $city;
 
-    #[Validate('required')]
+    #[Validate('nullable')]
     public $state;
 
-    #[Validate('required')]
+    #[Validate('nullable')]
     public $district;
 
     #[Validate('required|digits:6')]
     public $pincode;
 
-    #[Validate('required')]
+    #[Validate('nullable')]
     public $country = 'India';
 
-    #[Validate('required_if:same_as_permanent,false')]
+    #[Validate('nullable|min:3|max:200')]
     public $corr_address_line1;
 
     #[Validate('nullable|max:200')]
     public $corr_address_line2;
 
-    #[Validate('required_if:same_as_permanent,false')]
+    #[Validate('nullable|min:2|max:100')]
     public $corr_city;
 
-    #[Validate('required_if:same_as_permanent,false')]
+    #[Validate('nullable')]
     public $corr_state;
 
-    #[Validate('required_if:same_as_permanent,false')]
+    #[Validate('nullable')]
     public $corr_district;
 
-    #[Validate('required_if:same_as_permanent,false')]
+    #[Validate('nullable|digits:6')]
     public $corr_pincode;
 
-    #[Validate('required')]
+    #[Validate('nullable')]
     public $corr_country = 'India';
     public $same_as_permanent = false;
 
@@ -208,6 +208,263 @@ class NewForm extends Component
 
         if ($this->batch_id) {
             $this->loadBatchData($this->batch_id);
+        }
+        // Do not auto-load draft to avoid surprising the user, but keep the draft utilities available.
+    }
+
+    /**
+     * Get cache key used for saving drafts. Uses authenticated user id if available, otherwise session id.
+     */
+    /** Save current form state as a draft in the database (admissions.is_draft = true)
+     *  This will create or update a draft admission for the current student (best-effort match).
+     */
+    public function saveDraft(): void
+    {
+        try {
+            DB::transaction(function () use (&$admission, &$student) {
+                // Determine student to attach the draft to
+                if ($this->selectedStudentId) {
+                    $student = Student::find($this->selectedStudentId);
+                    // update minimal student info
+                    $student->update(array_filter([
+                        'name' => $this->name,
+                        'email' => $this->email,
+                        'phone' => $this->phone,
+                        'stream' => $this->stream ?? $student->stream,
+                        'class' => $this->class ?? $student->class,
+                        'status' => $this->student_status ?? $student->status,
+                    ]));
+                } else {
+                    // try to find by phone
+                    $student = null;
+                    if (!empty($this->phone)) {
+                        $student = Student::where('phone', $this->phone)->first();
+                    }
+
+                    if (! $student) {
+                        // create a minimal student record for the draft
+                        $student = Student::create(array_filter([
+                        'name' => $this->name,
+                        'email' => $this->email,
+                        'phone' => $this->phone,
+                        'whatsapp_no' => $this->whatsapp_no,
+                        'dob' => $this->dob,
+                        'father_name' => $this->father_name,
+                        'mother_name' => $this->mother_name,
+                        'address' => $this->address,
+                        'gender' => $this->gender,
+                        'category' => $this->category,
+                        'alt_phone' => $this->alt_phone,
+                        'mother_occupation' => $this->mother_occupation,
+                        'father_occupation' => $this->father_occupation,
+                        'stream' => $this->stream,
+                        'class' => $this->class,
+                        'academic_session' => $this->academic_session,
+                        'school_name' => $this->school_name,
+                        'school_address' => $this->school_address,
+                        'board' => $this->board,
+                        'admission_date' => $this->admission_date,
+                        'roll_no' => $this->generateRollNumber(),
+                        'student_uid' => $this->generateStudentUid(),
+                        'enrollment_id' => $this->generateEnrollmentId(),
+                        'status' => $this->student_status,
+                        ]));
+                    }
+                }
+
+                // Save or update addresses for draft (only if address_line1 is provided)
+                if (!empty($this->address_line1)) {
+                    // Permanent Address
+                    $permanentAddress = [
+                        'type' => 'permanent',
+                        'address_line1' => $this->address_line1,
+                        'address_line2' => $this->address_line2,
+                        'city' => $this->city,
+                        'state' => $this->state,
+                        'district' => $this->district,
+                        'pincode' => $this->pincode,
+                        'country' => $this->country ?? 'India',
+                        'is_primary' => true,
+                    ];
+                    
+                    // Check if permanent address exists
+                    $existingPermanentAddress = $student->addresses()->where('type', 'permanent')->first();
+                    if ($existingPermanentAddress) {
+                        $existingPermanentAddress->update($permanentAddress);
+                    } else {
+                        $student->addresses()->create($permanentAddress);
+                    }
+                }
+                
+                // Correspondence Address - only create if not same as permanent and has data
+                if (!$this->same_as_permanent && !empty($this->corr_address_line1)) {
+                    $corrAddress = [
+                        'type' => 'correspondence',
+                        'address_line1' => $this->corr_address_line1,
+                        'address_line2' => $this->corr_address_line2,
+                        'city' => $this->corr_city,
+                        'state' => $this->corr_state,
+                        'district' => $this->corr_district,
+                        'pincode' => $this->corr_pincode,
+                        'country' => $this->corr_country ?? 'India',
+                        'is_primary' => false,
+                    ];
+                    
+                    // Check if correspondence address exists
+                    $existingCorrAddress = $student->addresses()->where('type', 'correspondence')->first();
+                    if ($existingCorrAddress) {
+                        $existingCorrAddress->update($corrAddress);
+                    } else {
+                        $student->addresses()->create($corrAddress);
+                    }
+                } elseif ($this->same_as_permanent) {
+                    // Delete correspondence address if it exists and same_as_permanent is true
+                    $student->addresses()->where('type', 'correspondence')->delete();
+                }
+
+                // Try to find an existing draft admission for this student
+                $existingDraft = Admission::where('student_id', $student->id)
+                    ->where('is_draft', true)
+                    ->latest()
+                    ->first();
+
+                $admissionData = [
+                    'student_id' => $student->id,
+                    'course_id' => $this->course_id ?? null,
+                    'batch_id' => $this->batch_id ?? null,
+                    'admission_date' => $this->admission_date ?? now()->toDateString(),
+                    'mode' => $this->mode ?? 'full',
+                    'discount_type' => $this->discount_type ?? 'fixed',
+                    'discount_value' => $this->discount_value ?? 0,
+                    'fee_total' => $this->fee_total ?? 0,
+                    'fee_due' => $this->fee_total ?? 0,
+                    'is_draft' => true,
+                    'session' => $this->academic_session ?? $this->session ?? now()->year,
+                    'is_gst' => $this->applyGst ?? false,
+                    'gst_amount' => $this->gstAmount ?? 0,
+                    'gst_rate' => $this->gstRate ?? 0,
+                    'stream' => $this->stream ?? null,
+                    'module1' => $this->normalizeModule($this->module1),
+                    'module2' => $this->normalizeModule($this->module2),
+                    'module3' => $this->normalizeModule($this->module3),
+                    'module4' => $this->normalizeModule($this->module4),
+                    'module5' => $this->normalizeModule($this->module5),
+                    'id_card_required' => (bool) ($this->id_card_required ?? false),
+                ];
+
+                if ($existingDraft) {
+                    $existingDraft->update($admissionData);
+                    $admission = $existingDraft;
+                    // remove existing schedules and recreate if plan present
+                    if (!empty($this->plan)) {
+                        $existingDraft->schedules()->delete();
+                        foreach ($this->plan as $p) {
+                            $existingDraft->schedules()->create([
+                                'installment_no' => $p['no'],
+                                'due_date' => $p['due_on'],
+                                'amount' => $p['amount'],
+                                'status' => 'pending',
+                            ]);
+                        }
+                    }   
+                } else {
+                    $admission = Admission::create($admissionData);
+                    if (!empty($this->plan)) {
+                        foreach ($this->plan as $p) {
+                            $admission->schedules()->create([
+                                'installment_no' => $p['no'],
+                                'due_date' => $p['due_on'],
+                                'amount' => $p['amount'],
+                                'status' => 'pending',
+                            ]);
+                        }
+                    }
+                }
+            });
+
+            // Notify UI
+            try {
+                $this->dispatch('notify', ['type' => 'success', 'message' => 'Draft saved to database.']);
+            } catch (\Throwable $e) {
+                session()->flash('ok', 'Draft saved to database.');
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to save draft: ' . $e->getMessage());
+            $this->dispatch('notify', ['type' => 'error', 'message' => 'Failed to save draft.' . $e->getMessage()]);
+        }
+    }
+
+    /** Clear saved draft(s) for the current student from the database */
+    public function clearDraft(): void
+    {
+        try {
+            // Identify student by selectedStudentId or phone
+            $student = null;
+            if ($this->selectedStudentId) {
+                $student = Student::find($this->selectedStudentId);
+            } elseif (!empty($this->phone)) {
+                $student = Student::where('phone', $this->phone)->first();
+            }
+
+            if (! $student) {
+                $this->dispatch('notify', ['type' => 'info', 'message' => 'No draft found for current form']);
+                return;
+            }
+
+            $drafts = Admission::where('student_id', $student->id)->where('is_draft', true)->get();
+            if ($drafts->isEmpty()) {
+                $this->dispatch('notify', ['type' => 'info', 'message' => 'No draft admissions to clear']);
+                return;
+            }
+
+            DB::transaction(function () use ($drafts) {
+                foreach ($drafts as $d) {
+                    // delete related schedules
+                    $d->schedules()->delete();
+                    $d->delete();
+                }
+
+                // If we attached a student, ensure identifiers are populated similar to full save
+                if (!empty($student)) {
+                    $updated = false;
+
+                    // Ensure student_uid exists (full-save uses generateStudentUid())
+                    if (empty($student->student_uid)) {
+                        try {
+                            $student->student_uid = $this->generateStudentUid();
+                            $updated = true;
+                        } catch (\Throwable $e) {
+                            Log::debug('Could not generate student_uid for draft: ' . $e->getMessage());
+                        }
+                    }
+
+                    // Ensure roll_no exists if possible
+                    if (empty($student->roll_no)) {
+                        try {
+                            $roll = $this->tryGenerateRollNumber();
+                            if ($roll) {
+                                $student->roll_no = $roll;
+                                $updated = true;
+                            }
+                        } catch (\Throwable $e) {
+                            Log::debug('Could not generate roll number for draft student: ' . $e->getMessage());
+                        }
+                    }
+
+                    if ($updated) {
+                        try {
+                            $student->save();
+                        } catch (\Throwable $e) {
+                            Log::debug('Failed to save generated identifiers for draft student: ' . $e->getMessage());
+                        }
+                    }
+                }
+            });
+
+            $this->dispatch('notify', ['type' => 'success', 'message' => 'Draft(s) cleared from database']);
+        } catch (\Exception $e) {
+            Log::error('Failed to clear draft: ' . $e->getMessage());
+            $this->dispatch('notify', ['type' => 'error', 'message' => 'Failed to clear draft']);
         }
     }
 
@@ -603,96 +860,6 @@ class NewForm extends Component
         return $labels[$field] ?? ucwords(str_replace('_', ' ', $field));
     }
 
-    // /** Full rules (used on final save) */
-    // public function rules(): array
-    // {
-    //     $rules = [
-    //         // step 1 - Student details
-    //         'name' => ['required', 'string', 'max:255'],
-    //         'father_name' => ['nullable', 'string', 'max:255'],
-    //         'mother_name' => ['nullable', 'string', 'max:255'],
-    //         'email' => ['nullable', 'email', 'max:255'],
-    //         'phone' => ['nullable', 'string', 'max:20'],
-    //         'whatsapp_no' => ['nullable', 'string', 'max:20'],
-    //         'address' => ['nullable', 'string'],
-    //         'dob' => ['nullable'],
-    //         'session' => ['nullable'],
-    //         'academic_session' => ['nullable', 'string', 'max:10'],
-    //         'gender' => ['nullable', 'string', 'in:male,female,others'],
-    //         'category' => ['nullable', 'string', 'in:sc,st,obc,general,other'],
-    //         'alt_phone' => ['nullable', 'string', 'max:20'],
-    //         'mother_occupation' => ['nullable', 'string', 'max:255'],
-    //         'father_occupation' => ['nullable', 'string', 'max:255'],
-    //         'stream' => ['required', 'string', 'in:Engineering,Foundation,Medical,Other'],
-    //         'student_status' => ['nullable', 'in:active,inactive,alumni'],
-    //         'school_name' => ['nullable', 'string', 'max:255'],
-    //         'school_address' => ['nullable', 'string', 'max:255'],
-    //         'board' => ['nullable', 'string', 'max:100'],
-    //         'class' => ['nullable', 'string', 'max:255'],
-    //         'module1' => ['nullable', 'string', 'max:255'],
-    //         'module2' => ['nullable', 'string', 'max:255'],
-    //         'module3' => ['nullable', 'string', 'max:255'],
-    //         'module4' => ['nullable', 'string', 'max:255'],
-    //         'module5' => ['nullable', 'string', 'max:255'],
-    //         'id_card_required' => ['boolean'],
-            
-    //         // Address fields
-    //         'address_line1' => ['required', 'string', 'max:255'],
-    //         'address_line2' => ['nullable', 'string', 'max:255'],
-    //         'city' => ['nullable', 'string', 'max:100'],
-    //         'state' => ['nullable', 'string', 'max:100'],
-    //         'district' => ['nullable', 'string', 'max:100'],
-    //         'pincode' => ['required', 'digits:6'],
-    //         'country' => ['nullable', 'string', 'max:100'],
-    //         'same_as_permanent' => ['boolean'],
-    //         'photo_upload' => ['nullable', 'image', 'max:2048'],
-    //         'aadhaar_upload' => ['nullable', 'mimes:jpeg,jpg,png,pdf', 'max:4096'],
-    //         'corr_address_line1' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'nullable', 'string', 'max:255'],
-    //         'corr_address_line2' => ['nullable', 'string', 'max:255'],
-    //         'corr_city' => ['nullable', 'string', 'max:100'],
-    //         'corr_state' => ['nullable', 'string', 'max:100'],
-    //         'corr_district' => ['nullable', 'string', 'max:100'],
-    //         'corr_pincode' => [Rule::requiredIf(fn() => !$this->same_as_permanent), 'nullable', 'digits:6'],
-    //         'corr_country' => ['nullable', 'string', 'max:100'],
-
-    //         // step 2 - Admission details
-    //         'course_id' => [
-    //             'required',
-    //             'exists:courses,id',
-    //         ],
-    //         'batch_id' => [
-    //             'required',
-    //             'exists:batches,id',
-    //         ],
-    //         'admission_date' => ['required', 'date'],
-    //         'discount_type' => ['required', 'in:fixed,percentage'],
-    //         'discount_value' => ['nullable', 'numeric', 'min:0'],
-    //         'discount' => ['nullable', 'numeric', 'min:0'],
-    //         'mode' => ['required', 'in:full,installment'],
-    //         'fee_total' => ['required', 'numeric', 'min:0'],
-    //         'applyGst' => ['boolean'],
-    //         'gstRate' => [Rule::requiredIf(fn() => $this->applyGst), 'numeric', 'min:0', 'max:100'],
-    //         'gstAmount' => [Rule::requiredIf(fn() => $this->applyGst), 'numeric', 'min:0'],
-    //         'installments' => [
-    //             Rule::requiredIf(fn() => $this->mode === 'installment'),
-    //             'integer', 'min:2',
-    //         ],
-    //         'plan' => [
-    //             function ($attribute, $value, $fail) {
-    //                 if ($this->mode === 'installment' && !empty($this->plan)) {
-    //                     $total = array_sum(array_column($this->plan, 'amount'));
-    //                     $difference = abs($total - $this->fee_total);
-    //                     // Allow for small floating point differences (up to 1 rupee)
-    //                     if ($difference > 1.00) {
-    //                         $fail("Installment amounts (₹{$total}) must equal the total fee amount (₹{$this->fee_total}). Difference: ₹{$difference}");
-    //                     }
-    //                 }
-    //             },
-    //         ],
-    //     ];
-
-    //     return $rules;
-    // }
 
     protected function normalizeModule(?string $value): ?string
     {
@@ -1012,6 +1179,21 @@ class NewForm extends Component
         
         return 'ROLL' . $streamPrefix . $year . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
     }
+
+    /**
+     * Try to generate a roll number without throwing.
+     * Returns the generated roll number or null if it couldn't be generated.
+     */
+    private function tryGenerateRollNumber(): ?string
+    {
+        try {
+            return $this->generateRollNumber();
+        } catch (\Throwable $e) {
+            // Do not fail draft saving if roll number can't be generated (missing stream/class)
+            Log::debug('tryGenerateRollNumber failed: ' . $e->getMessage());
+            return null;
+        }
+    }
     
     /**
      * Generate a unique student UID
@@ -1328,6 +1510,7 @@ class NewForm extends Component
                     'module4' => $this->normalizeModule($this->module4),
                     'module5' => $this->normalizeModule($this->module5),
                     'id_card_required' => (bool) $this->id_card_required,
+                    "is_draft" => false,
                 ]);
 
                 // Create payment schedule
@@ -1362,7 +1545,7 @@ class NewForm extends Component
 
         } catch (\Exception $e) {
             Log::error('Admission creation failed: ' . $e->getMessage());
-            $this->addError('general', 'Failed to create admission. Please try again.');
+            $this->addError('general', 'Failed to create admission. Please try again.' . $e->getMessage());
             return;
         }
 

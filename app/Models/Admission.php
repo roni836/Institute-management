@@ -43,6 +43,7 @@ class Admission extends Model
         'admission_date' => 'date',
         'stream'         => 'string',
         'id_card_required' => 'boolean',
+        'is_draft' => 'boolean',
     ];
 
     public function attendanceRecords()

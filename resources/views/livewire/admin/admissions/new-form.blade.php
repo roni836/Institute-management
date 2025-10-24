@@ -38,8 +38,8 @@
                 
                 // Listen for validation notification events
                 Livewire.on('notify', (event) => {
-                    console.debug('Notification:', event);
-                    this.showNotification(event.message, event.type || 'error');
+                    console.debug('Notification:', event[0]);
+                    this.showNotification(event[0].message, event[0].type || 'error');
                 });
             };
 
@@ -328,7 +328,7 @@
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Mobile No.</label>
                                     <input 
                                         wire:model.blur="phone" 
-                                        type="tel" 
+                                        type="number" 
                                         name="phone" 
                                         class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 @error('phone') border-red-500 bg-red-50 @else border-gray-300 @enderror"
                                     >
@@ -342,7 +342,7 @@
                                     <label class="block text-sm font-medium text-gray-700 mb-2">WhatsApp No.</label>
                                     <input 
                                         wire:model.blur="whatsapp_no" 
-                                        type="tel" 
+                                        type="number" 
                                         name="whatsapp_no" 
                                         class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 @error('whatsapp_no') border-red-500 bg-red-50 @else border-gray-300 @enderror"
                                     >
@@ -1025,6 +1025,12 @@ function addressDropdown(prefix) {
                             </button>
                             <button type="button" wire:click="save" id="submitBtn" x-show="step === 2" class="px-4 py-2 text-sm bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors">
                                 Submit Application
+                            </button>
+                            <button type="button" wire:click="saveDraft" id="saveDraftBtn" class="ml-2 px-4 py-2 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors">
+                                Save Draft
+                            </button>
+                            <button type="button" wire:click="clearDraft" id="clearDraftBtn" class="ml-2 px-4 py-2 text-sm bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition-colors">
+                                Clear Draft
                             </button>
                         </div>
                     </div>

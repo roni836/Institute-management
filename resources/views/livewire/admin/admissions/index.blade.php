@@ -252,9 +252,8 @@
                     <th class="text-left p-3">Batch & Course</th>
                     <th class="text-left p-3">Admission Date</th>
                     <th class="text-left p-3">Fee Details</th>
-                    {{-- <th class="text-left p-3">Status</th> --}}
+                    <th class="text-left p-3">Status</th>
                     <th class=" p-3 ">Actions</th>
-                    {{--<th class=" p-3 ">Other</th>--}}
                 </tr>
             </thead>
             <tbody>
@@ -271,44 +270,30 @@
                             <div class="font-medium">{{ $admission->student->enrollment_id }}</div>
                         </td>
                         <td class="p-3">
-                            <div>{{ $admission->batch->batch_name }}</div>
-                            <div class="text-xs text-gray-500">{{ $admission->batch->course->name }}</div>
+                            <div>{{ $admission->batch?->batch_name ?? '-' }}</div>
+                            <div class="text-xs text-gray-500">{{ $admission->batch?->course?->name ?? '-' }}</div>
                         </td>
-                        <td class="p-3">{{ $admission->admission_date->format('d M Y') }}</td>
+                        <td class="p-3">{{ $admission->admission_date ? $admission->admission_date->format('d M Y') : '-' }}</td>
                         <td class="p-3">
-                            <div>Total: ₹{{ number_format($admission->fee_total, 2) }}</div>
-                            <div class="text-xs text-gray-500">Due: ₹{{ number_format($admission->fee_due, 2) }}</div>
+                            <div>Total: ₹{{ number_format($admission->fee_total ?? 0, 2) }}</div>
+                            <div class="text-xs text-gray-500">Due: ₹{{ number_format($admission->fee_due ?? 0, 2) }}</div>
                         </td>
-                        {{-- <td class="p-3">
+                        <td class="px-1 py-3">
                             <span @class([
-                                'px-2 py-1 rounded-full text-xs font-medium',
-                                'bg-green-100 text-green-700' => $admission->status === 'active',
-                                'bg-gray-100 text-gray-700' => $admission->status === 'completed',
-                                'bg-red-100 text-red-700' => $admission->status === 'cancelled',
+                                'rounded-full text-xs font-medium px-3 py-1',
+                                'bg-green-100 text-green-700' => ($admission->is_draft ?? false) === true,
+                                'bg-red-100 text-red-700' => ($admission->is_draft ?? false) === false,
                             ])>
-                                {{ ucfirst($admission->status) }}
+                                {{ $admission->is_draft ? 'Draft' : 'Finalized' }}
                             </span>
-                        </td> --}}
+                        </td>
                         <td class="p-2 text-center space-x-2">
                             <a href="{{ route('admin.admissions.show', $admission) }}"
                                 class="px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-700">View</a>
                             <a href="{{ route('admin.admissions.edit', $admission) }}"
                                 class="px-2 py-1 rounded bg-orange-50 hover:bg-orange-100 text-orange-700">Edit</a>
-                            <!-- <a href="{{ route('admin.payments.create', ['admission_id' => $admission->id]) }}"
-                                class="px-2 py-1 rounded bg-green-50 hover:bg-green-100 text-green-700">Payment</a> -->
                         </td>
-                {{--        <td class="p-3">
-                        @if($admission->status === 'cancelled')
-                            <span class="px-2 py-1 rounded bg-gray-100 text-gray-500">
-                                Cancelled
-                            </span>
-                        @else
-                            <a href="{{ route('admin.admissions.cancel', $admission) }}" 
-                            class="px-2 py-1 rounded bg-red-50 hover:bg-red-100 text-red-700">
-                                Cancel Admission
-                            </a>
-                        @endif
-                    </td> --}}
+               
                     </tr>
                 @empty
                     <tr>

@@ -200,26 +200,52 @@
                         selectedDistrict: '',
                         selectedCity: '',
                         async init() {
-                            const res = await fetch('/india.json');
-                            this.states = await res.json();
-                            // Set initial values from Livewire
-                            if (prefix === 'perm') {
-                                this.selectedState = this.$wire.state || '';
-                                this.selectedDistrict = this.$wire.district || '';
-                                this.selectedCity = this.$wire.city || '';
-                            } else {
-                                this.selectedState = this.$wire.corr_state || '';
-                                this.selectedDistrict = this.$wire.corr_district || '';
-                                this.selectedCity = this.$wire.corr_city || '';
+                            try {
+                                // Fetch India states data
+                                const res = await fetch('/india.json');
+                                this.states = await res.json();
+                                
+                                // Wait a bit for Livewire to be ready
+                                await this.$nextTick();
+                                
+                                // Set initial values from Livewire
+                                if (prefix === 'perm') {
+                                    this.selectedState = this.$wire.state || '';
+                                    this.selectedDistrict = this.$wire.district || '';
+                                    this.selectedCity = this.$wire.city || '';
+                                } else {
+                                    this.selectedState = this.$wire.corr_state || '';
+                                    this.selectedDistrict = this.$wire.corr_district || '';
+                                    this.selectedCity = this.$wire.corr_city || '';
+                                }
+                                
+                                // Update dependent dropdowns if we have initial state
+                                if (this.selectedState) {
+                                    this.updateDistricts();
+                                    
+                                    // If we have initial district, update cities
+                                    if (this.selectedDistrict) {
+                                        // Wait for districts to be populated
+                                        await this.$nextTick();
+                                        this.updateCities();
+                                    }
+                                }
+                            } catch (error) {
+                                console.error('Error loading address data:', error);
                             }
-                            this.updateDistricts();
-                            this.updateCities();
                         },
                         onStateChange() {
                             if (prefix === 'perm') this.$wire.state = this.selectedState;
                             else this.$wire.corr_state = this.selectedState;
                             this.selectedDistrict = '';
                             this.selectedCity = '';
+                            if (prefix === 'perm') {
+                                this.$wire.district = '';
+                                this.$wire.city = '';
+                            } else {
+                                this.$wire.corr_district = '';
+                                this.$wire.corr_city = '';
+                            }
                             this.updateDistricts();
                             this.updateCities();
                         },
@@ -227,6 +253,11 @@
                             if (prefix === 'perm') this.$wire.district = this.selectedDistrict;
                             else this.$wire.corr_district = this.selectedDistrict;
                             this.selectedCity = '';
+                            if (prefix === 'perm') {
+                                this.$wire.city = '';
+                            } else {
+                                this.$wire.corr_city = '';
+                            }
                             this.updateCities();
                         },
                         onCityChange() {
@@ -425,7 +456,10 @@
                             <!-- Permanent Address -->
                             <div class="mb-6">
                                 <h4 class="text-base font-medium text-gray-700 mb-2">Permanent Address</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                                    x-data="addressDropdown('perm')"
+                                    x-init="init()"
+                                >
                                     <div class="md:col-span-2">
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Address Line 1 *</label>
                                         <input wire:model.live="address_line1" type="text" name="address_line1" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
@@ -438,9 +472,10 @@
                                         @error('address_line2') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                     </div>
 
-                                    <div x-data="addressDropdown('perm')">
+                                    <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">State *</label>
                                         <select 
+                                            wire:model.blur="state"
                                             x-model="selectedState"
                                             @change="onStateChange"
                                             required 
@@ -454,12 +489,14 @@
                                         @error('state') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                     </div>
 
-                                    <div x-data="addressDropdown('perm')">
+                                    <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">District *</label>
                                         <select 
+                                            wire:model.blur="district"
                                             x-model="selectedDistrict"
                                             @change="onDistrictChange"
-                                            required 
+                                            required
+                                            :disabled="!selectedState"
                                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                         >
                                             <option value="">Select District</option>
@@ -470,12 +507,14 @@
                                         @error('district') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                     </div>
 
-                                    <div x-data="addressDropdown('perm')">
+                                    <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">City *</label>
                                         <select 
+                                            wire:model.blur="city"
                                             x-model="selectedCity"
                                             @change="onCityChange"
-                                            required 
+                                            required
+                                            :disabled="!selectedDistrict"
                                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                         >
                                             <option value="">Select City</option>
@@ -523,7 +562,10 @@
                                 @if (!$same_as_permanent)
                                     <div class="bg-primary-50 p-4 rounded-lg">
                                         <h5 class="text-sm font-medium text-gray-700 mb-3">Correspondence Address</h5>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                                            x-data="addressDropdown('corr')"
+                                            x-init="init()"
+                                        >
                                             <div class="md:col-span-2">
                                                 <label class="block text-sm font-medium text-gray-700 mb-2">Address Line 1 *</label>
                                                 <input type="text" wire:model.live="corr_address_line1" required
@@ -538,13 +580,13 @@
                                                 @error('corr_address_line2') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                             </div>
 
-                                            <div x-data="addressDropdown('corr')" :class="{'opacity-50': same_as_permanent}">
+                                            <div>
                                                 <label class="block text-sm font-medium text-gray-700 mb-2">State *</label>
                                                 <select 
+                                                    wire:model.blur="corr_state"
                                                     x-model="selectedState"
                                                     @change="onStateChange"
-                                                    required 
-                                                    :disabled="same_as_permanent"
+                                                    required
                                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                                 >
                                                     <option value="">Select State</option>
@@ -555,13 +597,14 @@
                                                 @error('corr_state') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                             </div>
 
-                                            <div x-data="addressDropdown('corr')" :class="{'opacity-50': same_as_permanent}">
+                                            <div>
                                                 <label class="block text-sm font-medium text-gray-700 mb-2">District *</label>
                                                 <select 
+                                                    wire:model.blur="corr_district"
                                                     x-model="selectedDistrict"
                                                     @change="onDistrictChange"
-                                                    required 
-                                                    :disabled="same_as_permanent"
+                                                    required
+                                                    :disabled="!selectedState"
                                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                                 >
                                                     <option value="">Select District</option>
@@ -572,13 +615,14 @@
                                                 @error('corr_district') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                             </div>
 
-                                            <div x-data="addressDropdown('corr')" :class="{'opacity-50': same_as_permanent}">
+                                            <div>
                                                 <label class="block text-sm font-medium text-gray-700 mb-2">City *</label>
                                                 <select 
+                                                    wire:model.blur="corr_city"
                                                     x-model="selectedCity"
                                                     @change="onCityChange"
-                                                    required 
-                                                    :disabled="same_as_permanent"
+                                                    required
+                                                    :disabled="!selectedDistrict"
                                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                                 >
                                                     <option value="">Select City</option>
