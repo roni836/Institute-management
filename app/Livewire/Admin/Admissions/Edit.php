@@ -861,10 +861,15 @@ class Edit extends Component
                     'module4'        => $this->module4,
                     'module5'        => $this->module5,
                     'id_card_required' => $this->id_card_required ?? false,
+                    "is_draft"         => 0,
+
                 ]);
 
                 // Smart payment schedule update - preserve existing schedules with transactions
                 $this->updatePaymentSchedules();
+                
+                // Recalculate fee_due based on new fee_total and existing payments
+                $this->admission->refreshDue();
             });
 
             session()->flash('success', 'Admission updated successfully!');

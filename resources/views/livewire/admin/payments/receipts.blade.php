@@ -110,7 +110,17 @@
                 @php
                     // Calculate fee components
                     $grossFee = $course->gross_fee ?? 0;
-                    $discount = $admission->discount ?? 0;
+                    
+                    // Calculate discount based on type
+                    $discountType = $admission->discount_type ?? 'fixed';
+                    $discountValue = $admission->discount_value ?? 0;
+                    
+                    if ($discountType === 'percentage') {
+                        $discount = ($grossFee * $discountValue) / 100;
+                    } else {
+                        $discount = $discountValue;
+                    }
+                    
                     $feeAfterDiscount = $grossFee - $discount;
 
                     $tutionFee = $course->tution_fee ?? 0;
@@ -125,7 +135,7 @@
                     $totalComponentFees =
                         $tutionFee + $admissionFee + $examFee + $infraFee + $smFee + $techFee + $otherFee;
 
-                    // Calculate GST (10%)
+                    // Calculate GST (18%)
                     $taxableAmount = $feeAfterDiscount;
 
                     if ($tx->gst != 0) {
@@ -140,7 +150,12 @@
                 @endphp
                 <tr>
                     <td style="border:1px solid #000;padding:6px;background:#f5f5f5;font-weight:bold">Gross Fee</td>
-                    <td style="border:1px solid #000;padding:6px;background:#f5f5f5;font-weight:bold">Discount</td>
+                    <td style="border:1px solid #000;padding:6px;background:#f5f5f5;font-weight:bold">
+                        Discount
+                        @if($discountType === 'percentage')
+                            ({{ number_format($discountValue, 2) }}%)
+                        @endif
+                    </td>
                     <td style="border:1px solid #000;padding:6px;background:#f5f5f5;font-weight:bold">Fee After Discount
                     </td>
                     <td style="border:1px solid #000;padding:6px;background:#f5f5f5;font-weight:bold">Tuition Fee</td>

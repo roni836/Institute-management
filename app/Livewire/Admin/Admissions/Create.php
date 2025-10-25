@@ -172,7 +172,7 @@ class Create extends Component
             'name'              => ['required', 'string', 'max:255'],
             'father_name'       => ['nullable', 'string', 'max:255'],
             'mother_name'       => ['nullable', 'string', 'max:255'],
-            'email'             => ['nullable', 'email', 'max:255'],
+            'email'             => ['nullable', 'email:unique:students,email', 'max:255'],
             'phone'             => ['nullable', 'string', 'max:20'],
             'address'           => ['nullable', 'string'],
             'dob'               => ['nullable'],

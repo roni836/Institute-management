@@ -153,39 +153,41 @@ class Index extends Component
 
     private function getPaymentStats()
     {
-        return Cache::remember('payment_stats', 300, function () {
-            $currentMonth = Carbon::now()->startOfMonth();
-            $lastMonth = Carbon::now()->subMonth()->startOfMonth();
+        $currentMonth = Carbon::now()->startOfMonth();
+        $lastMonth = Carbon::now()->subMonth()->startOfMonth();
 
-            // Combine revenue queries into one
-            $revenues = Transaction::selectRaw("
-                SUM(CASE WHEN status = 'success' AND MONTH(date) = ? AND YEAR(date) = ? THEN amount ELSE 0 END) as current_month_revenue,
-                SUM(CASE WHEN status = 'success' AND MONTH(date) = ? AND YEAR(date) = ? THEN amount ELSE 0 END) as last_month_revenue,
-                SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) as pending_payments,
-                SUM(CASE WHEN status = 'success' THEN amount ELSE 0 END) as completed_payments
-            ", [
-                $currentMonth->month, $currentMonth->year,
-                $lastMonth->month, $lastMonth->year
-            ])->first();
+        // Combine revenue queries into one
+        $revenues = Transaction::selectRaw("
+            SUM(CASE WHEN status = 'success' AND MONTH(date) = ? AND YEAR(date) = ? THEN amount ELSE 0 END) as current_month_revenue,
+            SUM(CASE WHEN status = 'success' AND MONTH(date) = ? AND YEAR(date) = ? THEN amount ELSE 0 END) as last_month_revenue,
+            SUM(CASE WHEN status = 'success' THEN amount ELSE 0 END) as completed_payments
+        ", [
+            $currentMonth->month, $currentMonth->year,
+            $lastMonth->month, $lastMonth->year
+        ])->first();
 
-            $overduePayments = PaymentSchedule::where('due_date', '<', now())
-                ->where('status', '!=', 'paid')
-                ->sum(FacadesDB::raw('amount - paid_amount'));
+        // Get pending payments from admissions fee_due
+        $pendingPayments = \App\Models\Admission::where('is_draft', false)
+            ->sum('fee_due');
 
-            $percentChange = $revenues->last_month_revenue > 0
-                ? round((($revenues->current_month_revenue - $revenues->last_month_revenue) / $revenues->last_month_revenue) * 100, 1)
-                : 0;
 
-            return [
-                'monthlyRevenue' => [
-                    'amount' => $revenues->current_month_revenue,
-                    'percentChange' => $percentChange,
-                ],
-                'pendingPayments' => $revenues->pending_payments,
-                'completedPayments' => $revenues->completed_payments,
-                'overduePayments' => $overduePayments,
-            ];
-        });
+        $overduePayments = PaymentSchedule::where('due_date', '<', now())
+            ->where('status', '!=', 'paid')
+            ->sum(FacadesDB::raw('amount - paid_amount'));
+
+        $percentChange = $revenues->last_month_revenue > 0
+            ? round((($revenues->current_month_revenue - $revenues->last_month_revenue) / $revenues->last_month_revenue) * 100, 1)
+            : 0;
+
+        return [
+            'monthlyRevenue' => [
+                'amount' => $revenues->current_month_revenue,
+                'percentChange' => $percentChange,
+            ],
+            'pendingPayments' => $pendingPayments,
+            'completedPayments' => $revenues->completed_payments,
+            'overduePayments' => $overduePayments,
+        ];
     }
 
     public function render()

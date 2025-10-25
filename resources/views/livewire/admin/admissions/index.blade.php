@@ -147,7 +147,7 @@
         </div>
     @endif
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
         <!-- Total Admissions -->
         <div class="bg-white p-4 rounded-xl border">
             <div class="flex justify-between items-center">
@@ -164,11 +164,41 @@
             </div>
         </div>
 
+        <!-- Draft Admissions -->
+        <div class="bg-white p-4 rounded-xl border">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-gray-600 text-sm">Draft</p>
+                    <p class="text-2xl font-semibold text-yellow-600">{{ $stats['draft'] }}</p>
+                </div>
+                <div class="p-2 bg-yellow-100 text-yellow-500 rounded-lg">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Finalized Admissions -->
+        <div class="bg-white p-4 rounded-xl border">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-gray-600 text-sm">Finalized</p>
+                    <p class="text-2xl font-semibold text-blue-600">{{ $stats['finalized'] }}</p>
+                </div>
+                <div class="p-2 bg-blue-100 text-blue-500 rounded-lg">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
         <!-- Active Admissions -->
         <div class="bg-white p-4 rounded-xl border">
             <div class="flex justify-between items-center">
                 <div>
-                    <p class="text-gray-600 text-sm">Active Admissions</p>
+                    <p class="text-gray-600 text-sm">Active</p>
                     <p class="text-2xl font-semibold text-green-600">{{ $stats['active'] }}</p>
                 </div>
                 <div class="p-2 bg-green-100 text-green-500 rounded-lg">
@@ -183,7 +213,7 @@
         <div class="bg-white p-4 rounded-xl border">
             <div class="flex justify-between items-center">
                 <div>
-                    <p class="text-gray-600 text-sm">Completed Admissions</p>
+                    <p class="text-gray-600 text-sm">Completed</p>
                     <p class="text-2xl font-semibold text-gray-600">{{ $stats['completed'] }}</p>
                 </div>
                 <div class="p-2 bg-gray-100 text-gray-500 rounded-lg">
@@ -199,7 +229,7 @@
         <div class="bg-white p-4 rounded-xl border">
             <div class="flex justify-between items-center">
                 <div>
-                    <p class="text-gray-600 text-sm">Cancelled Admissions</p>
+                    <p class="text-gray-600 text-sm">Cancelled</p>
                     <p class="text-2xl font-semibold text-red-600">{{ $stats['cancelled'] }}</p>
                 </div>
                 <div class="p-2 bg-red-100 text-red-500 rounded-lg">
@@ -238,6 +268,12 @@
                 @foreach ($batches as $b)
                     <option value="{{ $b->id }}">{{ $b->batch_name }}</option>
                 @endforeach
+            </select>
+
+            <select wire:model.live="isDraft" class="border rounded-lg px-4 py-2">
+                <option value="">All Types</option>
+                <option value="draft">Draft Only</option>
+                <option value="finalized">Finalized Only</option>
             </select>
         </div>
     </div>

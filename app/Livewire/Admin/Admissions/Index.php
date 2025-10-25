@@ -13,6 +13,7 @@ use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
 
+
 #[Layout('components.layouts.admin')]
 class Index extends Component
 {
@@ -22,6 +23,7 @@ class Index extends Component
     public string $q       = '';
     public ?string $status = null;
     public ?int $batchId   = null;
+    public ?string $isDraft = null; // 'draft', 'finalized', or null for all
     public $importFile;
 
     // NEW: export modal state
@@ -30,7 +32,7 @@ class Index extends Component
     public ?string $toDate       = null; // 'Y-m-d'
     public ?string $dateRange    = null; // For predefined date ranges
 
-    protected $queryString = ['q', 'status', 'batchId', 'page'];
+    protected $queryString = ['q', 'status', 'batchId', 'isDraft', 'page'];
 
     // Open modal
     public function openExport(): void
@@ -216,7 +218,7 @@ class Index extends Component
 
     public function updating($name)
     {
-        if (in_array($name, ['q', 'status', 'batchId'])) {
+        if (in_array($name, ['q', 'status', 'batchId', 'isDraft'])) {
             $this->resetPage();
         }
     }
@@ -241,18 +243,23 @@ class Index extends Component
             }))
             ->when($this->status, fn($q) => $q->where('status', $this->status))
             ->when($this->batchId, fn($q) => $q->where('batch_id', $this->batchId))
+            ->when($this->isDraft === 'draft', fn($q) => $q->where('is_draft', true))
+            ->when($this->isDraft === 'finalized', fn($q) => $q->where('is_draft', false))
             ->latest();
     }
 
     private function getStats()
     {
         // Cache stats for 5 minutes to reduce database queries
-        return Cache::remember('admission_stats', 300, function () {
+        // Using versioned cache key to ensure fresh stats when drafts are saved/cleared
+        return Cache::remember('admission_stats_v2', 300, function () {
             return [
                 'total'           => Admission::count(),
                 'active'          => Admission::where('status', 'active')->count(),
                 'completed'       => Admission::where('status', 'completed')->count(),
                 'cancelled'       => Admission::where('status', 'cancelled')->count(),
+                'draft'           => Admission::where('is_draft', true)->count(),
+                'finalized'       => Admission::where('is_draft', false)->count(),
                 'pendingPayments' => Admission::where('fee_due', '>', 0)->count(),
             ];
         });
