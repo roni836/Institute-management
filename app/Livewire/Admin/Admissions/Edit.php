@@ -1006,11 +1006,28 @@ class Edit extends Component
                 }
             }
         } else {
-            // Full payment mode - remove all installment schedules without transactions
+            // Full payment mode
+            // Remove all installment schedules without transactions
             foreach ($existingSchedules as $schedule) {
                 if ($schedule->transactions->count() === 0) {
                     $schedule->delete();
                 }
+            }
+            
+            // Create or update single payment schedule for full payment (if no schedules exist)
+            if ($existingSchedules->isEmpty() || $existingSchedules->where('transactions', '>', 0)->isEmpty()) {
+                PaymentSchedule::updateOrCreate(
+                    [
+                        'admission_id'   => $this->admission->id,
+                        'installment_no' => 1,
+                    ],
+                    [
+                        'due_date'    => $this->admission_date,
+                        'amount'      => $this->fee_total,
+                        'paid_amount' => 0,
+                        'status'      => 'pending',
+                    ]
+                );
             }
         }
     }
