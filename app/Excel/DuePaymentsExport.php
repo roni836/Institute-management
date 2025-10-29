@@ -141,27 +141,17 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
     public function headings(): array
     {
         return [
-            'S.No',
             'Name',
-            'Father Name',
+            'F Name',
             'Enrollment',
-            'Mobile',
-            'Alt Mobile',
-            'Batch',
-            'Inst Date',
-            'Inst Amount (₹)',
-            'Paid Amount (₹)',
-            'Due Amount (₹)',
+            'Primary Contact',
+            'Secondary Contact',
             'Course',
-            'Fee Total (₹)',
-            'Fee Due (₹)',
-            'Next Due Date',
-            'Next Due Amount (₹)',
-            'Pending Installments',
-            'Status',
-            'Days Overdue/Remaining',
-            'Last Transaction Date',
-            'Last Transaction Amount (₹)',
+            'Batch',
+            'Installment Date',
+            'Installment Amt',
+            'Paid Amt',
+            'Remaining Amt',
         ];
     }
 
