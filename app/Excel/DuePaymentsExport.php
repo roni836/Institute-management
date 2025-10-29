@@ -148,6 +148,7 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
             'Secondary Contact',
             'Course',
             'Batch',
+            'Total Amount',
             'Installment Date',
             'Installment Amt',
             'Paid Amt',
@@ -174,28 +175,22 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
             }
         }
 
+        $paidAmount = $row->fee_total - $row->fee_due;
+        $remainingAmount = $row->next_due_amount ?? $row->fee_due;
+
         return [
-            $counter,
             $row->student_name,
-            $row->father_name ?? 'N/A',
-            $row->enrollment_id ?? 'N/A',
-            $row->student_phone,
-            $row->alt_phone ?: ($row->whatsapp_no ?? 'N/A'),
-            $row->batch_name,
-            $nextDueDate ? $nextDueDate->format('d M Y') : 'N/A',
-            $row->next_due_amount ? number_format(max(0, $row->next_due_amount), 2) : 'N/A',
-            number_format($row->fee_total - $row->fee_due, 2), // Paid amount
-            number_format($row->fee_due, 2),
+            $row->father_name ?? '',
+            $row->enrollment_id ?? '',
+            $row->student_phone ?? '',
+            $row->alt_phone ?: ($row->whatsapp_no ?? ''),
             $row->course_name,
-            number_format($row->fee_total, 2),
-            number_format($row->fee_due, 2),
-            $nextDueDate ? $nextDueDate->format('d M Y') : 'N/A',
-            $row->next_due_amount ? number_format(max(0, $row->next_due_amount), 2) : 'N/A',
-            $row->pending_installments ?? 0,
-            $isOverdue ? 'Overdue' : 'Pending',
-            $daysCalculation,
-            $row->last_transaction_date ? \Carbon\Carbon::parse($row->last_transaction_date)->format('d M Y') : 'N/A',
-            $row->last_transaction_amount ? number_format($row->last_transaction_amount, 2) : 'N/A',
+            $row->batch_name,
+            number_format($row->fee_total, 0),
+            $nextDueDate ? $nextDueDate->format('d/m/Y') : '',
+            $row->next_due_amount ? number_format($row->next_due_amount, 0) : '',
+            number_format($paidAmount, 0),
+            number_format($remainingAmount, 0),
         ];
     }
 
@@ -206,13 +201,10 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
             1 => ['font' => ['bold' => true]],
             
             // Auto-fit columns
-            'A:N' => ['alignment' => ['horizontal' => 'left']],
+            'A:L' => ['alignment' => ['horizontal' => 'left']],
             
-            // Right align numeric columns
-            'H:K' => ['alignment' => ['horizontal' => 'right']],
-            'M:P' => ['alignment' => ['horizontal' => 'right']],
-            'Q' => ['alignment' => ['horizontal' => 'center']],
-            'U' => ['alignment' => ['horizontal' => 'right']],
+            // Right align numeric columns (Total Amount, Installment Amt, Paid Amt, Remaining Amt)
+            'H:L' => ['alignment' => ['horizontal' => 'right']],
         ];
     }
 }
