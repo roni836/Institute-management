@@ -68,6 +68,22 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
                     ->orderBy('due_date')
                     ->limit(1),
 
+                // total amount of the next installment
+                'next_installment_total' => PaymentSchedule::select('amount')
+                    ->whereColumn('admissions.id', 'payment_schedules.admission_id')
+                    ->whereIn('status', ['pending','partial'])
+                    ->where('amount', '>', DB::raw('paid_amount'))
+                    ->orderBy('due_date')
+                    ->limit(1),
+
+                // paid amount of the next installment
+                'next_installment_paid' => PaymentSchedule::select('paid_amount')
+                    ->whereColumn('admissions.id', 'payment_schedules.admission_id')
+                    ->whereIn('status', ['pending','partial'])
+                    ->where('amount', '>', DB::raw('paid_amount'))
+                    ->orderBy('due_date')
+                    ->limit(1),
+
                 // how many installments still pending/partial
                 'pending_installments' => PaymentSchedule::selectRaw('COUNT(*)')
                     ->whereColumn('admissions.id', 'payment_schedules.admission_id')
@@ -175,8 +191,11 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
             }
         }
 
-        $paidAmount = $row->fee_total - $row->fee_due;
-        $remainingAmount = $row->next_due_amount ?? $row->fee_due;
+        // Calculate amounts correctly for the specific installment
+        $totalPaidAmount = $row->fee_total - $row->fee_due; // Total amount paid across all installments
+        $installmentTotalAmount = $row->next_installment_total ?? 0; // Total amount of this specific installment
+        $installmentPaidAmount = $row->next_installment_paid ?? 0; // Amount already paid for this specific installment
+        $remainingInstallmentAmount = $row->next_due_amount ?? 0; // Remaining amount for this specific installment
 
         return [
             $row->student_name,
@@ -188,9 +207,9 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
             $row->batch_name,
             number_format($row->fee_total, 0),
             $nextDueDate ? $nextDueDate->format('d/m/Y') : '',
-            $row->next_due_amount ? number_format($row->next_due_amount, 0) : '',
-            number_format($paidAmount, 0),
-            number_format($remainingAmount, 0),
+            $installmentTotalAmount ? number_format($installmentTotalAmount, 0) : '',
+            $installmentPaidAmount ? number_format($installmentPaidAmount, 0) : '0',
+            $remainingInstallmentAmount ? number_format($remainingInstallmentAmount, 0) : '',
         ];
     }
 
