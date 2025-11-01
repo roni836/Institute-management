@@ -975,6 +975,26 @@
                                         <span class="text-sm text-gray-700">Tuition Fee</span>
                                         <span class="font-medium">{{ number_format($selected_course->tution_fee ?? 18000, 0) }}</span>
                                     </div>
+                                    <div class="flex justify-between py-2">
+                                        <span class="text-sm text-gray-700">Admission Fee</span>
+                                        <span class="font-medium">{{ number_format($selected_course->admission_fee ?? 18000, 0) }}</span>
+                                    </div>
+                                    <div class="flex justify-between py-2">
+                                        <span class="text-sm text-gray-700">Exam Fee</span>
+                                        <span class="font-medium">{{ number_format($selected_course->exam_fee ?? 18000, 0) }}</span>
+                                    </div>
+                                    <div class="flex justify-between py-2">
+                                        <span class="text-sm text-gray-700">Infrastructure Fee</span>
+                                        <span class="font-medium">{{ number_format($selected_course->infra_fee ?? 18000, 0) }}</span>
+                                    </div>
+                                    <div class="flex justify-between py-2">
+                                        <span class="text-sm text-gray-700">SM Fee</span>
+                                        <span class="font-medium">{{ number_format($selected_course->SM_fee ?? 18000, 0) }}</span>
+                                    </div>
+                                    <div class="flex justify-between py-2">
+                                        <span class="text-sm text-gray-700">Tech Fee</span>
+                                        <span class="font-medium">{{ number_format($selected_course->tech_fee ?? 18000, 0) }}</span>
+                                    </div>
                                     
                                     <div class="flex justify-between py-2">
                                         <span class="text-sm text-gray-700">Other Fee</span>
