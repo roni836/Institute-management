@@ -90,6 +90,13 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
                     ->whereIn('status', ['pending','partial'])
                     ->where('amount', '>', DB::raw('paid_amount')),
 
+                // total fee due up to today (sum of all unpaid amounts for installments due up to today)
+                'total_fee_due_upto_today' => PaymentSchedule::selectRaw('SUM(GREATEST(0, amount - paid_amount))')
+                    ->whereColumn('admissions.id', 'payment_schedules.admission_id')
+                    ->whereIn('status', ['pending','partial'])
+                    ->where('amount', '>', DB::raw('paid_amount'))
+                    ->where('due_date', '<=', $today),
+
                 // last transaction date and amount
                 'last_transaction_date' => DB::table('transactions')
                     ->whereColumn('transactions.admission_id', 'admissions.id')
@@ -165,6 +172,7 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
             'Course',
             'Batch',
             'Total Amount',
+            'Fee Due Upto Today',
             'Installment Date',
             'Installment Amt',
             'Paid Amt',
@@ -196,6 +204,7 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
         $installmentTotalAmount = $row->next_installment_total ?? 0; // Total amount of this specific installment
         $installmentPaidAmount = $row->next_installment_paid ?? 0; // Amount already paid for this specific installment
         $remainingInstallmentAmount = $row->next_due_amount ?? 0; // Remaining amount for this specific installment
+        $totalFeeDueUptoToday = $row->total_fee_due_upto_today ?? 0; // Total fee due up to today
 
         return [
             $row->student_name,
@@ -206,6 +215,7 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
             $row->course_name,
             $row->batch_name,
             number_format($row->fee_total, 0),
+            number_format($totalFeeDueUptoToday, 0),
             $nextDueDate ? $nextDueDate->format('d/m/Y') : '',
             $installmentTotalAmount ? number_format($installmentTotalAmount, 0) : '',
             $installmentPaidAmount ? number_format($installmentPaidAmount, 0) : '0',
@@ -220,10 +230,10 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
             1 => ['font' => ['bold' => true]],
             
             // Auto-fit columns
-            'A:L' => ['alignment' => ['horizontal' => 'left']],
+            'A:M' => ['alignment' => ['horizontal' => 'left']],
             
-            // Right align numeric columns (Total Amount, Installment Amt, Paid Amt, Remaining Amt)
-            'H:L' => ['alignment' => ['horizontal' => 'right']],
+            // Right align numeric columns (Total Amount, Fee Due Upto Today, Installment Amt, Paid Amt, Remaining Amt)
+            'H:M' => ['alignment' => ['horizontal' => 'right']],
         ];
     }
 }
