@@ -14,23 +14,19 @@ class Index extends Component
 {
     use WithPagination;
 
-    #[Validate('string')]
     public string $q = '';
 
-    #[Validate('nullable|string|in:active,completed')]
     public ?string $status = null;
 
-    #[Validate('nullable|integer|exists:batches,id')]
     public ?int $batchId = null;
 
-    #[Validate('integer|min:5|max:50')]
     public int $perPage = 10;
 
-    protected $queryString = ['q', 'status', 'batchId', 'perPage', 'page'];
+    protected $queryString = ['q', 'status', 'batchId', 'page'];
 
     public function updating($name)
     {
-        if (in_array($name, ['q', 'status', 'batchId', 'perPage'])) {
+        if (in_array($name, ['q', 'status', 'batchId'])) {
             $this->resetPage();
         }
     }
@@ -48,10 +44,12 @@ class Index extends Component
             ->with('admissions.batch') // Eager-load to avoid N+1 issues
             ->when($this->q, fn($q) => $q->where(function($qq) {
                 $term = "%{$this->q}%";
-                $qq->where('first_name', 'like', $term)
-                   ->orWhere('last_name', 'like', $term)
+                $qq->where('name', 'like', $term)
+                   ->orWhere('father_name', 'like', $term)
+                   ->orWhere('enrollment_id', 'like', $term)
                    ->orWhere('email', 'like', $term)
-                   ->orWhere('phone', 'like', $term);
+                   ->orWhere('phone', 'like', $term)
+                   ->orWhere('student_uid', 'like', $term);
             }))
             ->when($this->status, fn($q) => $q->where('status', $this->status))
             ->when($this->batchId, fn($q) => $q->whereHas('admissions', fn($a) => 
@@ -66,7 +64,7 @@ class Index extends Component
             $counts = Student::selectRaw("
                 count(*) as total,
                 count(case when status = 'active' then 1 end) as active,
-                count(case when status = 'completed' then 1 end) as completed,
+                count(case when status = 'alumni' then 1 end) as completed,
                 count(case when MONTH(created_at) = ? then 1 end) as this_month
             ", [now()->month])->first();
 

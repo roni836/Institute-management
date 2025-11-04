@@ -16,23 +16,35 @@
         <x-stat-card title="This Month" :value="$stats['thisMonth']" icon="calendar" color="orange" />
     </div>
 
-    <div class="mb-3 grid md:grid-cols-4 gap-2">
-        <input type="text" placeholder="Search name/email/phone"
-            class="input input-bordered w-full border rounded-lg p-2" wire:model.debounce.400ms="q">
+    <div class="bg-white p-6 rounded-xl border mb-6">
+        <div class="flex flex-col sm:flex-row gap-4">
+            <!-- Search -->
+            <div class="relative flex-1">
+                <input type="text" wire:model.live.debounce.300ms="q"
+                    class="w-full pl-10 pr-4 py-2 border rounded-lg" placeholder="Search by name, father name, enrollment ID, email, or phone">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </span>
+            </div>
 
-        <select class="border rounded-lg p-2" wire:model="status">
-            <option value="">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="alumni">Alumni</option>
-        </select>
+            <!-- Status filter -->
+            <select wire:model.live="status" class="border rounded-lg px-4 py-2">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="alumni">Alumni</option>
+            </select>
 
-        <select class="border rounded-lg p-2" wire:model="batchId">
-            <option value="">All Batches</option>
-            @foreach ($batches as $b)
-                <option value="{{ $b->id }}">{{ $b->name }}</option>
-            @endforeach
-        </select>
+            <!-- Batch filter -->
+            <select wire:model.live="batchId" class="border rounded-lg px-4 py-2">
+                <option value="">All Batches</option>
+                @foreach ($batches as $b)
+                    <option value="{{ $b->id }}">{{ $b->batch_name }}</option>
+                @endforeach
+            </select>
+        </div>
     </div>
 
     @if (session('ok'))
