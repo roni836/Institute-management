@@ -420,6 +420,7 @@
                                         <option value="10" {{ $class == '10' ? 'selected' : '' }}>10th</option>
                                         <option value="11" {{ $class == '11' ? 'selected' : '' }}>11th</option>
                                         <option value="12" {{ $class == '12' ? 'selected' : '' }}>12th</option>
+                                        <option value="13" {{ $class == '13' ? 'selected' : '' }}>13th</option>
                                     </select>
                                     @error('class') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                     @if($class)
