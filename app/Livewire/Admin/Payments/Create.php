@@ -41,6 +41,11 @@ class Create extends Component
     public bool $flexiblePayment = false; // New flag for flexible payment mode
     public ?float $flexibleAmount = null; // Amount for flexible payment
 
+    // Selected student details + transactions
+    public array $studentDetails = [];
+    public array $recentTransactions = [];
+    public array $admissionTransactions = [];
+
     public function updated($name, $value): void
     {
         if ($name === 'search') {
@@ -83,6 +88,8 @@ class Create extends Component
         if (! $admission) {
             $this->schedules         = [];
             $this->admission_fee_due = '0.00';
+            // Clear admission-specific transactions
+            $this->admissionTransactions = [];
             return;
         }
 
@@ -107,6 +114,9 @@ class Create extends Component
                 . " — Left ₹" . number_format(max(0, (float)$s->amount - (float)$s->paid_amount), 2),
             ])
             ->toArray();
+
+        // Load recent transactions for this admission (grouped by receipt)
+        $this->admissionTransactions = $this->loadAdmissionTransactions($admission->id);
     }
 
     public function updatedSelectedScheduleIds(): void
@@ -261,6 +271,13 @@ class Create extends Component
                 'due'   => number_format((float)$a->fee_due, 2, '.', ''),
             ])
             ->toArray();
+
+        // Load and expose selected student details
+        $this->studentDetails = $this->loadStudentDetails($id);
+        // Load student's recent transactions (grouped by receipt)
+        $this->recentTransactions = $this->loadStudentRecentTransactions($id);
+        // Clear admission-specific transactions until an admission is chosen
+        $this->admissionTransactions = [];
     }
 
     private function onFlexiblePaymentChanged(): void
@@ -590,6 +607,126 @@ class Create extends Component
 
         session()->flash('success', "Payment recorded successfully! Receipt Number: {$this->receipt_number}");
         return redirect()->route('admin.payments.index');
+    }
+
+    /**
+     * Build a presentable details array for the selected student
+     */
+    private function loadStudentDetails(int $studentId): array
+    {
+        $student = Student::with(['addresses' => function ($q) {
+            $q->whereIn('type', ['correspondence', 'permanent']);
+        }])->find($studentId);
+
+        if (! $student) {
+            return [];
+        }
+
+        // Address formatting with priority: correspondence -> permanent -> basic field
+        $corr = $student->addresses->firstWhere('type', 'correspondence');
+        $perm = $student->addresses->firstWhere('type', 'permanent');
+        $addrSource = $corr ?: ($perm ?: null);
+        if ($addrSource) {
+            $parts = array_filter([
+                $addrSource->address_line1 ?? null,
+                $addrSource->address_line2 ?? null,
+                $addrSource->city ?? null,
+                $addrSource->district ?? null,
+                $addrSource->state ?? null,
+                $addrSource->pincode ?? null,
+            ], fn($v) => !is_null($v) && $v !== '');
+            $formattedAddress = implode(', ', $parts);
+        } else {
+            $formattedAddress = (string) ($student->address ?? '');
+        }
+
+        return [
+            'name'          => $student->name,
+            'enrollment_id' => $student->enrollment_id,
+            'phone'         => $student->phone,
+            'alt_phone'     => $student->alt_phone ?: ($student->whatsapp_no ?: null),
+            'email'         => $student->email,
+            'photo_url'     => $student->photo ? asset('storage/' . $student->photo) : null,
+            'address'       => $formattedAddress ?: 'N/A',
+        ];
+    }
+
+    /**
+     * Load recent transactions for a student (merged by receipt number)
+     */
+    private function loadStudentRecentTransactions(int $studentId): array
+    {
+        $tx = Transaction::with(['admission.batch'])
+            ->whereHas('admission', function ($q) use ($studentId) {
+                $q->where('student_id', $studentId);
+            })
+            ->orderByDesc('date')
+            ->orderByDesc('id')
+            ->limit(50)
+            ->get();
+
+        return $this->groupTransactionsByReceipt($tx);
+    }
+
+    /**
+     * Load recent transactions for a specific admission (merged by receipt number)
+     */
+    private function loadAdmissionTransactions(int $admissionId): array
+    {
+        $tx = Transaction::with(['admission.batch'])
+            ->where('admission_id', $admissionId)
+            ->orderByDesc('date')
+            ->orderByDesc('id')
+            ->limit(50)
+            ->get();
+
+        return $this->groupTransactionsByReceipt($tx);
+    }
+
+    /**
+     * Group a collection of transactions by receipt number and merge data
+     */
+    private function groupTransactionsByReceipt($transactions): array
+    {
+        if ($transactions->isEmpty()) return [];
+
+        // Group by receipt label (actual receipt_number or fallback)
+        $grouped = $transactions->groupBy(function ($t) {
+            return $t->receipt_number ?: ('TX-' . $t->id);
+        });
+
+        $rows = [];
+        foreach ($grouped as $receipt => $items) {
+            $amount = round((float) $items->sum('amount'), 2);
+            $gst    = round((float) $items->sum('gst'), 2);
+            $date   = optional($items->min('date'))?->format('d-M-Y');
+
+            $modes = $items->pluck('mode')->filter()->unique()->values()->all();
+            $refs  = $items->pluck('reference_no')->filter()->unique()->values()->all();
+            $stats = $items->pluck('status')->filter()->unique()->values()->all();
+
+            $admission = $items->first()?->admission;
+            $batchName = $admission && $admission->batch ? $admission->batch->batch_name : 'N/A';
+
+            $rows[] = [
+                'receipt'  => $receipt,
+                'date'     => $date,
+                'amount'   => $amount,
+                'gst'      => $gst,
+                'count'    => $items->count(),
+                'modes'    => implode(', ', $modes),
+                'refs'     => implode(', ', $refs),
+                'statuses' => implode(', ', $stats),
+                'batch'    => $batchName,
+            ];
+        }
+
+        // Sort rows by date desc (most recent first)
+        usort($rows, function ($a, $b) {
+            return strtotime($b['date'] ?? '1970-01-01') <=> strtotime($a['date'] ?? '1970-01-01');
+        });
+
+        return $rows;
     }
 
     public function render()

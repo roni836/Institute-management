@@ -1,4 +1,4 @@
-<div class="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
+<div class="max-w-full mx-auto p-4 md:p-6 space-y-6">
     <div class="flex justify-between items-center mb-6">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">Create Payment</h1>
@@ -107,6 +107,109 @@
         </div>
     @endunless
 
+    <!-- Selected Student Details & Recent Transactions -->
+    @if ($selectedStudentId)
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Student Details Card -->
+            <div class="bg-white rounded-xl shadow-sm border overflow-hidden lg:col-span-1">
+                <div class="bg-gray-50 border-b px-6 py-4">
+                    <h2 class="text-lg font-medium text-gray-900">Student Details</h2>
+                    <p class="text-sm text-gray-600">Quick summary of the selected student</p>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-start gap-4">
+                        @if(data_get($studentDetails, 'photo_url'))
+                            <img src="{{ data_get($studentDetails, 'photo_url') }}" alt="Photo" class="h-16 w-16 rounded-lg object-cover border">
+                        @else
+                            <div class="h-16 w-16 rounded-lg bg-gray-100 border flex items-center justify-center text-gray-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M10 6a3 3 0 100-6 3 3 0 000 6z" />
+                                    <path fill-rule="evenodd" d="M.458 16.042A10 10 0 1116.042.458a8 8 0 10-15.584 15.584z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        @endif
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-base font-semibold text-gray-900 truncate">{{ data_get($studentDetails, 'name', 'Student') }}</h3>
+                                <span class="text-xs px-2 py-1 rounded bg-gray-100 text-gray-700 border">ENR: {{ data_get($studentDetails, 'enrollment_id', '—') }}</span>
+                            </div>
+                            <div class="mt-3 space-y-1 text-sm">
+                                <div class="flex items-center text-gray-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h2a1 1 0 011 1v1h6V3a1 1 0 011-1h2a1 1 0 011 1v1h1a2 2 0 012 2v1H1V6a2 2 0 012-2h1V3z"/><path d="M1 9h18v7a2 2 0 01-2 2H3a2 2 0 01-2-2V9z"/></svg>
+                                    <span class="truncate">{{ data_get($studentDetails, 'address', '—') }}</span>
+                                </div>
+                                <div class="flex items-center text-gray-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h3a1 1 0 011 1v1H2V3zM2 6h14v10a1 1 0 01-1 1H3a1 1 0 01-1-1V6z"/></svg>
+                                    <span>{{ data_get($studentDetails, 'email', '—') }}</span>
+                                </div>
+                                <div class="flex items-center text-gray-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h3a1 1 0 011 1v3H2V3zM2 8h5v4H2V8zm7 0h9v4H9V8zM2 13h5v4H2v-4zm7 0h9v4H9v-4z"/></svg>
+                                    <span>{{ data_get($studentDetails, 'phone', '—') }}</span>
+                                    @if(data_get($studentDetails, 'alt_phone'))
+                                        <span class="ml-2 text-xs text-gray-500">Alt: {{ data_get($studentDetails, 'alt_phone') }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Transactions (Student-wide) -->
+            <div class="bg-white rounded-xl shadow-sm border overflow-hidden lg:col-span-2">
+                <div class="bg-gray-50 border-b px-6 py-4 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-lg font-medium text-gray-900">Recent Transactions</h2>
+                        <p class="text-sm text-gray-600">Grouped by receipt number for this student</p>
+                    </div>
+                </div>
+                <div class="p-6">
+                    @if(!empty($recentTransactions))
+                        <div class="overflow-x-auto border rounded-lg">
+                            <table class="min-w-full text-sm">
+                                <thead class="bg-gray-100 text-left">
+                                    <tr>
+                                        <th class="px-4 py-3">Receipt No</th>
+                                        <th class="px-4 py-3">Date</th>
+                                        <th class="px-4 py-3">Batch</th>
+                                        <th class="px-4 py-3 text-right">Amount (₹)</th>
+                                        <th class="px-4 py-3 text-right">GST (₹)</th>
+                                        <th class="px-4 py-3 text-center">Tx Count</th>
+                                        <th class="px-4 py-3">Mode(s)</th>
+                                        <th class="px-4 py-3">Ref(s)</th>
+                                        <th class="px-4 py-3">Status(es)</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y">
+                                    @foreach($recentTransactions as $row)
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-4 py-3 font-medium">{{ $row['receipt'] }}</td>
+                                            <td class="px-4 py-3">{{ $row['date'] }}</td>
+                                            <td class="px-4 py-3">{{ $row['batch'] }}</td>
+                                            <td class="px-4 py-3 text-right">{{ number_format((float) $row['amount'], 2) }}</td>
+                                            <td class="px-4 py-3 text-right">{{ number_format((float) $row['gst'], 2) }}</td>
+                                            <td class="px-4 py-3 text-center">{{ $row['count'] }}</td>
+                                            <td class="px-4 py-3">{{ $row['modes'] }}</td>
+                                            <td class="px-4 py-3">{{ $row['refs'] }}</td>
+                                            <td class="px-4 py-3">{{ $row['statuses'] }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="text-center text-gray-500 py-8">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto text-gray-400 mb-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zM7 9H5v2h2V9zm8 0h-2v2h2V9zM7 5h6a1 1 0 010 2H7a1 1 0 110-2zM7 13h6a1 1 0 010 2H7a1 1 0 110-2z" clip-rule="evenodd" />
+                            </svg>
+                            <p>No recent transactions found for this student.</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    @endif
+
     <!-- Admission selector appears after a student is chosen -->
     @if ($selectedStudentId && $admissions)
         <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
@@ -141,6 +244,57 @@
                         </svg>
                     </div>
                 </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Admission-specific Recent Transactions -->
+    @if ($admission_id)
+        <div class="bg-white rounded-xl shadow-sm border overflow-hidden mt-6">
+            <div class="bg-gray-50 border-b px-6 py-4">
+                <h2 class="text-lg font-medium text-gray-900">This Admission - Recent Receipts</h2>
+                <p class="text-sm text-gray-600">Transactions grouped by receipt for selected admission</p>
+            </div>
+            <div class="p-6">
+                @if(!empty($admissionTransactions))
+                    <div class="overflow-x-auto border rounded-lg">
+                        <table class="min-w-full text-sm">
+                            <thead class="bg-gray-100 text-left">
+                                <tr>
+                                    <th class="px-4 py-3">Receipt No</th>
+                                    <th class="px-4 py-3">Date</th>
+                                    <th class="px-4 py-3 text-right">Amount (₹)</th>
+                                    <th class="px-4 py-3 text-right">GST (₹)</th>
+                                    <th class="px-4 py-3 text-center">Tx Count</th>
+                                    <th class="px-4 py-3">Mode(s)</th>
+                                    <th class="px-4 py-3">Ref(s)</th>
+                                    <th class="px-4 py-3">Status(es)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                @foreach($admissionTransactions as $row)
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-4 py-3 font-medium">{{ $row['receipt'] }}</td>
+                                        <td class="px-4 py-3">{{ $row['date'] }}</td>
+                                        <td class="px-4 py-3 text-right">{{ number_format((float) $row['amount'], 2) }}</td>
+                                        <td class="px-4 py-3 text-right">{{ number_format((float) $row['gst'], 2) }}</td>
+                                        <td class="px-4 py-3 text-center">{{ $row['count'] }}</td>
+                                        <td class="px-4 py-3">{{ $row['modes'] }}</td>
+                                        <td class="px-4 py-3">{{ $row['refs'] }}</td>
+                                        <td class="px-4 py-3">{{ $row['statuses'] }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <div class="text-center text-gray-500 py-8">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto text-gray-400 mb-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zM7 9H5v2h2V9zm8 0h-2v2h2V9zM7 5h6a1 1 0 010 2H7a1 1 0 110-2zM7 13h6a1 1 0 010 2H7a1 1 0 110-2z" clip-rule="evenodd" />
+                        </svg>
+                        <p>No transactions found for this admission.</p>
+                    </div>
+                @endif
             </div>
         </div>
     @endif
