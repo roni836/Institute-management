@@ -28,6 +28,10 @@ class Edit extends Component
         'due_date' => null,
         'status' => null,
         'paid_amount' => null,
+        'payment_mode' => null,
+        'transaction_reference' => null,
+        'receipt_no' => null,
+        'remarks' => null,
     ];
     
     // Transaction editing
@@ -85,6 +89,10 @@ class Edit extends Component
                 'due_date' => Carbon::parse($schedule['due_date'])->format('Y-m-d'),
                 'status' => $schedule['status'],
                 'paid_amount' => $schedule['paid_amount'],
+                'payment_mode' => $schedule['payment_mode'] ?? null,
+                'transaction_reference' => $schedule['transaction_reference'] ?? null,
+                'receipt_no' => $schedule['receipt_no'] ?? null,
+                'remarks' => $schedule['remarks'] ?? null,
             ];
             $this->selectedScheduleId = $scheduleId;
         }
@@ -96,6 +104,10 @@ class Edit extends Component
             'editingSchedule.amount' => 'required|numeric|min:0',
             'editingSchedule.due_date' => 'required|date',
             'editingSchedule.installment_no' => 'required|integer|min:1',
+            'editingSchedule.payment_mode' => 'nullable|in:cash,card,upi,bank_transfer,cheque,head_office',
+            'editingSchedule.transaction_reference' => 'nullable|string|max:191',
+            'editingSchedule.receipt_no' => 'nullable|string|max:191',
+            'editingSchedule.remarks' => 'nullable|string',
         ]);
 
         try {
@@ -112,6 +124,10 @@ class Edit extends Component
                     'installment_no' => $this->editingSchedule['installment_no'],
                     'amount' => $this->editingSchedule['amount'],
                     'due_date' => $this->editingSchedule['due_date'],
+                    'payment_mode' => $this->editingSchedule['payment_mode'] ?? null,
+                    'transaction_reference' => $this->editingSchedule['transaction_reference'] ?? null,
+                    'receipt_no' => $this->editingSchedule['receipt_no'] ?? null,
+                    'remarks' => $this->editingSchedule['remarks'] ?? null,
                 ]);
                 
                 // Recalculate admission due amount
@@ -164,6 +180,10 @@ class Edit extends Component
             'due_date' => now()->addMonth()->format('Y-m-d'),
             'status' => 'pending',
             'paid_amount' => 0,
+            'payment_mode' => null,
+            'transaction_reference' => null,
+            'receipt_no' => null,
+            'remarks' => null,
         ];
         $this->selectedScheduleId = 'new';
     }
@@ -174,6 +194,10 @@ class Edit extends Component
             'editingSchedule.amount' => 'required|numeric|min:0.01',
             'editingSchedule.due_date' => 'required|date',
             'editingSchedule.installment_no' => 'required|integer|min:1',
+            'editingSchedule.payment_mode' => 'nullable|in:cash,card,upi,bank_transfer,cheque,head_office',
+            'editingSchedule.transaction_reference' => 'nullable|string|max:191',
+            'editingSchedule.receipt_no' => 'nullable|string|max:191',
+            'editingSchedule.remarks' => 'nullable|string',
         ]);
 
         try {
@@ -183,6 +207,10 @@ class Edit extends Component
                 'due_date' => $this->editingSchedule['due_date'],
                 'status' => 'pending',
                 'paid_amount' => 0,
+                'payment_mode' => $this->editingSchedule['payment_mode'] ?? null,
+                'transaction_reference' => $this->editingSchedule['transaction_reference'] ?? null,
+                'receipt_no' => $this->editingSchedule['receipt_no'] ?? null,
+                'remarks' => $this->editingSchedule['remarks'] ?? null,
             ]);
             
             // Recalculate admission due amount

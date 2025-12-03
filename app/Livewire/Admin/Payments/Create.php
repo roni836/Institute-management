@@ -167,7 +167,8 @@ class Create extends Component
 
     private function onModeChanged(): void
     {
-        if ($this->mode === 'cash') {
+        // Clear reference number for cash or head_office modes
+        if (in_array($this->mode, ['cash', 'head_office'], true)) {
             $this->reference_no = null;
         }
     }
@@ -356,7 +357,8 @@ class Create extends Component
             'selectedScheduleIds'   => ['array'],
             'selectedScheduleIds.*' => ['integer', Rule::exists('payment_schedules', 'id')],
             'date'                  => ['required', 'date'],
-            'mode'                  => ['required', Rule::in(['cash', 'cheque', 'online'])],
+            // Allow all modes present in UI and receipts
+            'mode'                  => ['required', Rule::in(['cash', 'card', 'upi', 'bank_transfer', 'cheque', 'head_office'])],
             'reference_no'          => ['nullable', 'string', 'max:100'],
             'amount'                => ['required', 'numeric', 'min:0.01'],
             'applyGst'              => ['boolean'],
