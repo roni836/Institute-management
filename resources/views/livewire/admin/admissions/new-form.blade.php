@@ -675,6 +675,7 @@ function addressDropdown(prefix) {
                                     <option value="11">11th</option>
                                     <option value="12">12th</option>
                                     <option value="13">13th</option>
+                                    <option value="TS">Test Series</option>
                                 </select>
                                 @error('class')
                                     <p class="text-xs text-red-600">{{ $message }}</p>

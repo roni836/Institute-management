@@ -1073,22 +1073,27 @@ class NewForm extends Component
 
         // Get session year start (e.g., "2024-25" -> "24", "2025-26" -> "25")
         $sessionYear = $this->academic_session ? $this->getSessionYearStart($this->academic_session) : date('y');
-        
+
         $streamPrefix = match ($this->stream) {
             'Foundation' => 'F',
             'Engineering' => 'E',
             'Medical' => 'M',
             'Other' => 'O',
-            default => 'O'
+            default => strtoupper(substr($this->stream, 0, 1))
         };
-        
-        // Use class number directly (5, 6, 7, 8, 9, 10, 11, 12)
-        $classNumber = $this->class;
 
-        // Build the pattern to search for: F24AE6, E25AE11, etc.
-        $pattern = $streamPrefix . $sessionYear . 'AE2' . $classNumber;
+        // Determine class to use in pattern (may come from selected batch/course if class not directly set)
+        $classForEnrollment = $this->getClassForEnrollment();
+
+        // Special pattern for TS class: TS + [Stream Letter] + [Session YY]
+        if (strtoupper((string)$this->class) === 'TS') {
+            $pattern = 'TS' . $streamPrefix . $sessionYear; // e.g., TSM26
+        } else {
+            // Existing pattern: [Stream Letter][Session Year]AE[Class]
+            $pattern = $streamPrefix . $sessionYear . 'AE' . $classForEnrollment;
+        }
         
-        // Find the last enrollment ID for this stream, year, and class
+        // Find the last enrollment ID for this combination (prefix match)
         $lastStudent = Student::where('stream', $this->stream)
             ->where('enrollment_id', 'like', $pattern . '%')
             ->orderBy('enrollment_id', 'desc')

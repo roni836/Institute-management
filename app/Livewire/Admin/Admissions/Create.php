@@ -368,8 +368,14 @@ class Create extends Component
         // Use class number directly (5, 6, 7, 8, 9, 10, 11, 12)
         $classNumber = $this->class;
 
-        // Build the pattern to search for: F24AE6, E25AE11, etc.
-        $pattern = $streamPrefix . $sessionYear . 'AE' . $classNumber;
+        // Build the prefix pattern
+        if (strtoupper((string)$this->class) === 'TS') {
+            // TS-specific format: TS + [Stream Letter] + [Session YY]
+            $pattern = 'TS' . $streamPrefix . $sessionYear;
+        } else {
+            // Default format: [Stream Letter][Session YY]AE[Class]
+            $pattern = $streamPrefix . $sessionYear . 'AE' . $classNumber;
+        }
         
         // Find the last enrollment ID for this stream, year, and class
         $lastStudent = Student::where('stream', $this->stream)

@@ -724,16 +724,7 @@ class Edit extends Component
         return $labels[$field] ?? ucwords(str_replace('_', ' ', $field));
     }
 
-    private function getSessionYearStart($session): string
-    {
-        // Extract year start from session string (e.g., "2024-25" -> "24")
-        if (preg_match('/^(\d{4})-\d{2}$/', $session, $matches)) {
-            return substr($matches[1], -2);
-        }
-
-        // Fallback to current year if format doesn't match
-        return date('y');
-    }
+    
 
     public function next()
     {
@@ -1065,47 +1056,85 @@ class Edit extends Component
      */
     private function generateEnrollmentId(): string
     {
-    if (!$this->stream) {
-        throw new \Exception('Stream is required to generate enrollment ID');
+        if (!$this->stream) {
+            throw new \Exception('Stream is required to generate enrollment ID');
+        }
+
+        if (!$this->class) {
+            throw new \Exception('Class is required to generate enrollment ID');
+        }
+
+        // Get session year start (e.g., "2024-25" -> "24", "2025-26" -> "25")
+        $sessionYear = $this->academic_session ? $this->getSessionYearStart($this->academic_session) : date('y');
+        
+        // Build stream prefix
+        $streamPrefix = match ($this->stream) {
+            'Foundation' => 'F',
+            'Engineering' => 'E',
+            'Medical' => 'M',
+            'Other' => 'O',
+            default => strtoupper(substr($this->stream, 0, 1))
+        };
+
+        // Determine class context
+        $classForEnrollment = $this->getClassForEnrollment();
+
+        // Special-case TS class pattern
+        if (strtoupper((string)$this->class) === 'TS') {
+            $pattern = 'TS' . $streamPrefix . $sessionYear;
+        } else {
+            $pattern = $streamPrefix . $sessionYear . 'AE' . $classForEnrollment;
+        }
+
+        // Find last enrollment matching this prefix, excluding current student
+        $lastStudent = \App\Models\Student::where('stream', $this->stream)
+            ->where('enrollment_id', 'like', $pattern . '%')
+            ->where('id', '!=', $this->admission->student->id)
+            ->orderBy('enrollment_id', 'desc')
+            ->first();
+
+        if ($lastStudent && $lastStudent->enrollment_id) {
+            $lastNumber = (int) substr($lastStudent->enrollment_id, -4);
+            $nextNumber = $lastNumber + 1;
+        } else {
+            $nextNumber = 1;
+        }
+
+        return $pattern . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
     }
-    
-    if (!$this->class) {
-        throw new \Exception('Class is required to generate enrollment ID');
+
+    /**
+     * Extract session year start from session string (e.g., "2024-25" -> "24")
+     */
+    private function getSessionYearStart(string $session): string
+    {
+        if (preg_match('/^(\d{4})-\d{2}$/', $session, $matches)) {
+            return substr($matches[1], -2);
+        }
+        return date('y');
     }
 
-    // Get session year start (e.g., "2024-25" -> "24", "2025-26" -> "25")
-    $sessionYear = $this->academic_session ? $this->getSessionYearStart($this->academic_session) : date('y');
-    
-    $streamPrefix = match ($this->stream) {
-        'Foundation' => 'F',
-        'Engineering' => 'E',
-        'Medical' => 'M',
-        'Other' => 'O',
-        default => 'O'
-    };
-    
-    // Use class number directly (5, 6, 7, 8, 9, 10, 11, 12)
-    $classNumber = $this->class;
-
-    // Build the pattern to search for: F24AE6, E25AE11, etc.
-    $pattern = $streamPrefix . $sessionYear . 'AE2' . $classNumber;
-    
-    // Find the last enrollment ID for this stream, year, and class (excluding current student)
-    $lastStudent = \App\Models\Student::where('stream', $this->stream)
-        ->where('enrollment_id', 'like', $pattern . '%')
-        ->where('id', '!=', $this->admission->student->id) // Exclude current student
-        ->orderBy('enrollment_id', 'desc')
-        ->first();
-
-    if ($lastStudent && $lastStudent->enrollment_id) {
-        // Extract the sequence number from the last enrollment ID
-        $lastNumber = (int)substr($lastStudent->enrollment_id, -4);
-        $nextNumber = $lastNumber + 1;
-    } else {
-        $nextNumber = 1;
-    }
-
-    return $pattern . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+    /**
+     * Get class information for enrollment ID generation
+     */
+    private function getClassForEnrollment(): ?string
+    {
+        if ($this->class) {
+            return $this->class;
+        }
+        if ($this->selected_batch && isset($this->selected_batch->class)) {
+            return $this->selected_batch->class;
+        }
+        if ($this->selected_course && isset($this->selected_course->class)) {
+            return $this->selected_course->class;
+        }
+        return match ($this->stream) {
+            'Foundation' => '6',
+            'Engineering' => '11',
+            'Medical' => '11',
+            'Other' => '10',
+            default => '10',
+        };
     }
 
 
