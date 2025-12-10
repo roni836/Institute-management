@@ -375,7 +375,7 @@ class Create extends Component
             'selectedScheduleIds.*' => ['integer', Rule::exists('payment_schedules', 'id')],
             'date'                  => ['required', 'date'],
             // Allow all modes present in UI and receipts
-            'mode'                  => ['required', Rule::in(['cash', 'card', 'upi', 'bank_transfer', 'cheque', 'head_office'])],
+            'mode'                  => ['required'],
             'reference_no'          => ['nullable', 'string', 'max:100'],
             'amount'                => ['required', 'numeric', 'min:0.01'],
             'applyGst'              => ['boolean'],
