@@ -28,6 +28,9 @@ class Index extends Component
     #[Validate('string|in:cash,cheque,online,')]
     public string $mode = '';
 
+    #[Validate('string')]
+    public string $session = '';
+
     #[Validate('integer|min:5|max:50')]
     public int $perPage = 15;
 
@@ -36,11 +39,11 @@ class Index extends Component
     public ?string $toDate = null;
     public ?string $quickRange = null;
 
-    protected $queryString = ['search', 'status', 'mode', 'perPage', 'page', 'fromDate', 'toDate', 'quickRange'];
+    protected $queryString = ['search', 'status', 'mode', 'perPage', 'page', 'fromDate', 'toDate', 'quickRange', 'session'];
 
     public function updating($name)
     {
-        if (in_array($name, ['search', 'status', 'mode', 'perPage', 'fromDate', 'toDate', 'quickRange'])) {
+        if (in_array($name, ['search', 'status', 'mode', 'perPage', 'fromDate', 'toDate', 'quickRange', 'session'])) {
             $this->resetPage();
         }
     }
@@ -78,6 +81,7 @@ class Index extends Component
                 search: $this->search,
                 status: $this->status,
                 mode: $this->mode,
+                session: $this->session,
                 fromDate: $this->fromDate,
                 toDate: $this->toDate
             ),
@@ -94,6 +98,7 @@ class Index extends Component
                 search: $this->search,
                 status: $this->status,
                 mode: $this->mode,
+                session: $this->session,
                 fromDate: $this->fromDate,
                 toDate: $this->toDate
             ),
@@ -138,6 +143,7 @@ class Index extends Component
             ->when($this->mode, fn($q) => $q->where('transactions.mode', $this->mode))
             ->when($this->fromDate, fn($q) => $q->whereDate('transactions.date', '>=', $this->fromDate))
             ->when($this->toDate, fn($q) => $q->whereDate('transactions.date', '<=', $this->toDate))
+            ->when($this->session, fn($q) => $q->whereHas('admission.batch', fn($b) => $b->where('session', $this->session)))
             ->select('transactions.*', 
                 'student_summary.total_amount', 
                 'student_summary.total_gst', 

@@ -13,7 +13,6 @@ use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
 
-
 #[Layout('components.layouts.admin')]
 class Index extends Component
 {
@@ -24,6 +23,7 @@ class Index extends Component
     public ?string $status = null;
     public ?int $batchId   = null;
     public ?string $isDraft = null; // 'draft', 'finalized', or null for all
+    public ?string $session = null; // Academic session filter
     public $importFile;
 
     // NEW: export modal state
@@ -32,7 +32,7 @@ class Index extends Component
     public ?string $toDate       = null; // 'Y-m-d'
     public ?string $dateRange    = null; // For predefined date ranges
 
-    protected $queryString = ['q', 'status', 'batchId', 'isDraft', 'page'];
+    protected $queryString = ['q', 'status', 'batchId', 'isDraft','session', 'page'];
 
     // Open modal
     public function openExport(): void
@@ -70,6 +70,7 @@ class Index extends Component
         $admissions = $this->getAdmissionsQuery()
             ->when($this->fromDate, fn($q) => $q->whereDate('admission_date', '>=', $this->fromDate))
             ->when($this->toDate, fn($q) => $q->whereDate('admission_date', '<=', $this->toDate))
+            ->when($this->session, fn($q) => $q->where('session', $this->session))
             ->get();
 
         // Company details (customize as needed)
@@ -132,6 +133,7 @@ class Index extends Component
                 search: $this->q,
                 status: $this->status,
                 batchId: $this->batchId,
+                session: $this->session,
                 fromDate: $this->fromDate,
                 toDate: $this->toDate
             ),
@@ -148,6 +150,7 @@ class Index extends Component
                 search: null,
                 status: null,
                 batchId: null,
+                session: null,
                 fromDate: null,
                 toDate: null
             ),
@@ -218,7 +221,7 @@ class Index extends Component
 
     public function updating($name)
     {
-        if (in_array($name, ['q', 'status', 'batchId', 'isDraft'])) {
+        if (in_array($name, ['q', 'status', 'batchId', 'isDraft', 'session'])) {
             $this->resetPage();
         }
     }
@@ -245,6 +248,7 @@ class Index extends Component
             ->when($this->batchId, fn($q) => $q->where('batch_id', $this->batchId))
             ->when($this->isDraft === 'draft', fn($q) => $q->where('is_draft', true))
             ->when($this->isDraft === 'finalized', fn($q) => $q->where('is_draft', false))
+            ->when($this->session, fn($q) => $q->where('session', $this->session))
             ->latest();
     }
 
@@ -273,11 +277,26 @@ class Index extends Component
         });
     }
 
+    private function getSessions()
+    {
+        // Return predefined academic sessions that match the create form options
+        return [
+            '2023-24',
+            '2024-25', 
+            '2025-26',
+            '2026-27',
+            '2027-28',
+            '2028-29',
+            '2029-30'
+        ];
+    }
+
     public function render()
     {
         return view('livewire.admin.admissions.index', [
             'admissions' => $this->getAdmissionsQuery()->paginate(10),
             'batches'    => $this->getBatches(),
+            'sessions'   => $this->getSessions(),
             'stats'      => $this->getStats(),
         ]);
     }

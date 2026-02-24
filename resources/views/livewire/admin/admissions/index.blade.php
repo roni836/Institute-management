@@ -270,6 +270,13 @@
                 @endforeach
             </select>
 
+            <select wire:model.live="session" class="border rounded-lg px-4 py-2">
+                <option value="">All Sessions</option>
+                @foreach ($sessions as $sessionValue)
+                    <option value="{{ $sessionValue }}">{{ $sessionValue }}</option>
+                @endforeach
+            </select>
+
             <select wire:model.live="isDraft" class="border rounded-lg px-4 py-2">
                 <option value="">All Types</option>
                 <option value="draft">Draft Only</option>

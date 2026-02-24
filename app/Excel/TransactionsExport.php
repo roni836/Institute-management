@@ -16,14 +16,16 @@ class TransactionsExport implements FromQuery, WithHeadings, WithMapping, Should
     protected $search;
     protected $status;
     protected $mode;
+    protected $session;
     protected $fromDate;
     protected $toDate;
 
-    public function __construct($search = null, $status = null, $mode = null, $fromDate = null, $toDate = null)
+    public function __construct($search = null, $status = null, $mode = null, $session = null, $fromDate = null, $toDate = null)
     {
         $this->search = $search;
         $this->status = $status;
         $this->mode = $mode;
+        $this->session = $session;
         $this->fromDate = $fromDate;
         $this->toDate = $toDate;
     }
@@ -48,6 +50,7 @@ class TransactionsExport implements FromQuery, WithHeadings, WithMapping, Should
             }))
             ->when($this->status, fn($q) => $q->where('transactions.status', $this->status))
             ->when($this->mode, fn($q) => $q->where('transactions.mode', $this->mode))
+            ->when($this->session, fn($q) => $q->where('admissions.session', $this->session))
             ->when($this->fromDate, fn($q) => $q->whereDate('transactions.date', '>=', $this->fromDate))
             ->when($this->toDate, fn($q) => $q->whereDate('transactions.date', '<=', $this->toDate))
             ->select('transactions.*', 'courses.name as course_name')

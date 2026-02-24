@@ -108,6 +108,26 @@
             <div class="flex-shrink-0">
                 <input type="date" wire:model="toDate" class="border rounded-lg px-4 py-2" placeholder="To date">
             </div>
+            <div class="flex-shrink-0">
+                <select wire:model.live="mode" class="border rounded-lg px-4 py-2">
+                    <option value="">All Modes</option>
+                    <option value="cash">Cash</option>
+                    <option value="cheque">Cheque</option>
+                    <option value="online">Online</option>
+                </select>
+            </div>
+            <div class="flex-shrink-0">
+                <select wire:model.live="session" class="border rounded-lg px-4 py-2">
+                    <option value="">All Sessions</option>
+                    <option value="2023-24">2023-24</option>
+                    <option value="2024-25">2024-25</option>
+                    <option value="2025-26">2025-26</option>
+                    <option value="2026-27">2026-27</option>
+                    <option value="2027-28">2027-28</option>
+                    <option value="2028-29">2028-29</option>
+                    <option value="2029-30">2029-30</option>
+                </select>
+            </div>
             <div class="flex-shrink-0 flex gap-2">
                 <button wire:click="exportExcel" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
                     Export Summary

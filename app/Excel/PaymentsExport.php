@@ -17,6 +17,7 @@ class PaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldAuto
         public ?string $search = null,
         public ?string $status = null,
         public ?string $mode = null,
+        public ?string $session = null,
         public ?string $fromDate = null,
         public ?string $toDate = null,
     ) {}
@@ -57,6 +58,7 @@ class PaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldAuto
             }))
             ->when($this->status, fn($q) => $q->where('transactions.status', $this->status))
             ->when($this->mode, fn($q) => $q->where('transactions.mode', $this->mode))
+            ->when($this->session, fn($q) => $q->where('admissions.session', $this->session))
             ->when($this->fromDate, fn($q) => $q->whereDate('transactions.date', '>=', $this->fromDate))
             ->when($this->toDate, fn($q) => $q->whereDate('transactions.date', '<=', $this->toDate))
             ->select('transactions.*', 

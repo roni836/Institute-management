@@ -16,14 +16,16 @@ class AdmissionsDetailsExport implements FromQuery, WithHeadings, WithMapping, S
     protected $search;
     protected $status;
     protected $batchId;
+    protected $session;
     protected $fromDate;
     protected $toDate;
 
-    public function __construct($search = null, $status = null, $batchId = null, $fromDate = null, $toDate = null)
+    public function __construct($search = null, $status = null, $batchId = null, $session = null, $fromDate = null, $toDate = null)
     {
         $this->search = $search;
         $this->status = $status;
         $this->batchId = $batchId;
+        $this->session = $session;
         $this->fromDate = $fromDate;
         $this->toDate = $toDate;
     }
@@ -44,6 +46,7 @@ class AdmissionsDetailsExport implements FromQuery, WithHeadings, WithMapping, S
             }))
             ->when($this->status, fn($q) => $q->where('admissions.status', $this->status))
             ->when($this->batchId, fn($q) => $q->where('admissions.batch_id', $this->batchId))
+            ->when($this->session, fn($q) => $q->where('admissions.session', $this->session))
             ->when($this->fromDate, fn($q) => $q->whereDate('admissions.admission_date', '>=', $this->fromDate))
             ->when($this->toDate, fn($q) => $q->whereDate('admissions.admission_date', '<=', $this->toDate))
             ->select('admissions.*', 'courses.name as course_name')
