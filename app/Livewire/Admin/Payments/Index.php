@@ -143,18 +143,27 @@ class Index extends Component
             ->when($this->mode, fn($q) => $q->where('transactions.mode', $this->mode))
             ->when($this->fromDate, fn($q) => $q->whereDate('transactions.date', '>=', $this->fromDate))
             ->when($this->toDate, fn($q) => $q->whereDate('transactions.date', '<=', $this->toDate))
-            ->when($this->session, fn($q) => $q->whereHas('admission.batch', fn($b) => $b->where('session', $this->session)))
+            ->when($this->session, fn($q) => $q->whereHas('admission', fn($a) => $a->where('session', $this->session)))
             ->select('transactions.*', 
                 'student_summary.total_amount', 
                 'student_summary.total_gst', 
                 'student_summary.transaction_count',
                 'student_summary.earliest_date',
-                'student_summary.latest_date',
                 'student_summary.modes',
                 'student_summary.statuses',
                 'student_summary.receipt_numbers'
             )
-            ->latest('student_summary.latest_date');
+            ->latest('student_summary.earliest_date');
+    }
+
+    private function getSessions()
+    {
+        // Return distinct session values from admissions table, ordered by session
+        return \App\Models\Admission::distinct('session')
+            ->whereNotNull('session')
+            ->orderBy('session')
+            ->pluck('session')
+            ->toArray();
     }
 
     private function getPaymentStats()
@@ -201,6 +210,7 @@ class Index extends Component
         return view('livewire.admin.payments.index', [
             'transactions' => $this->getTransactionsQuery()->paginate($this->perPage),
             'stats' => $this->getPaymentStats(),
+            'sessions' => $this->getSessions(),
         ]);
     }
 }
