@@ -6,6 +6,7 @@ use App\Excel\AdmissionsDetailsExport;
 use App\Excel\AdmissionsImport;
 use App\Models\Admission;
 use App\Models\Batch;
+use App\Models\Student;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -248,7 +249,7 @@ class Index extends Component
             ->when($this->batchId, fn($q) => $q->where('batch_id', $this->batchId))
             ->when($this->isDraft === 'draft', fn($q) => $q->where('is_draft', true))
             ->when($this->isDraft === 'finalized', fn($q) => $q->where('is_draft', false))
-            ->when($this->session, fn($q) => $q->where('session', $this->session))
+            ->when($this->session, fn($q) => $q->whereHas('student', fn($s) => $s->where('academic_session', $this->session)))
             ->latest();
     }
 
@@ -279,11 +280,11 @@ class Index extends Component
 
     private function getSessions()
     {
-        // Return distinct session values from admissions table, ordered by session
-        return Admission::distinct('session')
-            ->whereNotNull('session')
-            ->orderBy('session')
-            ->pluck('session')
+        // Return distinct academic_session values from students table, ordered by academic_session
+        return Student::distinct('academic_session')
+            ->whereNotNull('academic_session')
+            ->orderBy('academic_session')
+            ->pluck('academic_session')
             ->toArray();
     }
 

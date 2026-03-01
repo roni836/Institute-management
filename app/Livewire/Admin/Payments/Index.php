@@ -5,6 +5,7 @@ use App\Excel\PaymentsExport;
 use App\Excel\TransactionsExport;
 use App\Models\Transaction;
 use App\Models\PaymentSchedule;
+use App\Models\Student;
 use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB as FacadesDB;
@@ -143,7 +144,7 @@ class Index extends Component
             ->when($this->mode, fn($q) => $q->where('transactions.mode', $this->mode))
             ->when($this->fromDate, fn($q) => $q->whereDate('transactions.date', '>=', $this->fromDate))
             ->when($this->toDate, fn($q) => $q->whereDate('transactions.date', '<=', $this->toDate))
-            ->when($this->session, fn($q) => $q->whereHas('admission', fn($a) => $a->where('session', $this->session)))
+            ->when($this->session, fn($q) => $q->whereHas('admission.student', fn($s) => $s->where('academic_session', $this->session)))
             ->select('transactions.*', 
                 'student_summary.total_amount', 
                 'student_summary.total_gst', 
@@ -158,11 +159,11 @@ class Index extends Component
 
     private function getSessions()
     {
-        // Return distinct session values from admissions table, ordered by session
-        return \App\Models\Admission::distinct('session')
-            ->whereNotNull('session')
-            ->orderBy('session')
-            ->pluck('session')
+        // Return distinct academic_session values from students table, ordered by academic_session
+        return Student::distinct('academic_session')
+            ->whereNotNull('academic_session')
+            ->orderBy('academic_session')
+            ->pluck('academic_session')
             ->toArray();
     }
 
