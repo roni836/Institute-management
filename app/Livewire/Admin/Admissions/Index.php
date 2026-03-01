@@ -279,16 +279,12 @@ class Index extends Component
 
     private function getSessions()
     {
-        // Return predefined academic sessions that match the create form options
-        return [
-            '2023-24',
-            '2024-25', 
-            '2025-26',
-            '2026-27',
-            '2027-28',
-            '2028-29',
-            '2029-30'
-        ];
+        // Return distinct session values from admissions table, ordered by session
+        return Admission::distinct('session')
+            ->whereNotNull('session')
+            ->orderBy('session')
+            ->pluck('session')
+            ->toArray();
     }
 
     public function render()
