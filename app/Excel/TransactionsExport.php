@@ -50,7 +50,7 @@ class TransactionsExport implements FromQuery, WithHeadings, WithMapping, Should
             }))
             ->when($this->status, fn($q) => $q->where('transactions.status', $this->status))
             ->when($this->mode, fn($q) => $q->where('transactions.mode', $this->mode))
-            ->when($this->session, fn($q) => $q->where('admissions.session', $this->session))
+            ->when($this->session, fn($q) => $q->whereHas('admission.student', fn($s) => $s->where('academic_session', $this->session)))
             ->when($this->fromDate, fn($q) => $q->whereDate('transactions.date', '>=', $this->fromDate))
             ->when($this->toDate, fn($q) => $q->whereDate('transactions.date', '<=', $this->toDate))
             ->select('transactions.*', 'courses.name as course_name')

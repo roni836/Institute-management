@@ -71,7 +71,6 @@ class Index extends Component
         $admissions = $this->getAdmissionsQuery()
             ->when($this->fromDate, fn($q) => $q->whereDate('admission_date', '>=', $this->fromDate))
             ->when($this->toDate, fn($q) => $q->whereDate('admission_date', '<=', $this->toDate))
-            ->when($this->session, fn($q) => $q->where('session', $this->session))
             ->get();
 
         // Company details (customize as needed)
