@@ -1025,8 +1025,17 @@ class Edit extends Component
 
     public function render()
     {
-        $courses = Course::all();
-        $batches = Batch::where('course_id', $this->course_id)->get();
+        $courses = Course::whereHas('batches', function($q) {
+            $q->where('status', '!=', 'Completed');
+        })->orDoesntHave('batches')
+        ->orWhere('id', $this->course_id)
+        ->get();
+
+        $batches = Batch::where('course_id', $this->course_id)
+            ->where(function($q) {
+                $q->where('status', '!=', 'Completed')
+                  ->orWhere('id', $this->batch_id);
+            })->get();
         
         return view('livewire.admin.admissions.edit', [
             'courses' => $courses,

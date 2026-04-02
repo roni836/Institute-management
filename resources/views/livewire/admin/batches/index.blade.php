@@ -107,6 +107,7 @@
                         <th class="text-left p-3">Batch</th>
                         <th class="text-left p-3">Course</th>
                         <th class="text-left p-3">Dates</th>
+                        <th class="text-left p-3">Status</th>
                         <th class="text-right p-3">Actions</th>
                     </tr>
                     </thead>
@@ -118,6 +119,14 @@
                             <td class="p-3">
                                 {{ \Carbon\Carbon::parse($b->start_date)->format('d M Y') }} →
                                 {{ \Carbon\Carbon::parse($b->end_date)->format('d M Y') }}
+                            </td>
+                            <td class="p-3 font-medium">
+                                <span class="px-2 py-1 rounded-full text-xs 
+                                    {{ $b->status === 'Running' ? 'bg-green-100 text-green-700' : '' }}
+                                    {{ $b->status === 'Upcoming' ? 'bg-blue-100 text-blue-700' : '' }}
+                                    {{ $b->status === 'Completed' ? 'bg-gray-100 text-gray-700' : '' }}">
+                                    {{ $b->status }}
+                                </span>
                             </td>
                             <td class="p-3 text-right space-x-2">
                                 <a class="px-2 py-1 rounded bg-gray-100"

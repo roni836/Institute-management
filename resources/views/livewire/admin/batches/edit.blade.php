@@ -38,6 +38,16 @@
             </div>
         </div>
 
+        <div>
+            <label class="text-xs">Status</label>
+            <select class="w-full border rounded p-2" wire:model="status">
+                <option value="Upcoming">Upcoming</option>
+                <option value="Running">Running</option>
+                <option value="Completed">Completed</option>
+            </select>
+            @error('status')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
+        </div>
+
         <div class="pt-2">
             <button class="px-4 py-2 rounded-lg bg-black text-white">Update</button>
             <a href="{{ route('admin.batches.index') }}" class="ml-2 px-4 py-2 rounded-lg border">Cancel</a>

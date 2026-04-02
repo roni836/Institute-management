@@ -10,7 +10,7 @@ use Livewire\Component;
 #[Layout('components.layouts.admin')]
 class Create extends Component
 {
-    public $course_id, $batch_name, $start_date, $end_date;
+    public $course_id, $batch_name, $start_date, $end_date, $status = 'Upcoming';
     public $selected_course;
 
     public function rules()
@@ -20,6 +20,7 @@ class Create extends Component
             'batch_name' => 'required|string|max:255',
             'start_date' => 'nullable|date',
             'end_date'   => 'nullable|date|after_or_equal:start_date',
+            'status'     => 'required|in:Upcoming,Running,Completed',
         ];
     }
 

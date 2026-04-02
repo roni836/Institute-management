@@ -1571,10 +1571,12 @@ class NewForm extends Component
     public function render()
     {
         return view('livewire.admin.admissions.new-form', [
-            'courses' => Course::orderBy('name')->get(),
+            'courses' => Course::whereHas('batches', function($q) {
+                $q->where('status', '!=', 'Completed');
+            })->orDoesntHave('batches')->orderBy('name')->get(),
             'batches' => $this->course_id 
-                ? Batch::where('course_id', $this->course_id)->with('course')->latest()->get()
-                : Batch::with('course')->latest()->get(),
+                ? Batch::where('course_id', $this->course_id)->where('status', '!=', 'Completed')->with('course')->latest()->get()
+                : Batch::where('status', '!=', 'Completed')->with('course')->latest()->get(),
             'progress' => match ($this->step) {
                 1 => 50, 
                 2 => 100,

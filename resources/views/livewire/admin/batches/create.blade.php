@@ -68,6 +68,22 @@
                 </div>
             </div>
 
+            <!-- Status Section -->
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select class="px-3 py-2 border w-full border-gray-300 rounded-lg shadow-sm focus:border-primary-500 focus:ring-primary-500" 
+                            wire:model="status">
+                        <option value="Upcoming">Upcoming</option>
+                        <option value="Running">Running</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                    @error('status')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
             <!-- Action Buttons -->
             <div class="flex items-center justify-end gap-4 pt-4 border-t">
                 <a href="{{ route('admin.batches.index') }}" 

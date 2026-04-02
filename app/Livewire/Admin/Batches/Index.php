@@ -47,11 +47,9 @@ class Index extends Component
 
         // Add batch statistics
         $totalBatches = Batch::count();
-        $runningBatches = Batch::whereNotNull('start_date')
-            ->where('end_date', '>', now())
-            ->count();
-        $upcomingBatches = Batch::where('start_date', '>', now())->count();
-        $completedBatches = Batch::where('end_date', '<', now())->count();
+        $runningBatches = Batch::where('status', 'Running')->count();
+        $upcomingBatches = Batch::where('status', 'Upcoming')->count();
+        $completedBatches = Batch::where('status', 'Completed')->count();
 
         return view('livewire.admin.batches.index', [
             'batches' => $batches,

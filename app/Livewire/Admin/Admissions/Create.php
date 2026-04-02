@@ -636,7 +636,7 @@ class Create extends Component
     public function render()
     {
         return view('livewire.admin.admissions.create', [
-            'batches'  => Batch::with('course')->latest()->get(),
+            'batches'  => Batch::with('course')->where('status', '!=', 'Completed')->latest()->get(),
             'progress' => match ($this->step) {
                 1 => 25, 2 => 50, 3 => 75,     default => 100,
             },

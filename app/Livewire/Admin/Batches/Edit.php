@@ -15,6 +15,7 @@ class Edit extends Component
     public $batch_name;
     public $start_date;
     public $end_date;
+    public $status;
     public $selected_course;
 
     public function mount(Batch $batch)
@@ -25,6 +26,7 @@ class Edit extends Component
         // Convert dates to string format for the input fields
         $this->start_date = optional($batch->start_date)->format('Y-m-d');
         $this->end_date = optional($batch->end_date)->format('Y-m-d');
+        $this->status = $batch->status;
         $this->selected_course = Course::find($this->course_id);
     }
 
@@ -35,6 +37,7 @@ class Edit extends Component
             'batch_name' => 'required|string|max:255',
             'start_date' => 'nullable|date',
             'end_date'   => 'nullable|date|after_or_equal:start_date',
+            'status'     => 'required|in:Upcoming,Running,Completed',
         ];
     }
 
@@ -46,7 +49,8 @@ class Edit extends Component
             'course_id' => $this->course_id,
             'batch_name' => $this->batch_name,
             'start_date' => $this->start_date,
-            'end_date' => $this->end_date
+            'end_date' => $this->end_date,
+            'status' => $this->status,
         ]);
 
         session()->flash('ok', 'Batch updated.');
