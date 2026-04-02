@@ -33,12 +33,17 @@ class DuePayments extends Component
     #[Url(as: 'batch_id', except: null)]
     public ?int $batchId = null;
 
+    #[Url(except: '')]
+    public string $session = '';
+
     public int $perPage = 20;
 
     // Reset to page 1 whenever a filter changes
     public function updating($name, $value)
     {
-        $this->resetPage();
+        if (in_array($name, ['q', 'status', 'courseId', 'batchId', 'session'])) {
+            $this->resetPage();
+        }
     }
 
     protected function baseQuery()
@@ -108,6 +113,10 @@ class DuePayments extends Component
             $base->where('batches.id', $this->batchId);
         }
 
+        if ($this->session) {
+            $base->where('students.academic_session', $this->session);
+        }
+
         // Status filter - only show dues up to today
         if ($this->status === 'overdue') {
             $base->whereExists(function ($q2) {
@@ -146,10 +155,20 @@ class DuePayments extends Component
                 q: $this->q,
                 status: $this->status,
                 courseId: $this->courseId,
-                batchId: $this->batchId
+                batchId: $this->batchId,
+                session: $this->session
             ),
             $fileName
         );
+    }
+
+    private function getSessions()
+    {
+        return \App\Models\Student::distinct('academic_session')
+            ->whereNotNull('academic_session')
+            ->orderBy('academic_session')
+            ->pluck('academic_session')
+            ->toArray();
     }
 
     public function render()
@@ -166,6 +185,7 @@ class DuePayments extends Component
             'dues'    => $dues,
             'courses' => $courses,
             'batches' => $batches,
+            'sessions' => $this->getSessions(),
         ]);
     }
 

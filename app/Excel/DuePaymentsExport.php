@@ -19,6 +19,7 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
         public ?string $status = 'overdue',
         public ?int $courseId = null,
         public ?int $batchId = null,
+        public ?string $session = null,
     ) {}
 
     public function query()
@@ -103,6 +104,10 @@ class DuePaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldA
 
         if ($this->batchId) {
             $base->where('batches.id', $this->batchId);
+        }
+
+        if ($this->session) {
+            $base->where('students.academic_session', $this->session);
         }
 
         // Order by due date (earliest first), then by student name

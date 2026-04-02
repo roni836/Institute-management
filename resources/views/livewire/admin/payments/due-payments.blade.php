@@ -37,6 +37,13 @@
                 <option value="{{ $b->id }}">{{ $b->batch_name }}</option>
             @endforeach
         </select>
+
+        <select wire:model.live="session" class="border rounded px-3 py-2">
+            <option value="">All Sessions</option>
+            @foreach($sessions as $sessionValue)
+                <option value="{{ $sessionValue }}">{{ $sessionValue }}</option>
+            @endforeach
+        </select>
     </div>
 
     {{-- Table --}}
